@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Hashed password
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    // e.g., "HSC ICT", "SSC ICT", "Job IT", "NTRCA ICT"
+  slug      String    @unique
+  isActive  Boolean   @default(false)
+  versions  Version[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Version {
+  id         String    @id @default(cuid())
+  name       String    // e.g., "Bangla Version", "English Version"
+  slug       String    @unique
+  isActive   Boolean   @default(false)
+  categoryId String
+  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  chapters   Chapter[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Chapter {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  image     String?  // Cloudinary URL
+  order     Int      @default(0)
+  versionId String
+  version   Version  @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  topics    Topic[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Topic {
+  id             String   @id @default(cuid())
+  title          String
+  slug           String   @unique
+  content        String?  // Notes in HTML/Markdown
+  visualizations String   @default("[]") // JSON Array of Cloudinary image/video URLs
+  order          Int      @default(0)
+  chapterId      String
+  chapter        Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  mcqs           MCQ[]
+  cqs            CQ[]
+  shortQuestions ShortQuestion[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model MCQ {
+  id            String   @id @default(cuid())
+  question      String   
+  options       String   @default("[]") // JSON Array of 4 options
+  correctAnswer String   // The exact string of the correct option
+  explanation   String?  
+  topicId       String
+  topic         Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model CQ {
+  id        String   @id @default(cuid())
+  stem      String   // উদ্দীপক (The scenario/context)
+  qA        String   // জ্ঞানমূলক (Knowledge)
+  qB        String   // অনুধাবন (Comprehension)
+  qC        String   // প্রয়োগ (Application)
+  qD        String   // উচ্চতর দক্ষতা (Higher Order Thinking)
+  topicId   String
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ShortQuestion {
+  id        String       @id @default(cuid())
+  type      String       // "KNOWLEDGE" | "COMPREHENSION"
+  question  String       
+  answer    String       
+  topicId   String
+  topic     Topic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model User {
+  id           String       @id @default(cuid())
+  name         String?
+  email        String       @unique
+  password     String?      // Optional for Google Auth
+  profileImage String?
+  bio          String?
+  phone        String?
+  institution  String?
+  district     String?
+  upazila      String?
+  tasks        Task[]
+  enrollments  Enrollment[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  title     String
+  priority  String   @default("Medium") // "High", "Medium", "Low"
+  completed Boolean  @default(false)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Challenge {
+  id          String              @id @default(cuid())
+  month       String              // e.g., "April"
+  year        Int                 // e.g., 2026
+  fee         Float               @default(20.0)
+  status      String              @default("DRAFT") // "DRAFT", "APPROVED", "LIVE"
+  questions   ChallengeQuestion[]
+  enrollments Enrollment[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+model ChallengeQuestion {
+  id            String    @id @default(cuid())
+  question      String
+  options       String    @default("[]") // JSON Array of 4 options
+  correctAnswer String
+  explanation   String?
+  challengeId   String
+  challenge     Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Enrollment {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challengeId   String
+  challenge     Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  paymentStatus String    @default("PENDING") // "PENDING", "PAID"
+  score         Int?      // Null until exam is taken
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([userId, challengeId])
+}

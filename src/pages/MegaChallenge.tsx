@@ -1,0 +1,263 @@
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { Trophy, Lock, PlayCircle, CheckCircle, Clock, BookOpen, CreditCard, Sparkles } from 'lucide-react';
+import MockPaymentPopup from '../components/MockPaymentPopup';
+import ChallengeExam from '../components/ChallengeExam';
+import Countdown from '../components/Countdown';
+import { motion } from 'motion/react';
+
+export default function MegaChallenge() {
+  const { user, login } = useAuth();
+  const [challenge, setChallenge] = useState<any>(null);
+  const [enrollment, setEnrollment] = useState<any>(null);
+  const [showPayment, setShowPayment] = useState(false);
+  const [showExam, setShowExam] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchChallenge();
+  }, []);
+
+  useEffect(() => {
+    if (user && challenge) {
+      checkEnrollment();
+    }
+  }, [user, challenge]);
+
+  const fetchChallenge = async () => {
+    try {
+      const res = await fetch('/api/challenges/current');
+      const data = await res.json();
+      setChallenge(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkEnrollment = async () => {
+    try {
+      const res = await fetch(`/api/dashboard?userId=${user?.id}`);
+      const data = await res.json();
+      const currentEnrollment = data.find((e: any) => e.challengeId === challenge.id);
+      setEnrollment(currentEnrollment);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleJoin = async () => {
+    if (!user) {
+      // Mock Google Login
+      await login();
+      return;
+    }
+    
+    if (!challenge) {
+      alert("Registration hasn't officially started yet. Please check back later!");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/challenges/${challenge.id}/enroll`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id })
+      });
+      const data = await res.json();
+      setEnrollment(data);
+      setShowPayment(true);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    setShowPayment(false);
+    await checkEnrollment(); // Refresh enrollment status
+  };
+
+  const isResultPublished = (updatedAt: string) => {
+    const examTime = new Date(updatedAt).getTime();
+    const now = new Date().getTime();
+    const hoursPassed = (now - examTime) / (1000 * 60 * 60);
+    return hoursPassed >= 12;
+  };
+
+  if (loading) return <div className="p-8 text-center text-slate-900 dark:text-white">Loading...</div>;
+
+  const displayChallenge = challenge || {
+    id: 'upcoming',
+    month: new Date().toLocaleString('default', { month: 'long' }),
+    year: new Date().getFullYear(),
+    fee: 20
+  };
+
+  if (showExam) {
+    return <ChallengeExam challengeId={displayChallenge.id} onComplete={() => { setShowExam(false); checkEnrollment(); }} />;
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto p-6 space-y-8">
+      {/* Hero Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-xl rounded-3xl p-8 md:p-12 border border-slate-900/10 dark:border-white/20 relative overflow-hidden text-center"
+      >
+        <div className="absolute top-0 right-0 bg-red-500 text-white px-6 py-1 rounded-bl-2xl font-bold animate-pulse shadow-lg shadow-red-500/50">
+          LIVE
+        </div>
+        <Trophy className="w-20 h-20 text-yellow-400 mx-auto mb-6 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+        <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">
+          HSC ICT Monthly Quiz Exam
+        </h1>
+        <p className="text-xl md:text-2xl text-sky-300 font-medium mb-2">All over Bangladesh</p>
+        <p className="text-lg text-slate-600 dark:text-gray-300 max-w-2xl mx-auto">
+          Test your knowledge, compete with thousands of students, and win exciting prizes in the biggest monthly ICT quiz exam!
+        </p>
+      </motion.div>
+
+      <div className="grid md:grid-cols-2 gap-8">
+        {/* Countdown & Syllabus */}
+        <div className="space-y-8">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-2xl rounded-3xl p-8 border border-slate-900/10 dark:border-white/20 shadow-xl shadow-black/20"
+          >
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+              <Clock className="text-sky-400" /> Exam Starts In
+            </h3>
+            <div className="flex justify-center">
+              <Countdown />
+            </div>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-2xl rounded-3xl p-8 border border-slate-900/10 dark:border-white/20 shadow-xl shadow-black/20"
+          >
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+              <BookOpen className="text-indigo-400" /> Exam Syllabus
+            </h3>
+            <div className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-slate-900/10 dark:border-white/10 rounded-2xl p-6 text-center shadow-inner">
+              <p className="text-2xl font-bold text-slate-900 dark:text-white drop-shadow-md">অধ্যায় ১ ও ২ সম্পূর্ণ</p>
+              <p className="text-indigo-200 mt-2 font-medium">Information & Communication Technology</p>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Join CTA Placard */}
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+          className="relative bg-slate-900/5 dark:bg-white/10 backdrop-blur-2xl rounded-3xl p-8 border border-slate-900/10 dark:border-white/20 flex flex-col justify-between shadow-2xl shadow-indigo-500/20 overflow-hidden"
+        >
+          <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500/30 via-purple-500/30 to-pink-500/30 blur-2xl z-0"></div>
+          
+          <div className="relative z-10">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <CreditCard className="text-pink-400" /> Registration
+              </h3>
+              <div className="animate-pulse flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20">
+                <div className="w-2 h-2 rounded-full bg-emerald-400"></div> Open
+              </div>
+            </div>
+            
+            <div className="bg-black/20 backdrop-blur-md rounded-2xl p-6 mb-8 border border-slate-900/10 dark:border-white/10 shadow-inner">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-slate-600 dark:text-gray-300 font-medium">Entry Fee</span>
+                <span className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-400">৳ {displayChallenge.fee}</span>
+              </div>
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-slate-600 dark:text-gray-300 font-medium">Total Marks</span>
+                <span className="text-xl font-bold text-slate-900 dark:text-white">30</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-600 dark:text-gray-300 font-medium">Format</span>
+                <span className="text-xl font-bold text-slate-900 dark:text-white">MCQ</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-6 mb-8">
+              <div className="flex flex-col items-center gap-2 group cursor-pointer">
+                <div className="h-12 w-20 bg-white/90 rounded-xl p-2 flex items-center justify-center border border-slate-900/10 dark:border-white/20 shadow-lg group-hover:scale-105 transition-transform">
+                  <img src="https://www.logo.wine/a/logo/BKash/BKash-Icon-Logo.wine.svg" alt="bKash" className="h-full object-contain" />
+                </div>
+                <span className="text-xs text-slate-600 dark:text-gray-300 font-medium group-hover:text-pink-300 transition-colors">bKash</span>
+              </div>
+              <div className="flex flex-col items-center gap-2 group cursor-pointer">
+                <div className="h-12 w-20 bg-white/90 rounded-xl p-2 flex items-center justify-center border border-slate-900/10 dark:border-white/20 shadow-lg group-hover:scale-105 transition-transform">
+                  <img src="https://download.logo.wine/logo/Nagad/Nagad-Logo.wine.png" alt="Nagad" className="h-full object-contain scale-125" />
+                </div>
+                <span className="text-xs text-slate-600 dark:text-gray-300 font-medium group-hover:text-orange-300 transition-colors">Nagad</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative z-10">
+            {!user ? (
+              <button 
+                onClick={handleJoin}
+                className="w-full py-4 bg-slate-900/5 dark:bg-white/10 backdrop-blur-md border border-slate-900/10 dark:border-white/20 hover:bg-slate-900/20 dark:hover:bg-white/20 text-slate-900 dark:text-white rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-2 shadow-xl hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+              >
+                <Lock className="w-5 h-5" />
+                Login to Join
+              </button>
+            ) : !enrollment ? (
+              <button 
+                onClick={handleJoin}
+                className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-5 h-5" />
+                Join the Exam for ৳{displayChallenge.fee}
+              </button>
+            ) : enrollment.paymentStatus === 'PENDING' ? (
+              <button 
+                onClick={() => setShowPayment(true)}
+                className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+              >
+                <CreditCard className="w-5 h-5" />
+                Pay ৳{displayChallenge.fee} & Join
+              </button>
+            ) : enrollment.score !== null ? (
+              <div className="bg-green-500/20 backdrop-blur-md border border-green-500/50 rounded-2xl p-6 text-center shadow-lg shadow-green-500/20">
+                <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-2" />
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Exam Completed!</h3>
+                {isResultPublished(enrollment.updatedAt) ? (
+                  <p className="text-lg text-slate-600 dark:text-gray-300">Your Score: <span className="text-slate-900 dark:text-white font-bold">{enrollment.score} / 30</span></p>
+                ) : (
+                  <p className="text-sm text-slate-600 dark:text-gray-300">Thanks for participating! Your result will be published in 12 hours.</p>
+                )}
+              </div>
+            ) : (
+              <button 
+                onClick={() => setShowExam(true)}
+                className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+              >
+                <PlayCircle className="w-6 h-6" />
+                Enter Exam Now
+              </button>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      {showPayment && (
+        <MockPaymentPopup 
+          challengeId={displayChallenge.id} 
+          fee={displayChallenge.fee} 
+          onClose={() => setShowPayment(false)} 
+          onSuccess={handlePaymentSuccess} 
+        />
+      )}
+    </div>
+  );
+}

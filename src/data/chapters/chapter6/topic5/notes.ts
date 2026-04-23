@@ -1,0 +1,1 @@
+export const notes = "SQL হলো রিলেশনাল ডেটাবেজ ম্যানেজমেন্ট সিস্টেমে (RDBMS) ডেটা তৈরি, পরিবর্তন, মুছে ফেলা এবং খুঁজে বের করার জন্য ব্যবহৃত একটি স্ট্যান্ডার্ড ভাষা। SQL এর প্রধান কমান্ডগুলো হলো: DDL (Data Definition Language - CREATE, ALTER, DROP), DML (Data Manipulation Language - INSERT, UPDATE, DELETE) এবং DQL (Data Query Language - SELECT)।";

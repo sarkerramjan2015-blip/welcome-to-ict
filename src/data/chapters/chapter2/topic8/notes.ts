@@ -1,0 +1,1 @@
+export const notes = "ভৌগোলিক বিস্তৃতির ওপর ভিত্তি করে নেটওয়ার্ক ৫ প্রকার: PAN (Personal Area Network - ১০ মিটারের মধ্যে), LAN (Local Area Network - একটি বিল্ডিং বা ক্যাম্পাসে), CAN (Campus Area Network - কয়েকটি LAN এর সমষ্টি), MAN (Metropolitan Area Network - একটি শহরের মধ্যে) এবং WAN (Wide Area Network - বিশ্বব্যাপী)।";
