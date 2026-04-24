@@ -18,10 +18,9 @@ import { topic16 } from "./topic16";
 import { topic17 } from "./topic17";
 
 export const chapter3: Chapter = {
-  id: "chap-3",
-  title: "অধ্যায় ৩: সংখ্যা পদ্ধতি ও ডিজিটাল ডিভাইস",
-  description:
-    "সংখ্যা পদ্ধতি, ডিজিটাল ডিভাইসের মৌলিক ধারণা, লজিক গেট এবং বুলিয়ান অ্যালজেবরার ব্যবহারিক প্রয়োগ আলোচনা করা হয়েছে।",
+  id: "chapter-3",
+  title: "সংখ্যা পদ্ধতি ও ডিজিটাল ডিভাইস",
+  description: "সংখ্যা পদ্ধতি, রূপান্তর, ২ এর পরিপূরক, কোড, লজিক গেট এবং ডিজিটাল ডিভাইসের বিস্তারিত আলোচনা।",
   topics: [
     topic1,
     topic2,
@@ -39,6 +38,6 @@ export const chapter3: Chapter = {
     topic14,
     topic15,
     topic16,
-    topic17,
-  ],
+    topic17
+  ]
 };

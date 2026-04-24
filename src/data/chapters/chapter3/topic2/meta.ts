@@ -1,6 +1,6 @@
 export const meta = {
   id: "topic-3-2",
-  title: "ডেসিমেল সংখ্যাকে বাইনারি, অক্টাল এবং হেক্সাডেসিমেল সংখ্যায় রূপান্তর",
-    thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
-  video_url: "https://www.youtube.com/embed/0G1XQ_l_u9Q"
+  title: "বিভিন্ন সংখ্যা পদ্ধতির যোগ",
+  thumbnail: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80",
+  video_url: ""
 } as const;

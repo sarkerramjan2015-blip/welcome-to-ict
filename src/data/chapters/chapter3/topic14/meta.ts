@@ -1,6 +1,6 @@
 export const meta = {
   id: "topic-3-14",
-  title: "লজিক ফাংশন থেকে সার্কিট এবং সার্কিট থেকে লজিক ফাংশন",
-    thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
-  video_url: "https://www.youtube.com/embed/0G1XQ_l_u9Q"
+  title: "ডিকোডার (Decoder)",
+  thumbnail: "https://images.unsplash.com/photo-1518932945647-7a1c969f8be2?auto=format&fit=crop&w=800&q=80",
+  video_url: ""
 } as const;

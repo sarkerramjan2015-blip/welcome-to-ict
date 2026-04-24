@@ -1,11 +1,30 @@
 import { PracticeMCQ } from "../../../ict-syllabus";
 
 export const practiceMCQs: PracticeMCQ[] = [
-    {
-      q: "HTML এর মৌলিক বিষয়সমূহ এর মূল কাজ কী?",
-      options: ["ওয়েবপেইজ তৈরি", "ডেটাবেজ তৈরি", "নেটওয়ার্কিং", "সবগুলো"],
-      correct: "ওয়েবপেইজ তৈরি",
-      explanation:
-        "HTML এবং ওয়েব ডিজাইনের মূল কাজ হলো ওয়েবপেইজ তৈরি ও প্রদর্শন করা।",
-    },
-  ];
+  { q: "HTML এর পূর্ণরূপ কোনটি?", options: ["HyperText Markup Language", "High Text Markup Language", "HyperText Language", "Hyper Term Markup Language"], correct: "HyperText Markup Language", explanation: "HTML = HyperText Markup Language। ওয়েবপেজ তৈরির মার্কআপ ভাষা।" },
+  { q: "HTML এর আবিষ্কারকের নাম কী? [ময়মনসিংহ বোর্ড ২০১৭]", options: ["টিম বার্নার্স-লি", "এলান টুরিং", "লিবনিজ", "স্টিভ জবস"], correct: "টিম বার্নার্স-লি", explanation: "টিম বার্নার্স-লি ১৯৮৯ সালে HTML আবিষ্কার করেন।" },
+  { q: "ওয়েবপেইজ তৈরিতে কোন ভাষা ব্যবহৃত হয়? [রাজশাহী বোর্ড ২০১৬]", options: ["PYTHON", "HTML", "COBOL", "FORTRAN"], correct: "HTML", explanation: "ওয়েবপেইজ তৈরিতে HTML ব্যবহৃত হয়।" },
+  { q: "HTML ফাইলের এক্সটেনশন কোনটি হবে? [সিলেট বোর্ড ২০১৬]", options: ["txt", "net", "html", "php"], correct: "html", explanation: "HTML ফাইলের এক্সটেনশন .html বা .htm হয়।" },
+  { q: "html ওয়েবপেজ তৈরির জন্য ফাইলের এক্সটেনশন হচ্ছে- [কুমিল্লা বোর্ড ২০১৭]\ni. html\nii. htm\niii. doc", options: ["i ও ii", "i ও iii", "ii ও iii", "i, ii ও iii"], correct: "i ও ii", explanation: "HTML ফাইলের এক্সটেনশন .html এবং .htm উভয়ই গ্রহণযোগ্য। .doc MS Word এর জন্য।" },
+  { q: "HTML Editor কোনটি? [ঢাকা বোর্ড ২০২৪]", options: ["Notepad", "Firefox", "Internet Explorer", "MS Word"], correct: "Notepad", explanation: "Notepad একটি টেক্সট এডিটর যা HTML কোড লিখতে ব্যবহৃত হয়।" },
+  { q: "HTML ট্যাগের চিহ্ন কোনটি? [ঢাকা বোর্ড ২০১৭]", options: ["<>", "{}", "()", "[]"], correct: "<>", explanation: "HTML ট্যাগ <> চিহ্নের মধ্যে লেখা হয়। যেমন <html>, <body>।" },
+  { q: "একটি ওয়েবপেইজের স্ট্রাকচারে কমপক্ষে কয়টি ট্যাগ থাকে?", options: ["৩", "৪", "৫", "৬"], correct: "৪", explanation: "ন্যূনতম ৪টি ট্যাগ — <html>, <head>, <title>, <body>।" },
+  { q: "একটি ওয়েবপেইজের প্রধান কয়টি অংশ থাকে?", options: ["২", "৩", "৪", "৫"], correct: "৩", explanation: "একটি ওয়েবপেইজের ৩টি প্রধান অংশ — <html>, <head>, <body>।" },
+  { q: "টিম বার্নার্স লি-র সাথে সম্পর্কযুক্ত- [কুমিল্লা বোর্ড ২০১৯]\ni. www ও MIT এর অধ্যাপক\nii. Google এর জনক\niii. HTML ও জেনেভার সার্ন", options: ["i ও ii", "i ও iii", "ii ও iii", "i, ii ও iii"], correct: "i ও iii", explanation: "টিম বার্নার্স-লি www এবং HTML এর উদ্ভাবক। MIT অধ্যাপক এবং জেনেভার CERN-এ কাজ করেছেন।" },
+  { q: "কোনটি ট্যাগের বৈশিষ্ট্যকে সুনির্দিষ্ট করে?", options: ["অ্যাট্রিবিউট", "ট্যাগ", "এলিমেন্ট", "কনটেন্ট"], correct: "অ্যাট্রিবিউট", explanation: "অ্যাট্রিবিউট ট্যাগের বৈশিষ্ট্য নির্ধারণ করে।" },
+  { q: "ওপেনিং ট্যাগ থেকে ক্লোজিং ট্যাগ পর্যন্ত সকল কিছুকে কী বলে? [চট্টগ্রাম বোর্ড ২০১৬]", options: ["অ্যাট্রিবিউট", "ট্যাগ", "এলিমেন্ট", "কনটেন্ট"], correct: "এলিমেন্ট", explanation: "HTML এলিমেন্ট হলো ওপেনিং ট্যাগ + কনটেন্ট + ক্লোজিং ট্যাগ।" },
+  { q: "যে ট্যাগের শুরু আছে কিন্তু বিষয়বস্তু ও শেষ ট্যাগ থাকে না তাকে বলে-", options: ["অ্যাট্রিবিউট", "হেড", "এম্পটি", "কন্টেইনার"], correct: "এম্পটি", explanation: "এম্পটি ট্যাগে কোনো ক্লোজিং ট্যাগ নেই। যেমন <br>, <img>, <hr>।" },
+  { q: "এম্পটি ট্যাগ হলো- [বরিশাল বোর্ড ২০১৯]\ni. <br>\nii. <img>\niii. <ol>", options: ["i ও ii", "i ও iii", "ii ও iii", "i, ii ও iii"], correct: "i ও ii", explanation: "<br> এবং <img> উভয়ই এম্পটি ট্যাগ — এদের ক্লোজিং ট্যাগ নেই। <ol> কনটেইনার ট্যাগ।" },
+  { q: "নিচের কোনটি ফাঁকা ট্যাগ? [রাজশাহী বোর্ড ২০২৩]", options: ["<b>", "<li>", "<br>", "<del>"], correct: "<br>", explanation: "<br> একটি ফাঁকা/এম্পটি ট্যাগ। লাইন ব্রেকের জন্য ব্যবহৃত হয়।" },
+  { q: "কোনটি এম্পটি এলিমেন্ট? [চট্টগ্রাম বোর্ড ২০২৩]", options: ["<p>", "<ol>", "<a href>", "<img>"], correct: "<img>", explanation: "<img> ট্যাগের কোনো ক্লোজিং ট্যাগ নেই — এটি এম্পটি এলিমেন্ট।" },
+  { q: "HTML এখানে ফাইলে- [কুমিল্লা বোর্ড ২০২৩]\ni. শুরু ট্যাগ হিসেবে <html> থাকে\nii. প্রতি জোড়া শুরু ও শেষ ট্যাগ থাকে\niii. অ্যাট্রিবিউট শুরু ট্যাগে থাকে", options: ["i ও ii", "i ও iii", "ii ও iii", "i, ii ও iii"], correct: "i, ii ও iii", explanation: "HTML ফাইলে তিনটি তথ্যই সঠিক।" },
+  { q: "HTML হচ্ছে- [বরিশাল বোর্ড ২০১৬]\ni. শেখা সহজ\nii. কেস সেনসিটিভ\niii. রক্ষণাবেক্ষণ সহজ", options: ["i ও ii", "i ও iii", "ii ও iii", "i, ii ও iii"], correct: "i ও iii", explanation: "HTML শেখা সহজ ও রক্ষণাবেক্ষণ সহজ। কিন্তু HTML কেস সেনসিটিভ নয়।" },
+  { q: "HTML এর সম্পূর্ণ কনটেন্ট কোন ট্যাগে থাকে? [কুমিল্লা বোর্ড ২০২৪]", options: ["<title>", "<html>", "<head>", "<body>"], correct: "<body>", explanation: "HTML এর সম্পূর্ণ দৃশ্যমান কনটেন্ট <body> ট্যাগে থাকে।" },
+  { q: "কোনটি টেক্সট ফরমেটিং এলিমেন্ট? [বরিশাল বোর্ড ২০২৪]", options: ["<b>", "<br>", "<li>", "<a>"], correct: "<b>", explanation: "<b> ট্যাগ টেক্সট বোল্ড করার টেক্সট ফরমেটিং এলিমেন্ট।" },
+  { q: "নিচের কোন ট্যাগে অ্যাট্রিবিউট থাকে? [ঢাকা বোর্ড ২০২৩]", options: ["শুরুর ট্যাগে", "শেষ ট্যাগে", "দুই ট্যাগের মাঝে", "উভয় ট্যাগে"], correct: "শুরুর ট্যাগে", explanation: "HTML ট্যাগের অ্যাট্রিবিউট সবসময় শুরুর (Opening) ট্যাগে থাকে।" },
+  { q: "HTML প্রোগ্রামিং ল্যাংগুয়েজ নয় — এই বক্তব্যের সাপেক্ষে সঠিক তথ্য? [ঢাকা বোর্ড ২০২৪]", options: ["HTML লজিক ও লুপ ব্যবহার করে", "HTML একটি Markup Language যা কাঠামো নির্ধারণ করে", "HTML দিয়ে ডায়নামিক কাজ হয়", "HTML কোড কম্পাইল হয়"], correct: "HTML একটি Markup Language যা কাঠামো নির্ধারণ করে", explanation: "HTML Markup Language — এটি লজিক, শর্ত বা লুপ ব্যবহার করতে পারে না। তাই প্রোগ্রামিং ভাষা নয়।" },
+  { q: "HTML একটি কেস সেনসিটিভ ভাষা নয় — সঠিক উদাহরণ? [রাজশাহী বোর্ড ২০২৩]", options: ["<BODY> ও <body> আলাদা ফলাফল দেয়", "<BODY> ও <body> একই ফলাফল দেয়", "শুধু ছোট হাতে লিখতে হয়", "শুধু বড় হাতে লিখতে হয়"], correct: "<BODY> ও <body> একই ফলাফল দেয়", explanation: "HTML কেস সেনসিটিভ নয় — <BODY> এবং <body> ব্রাউজার একইভাবে রেন্ডার করে।" },
+  { q: "নিচের উদ্দীপকটি দেখ: <font size='7'> Bangladesh </font> — অ্যাট্রিবিউট কোনটি? [রাজশাহী বোর্ড ২০২৩]", options: ["font", "7", "size", "Bangladesh"], correct: "size", explanation: "size হলো font ট্যাগের অ্যাট্রিবিউট যা টেক্সটের আকার নির্ধারণ করে।" },
+  { q: "<p align='center'> ICT </p> এ অ্যাট্রিবিউট ভ্যালু কোনটি? [দিনাজপুর বোর্ড ২০২৩]", options: ["P", "center", "align", "ICT"], correct: "center", explanation: "'center' হলো align অ্যাট্রিবিউটের মান (value)।" },
+  { q: "<span style='color: red'> Text </span> — এলিমেন্ট কনটেন্ট কোনটি? [যশোর বোর্ড ২০২৩]", options: ["Style", "Color: red", "Span", "Text"], correct: "Text", explanation: "ওপেনিং ও ক্লোজিং ট্যাগের মধ্যবর্তী 'Text' হলো এলিমেন্ট কনটেন্ট।" },
+];

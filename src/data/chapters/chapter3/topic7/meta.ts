@@ -1,6 +1,6 @@
 export const meta = {
   id: "topic-3-7",
-  title: "কোড: BCD, EBCDIC, ASCII, ইউনিকোড",
-    thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
-  video_url: "https://www.youtube.com/embed/0G1XQ_l_u9Q"
+  title: "বোর্ড প্রশ্ন সমাধান ও প্রস্তুতি",
+  thumbnail: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80",
+  video_url: ""
 } as const;
