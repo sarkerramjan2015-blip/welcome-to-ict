@@ -1,23 +1,26 @@
 import { PracticeMCQ } from "../../../ict-syllabus";
 
 export const practiceMCQs: PracticeMCQ[] = [
-    {
-      q: "সি ভাষার জনক কে?",
-      options: ["বিল গেটস", "ডেনিস রিচি", "মার্ক জাকারবার্গ", "স্টিভ জবস"],
-      correct: "ডেনিস রিচি",
-      explanation:
-        "ডেনিস রিচি ১৯৭২ সালে বেল ল্যাবরেটরিতে সি প্রোগ্রামিং ভাষা তৈরি করেন।",
-    },
-    {
-      q: "সি প্রোগ্রামের এক্সিকিউশন কোথা থেকে শুরু হয়?",
-      options: [
-        "header file",
-        "main() function",
-        "global variable",
-        "printf()",
-      ],
-      correct: "main() function",
-      explanation:
-        "যেকোনো সি প্রোগ্রামের মূল এক্সিকিউশন main() ফাংশন থেকে শুরু হয়।",
-    },
-  ];
+  { q: "প্রোগ্রাম ডিজাইন মডেলে ২০% - ৪০% সময় ব্যয় করা হয় কোনটিতে? [রাজশাহী বোর্ড ২০২৪]", options: ["বিশ্লেষণ", "রক্ষণাবেক্ষণ", "পরীক্ষণ", "ডিজাইন"], correct: "ডিজাইন", explanation: "প্রোগ্রাম তৈরির পরিকল্পনা বা ডিজাইন পর্যায়ে উল্লেখযোগ্য সময় ব্যয় হয়।" },
+  { q: "ইনহেরিটেন্স কোন প্রোগ্রামিং মডেলের বৈশিষ্ট্য? [ময়মনসিংহ বোর্ড ২০১৯]", options: ["স্ট্রাকচার্ড প্রোগ্রামিং", "অবজেক্ট ওরিয়েন্টেড প্রোগ্রামিং", "ভিজ্যুয়াল প্রোগ্রামিং", "ইভেন্ট ড্রাইভেন প্রোগ্রামিং"], correct: "অবজেক্ট ওরিয়েন্টেড প্রোগ্রামিং", explanation: "Inheritance হলো OOP-এর প্রধান বৈশিষ্ট্য।" },
+  { q: "প্রোগ্রাম কোডিং এর পূর্ববর্তী ধাপ কোনটি? [দিনাজপুর বোর্ড ২০১৯]", options: ["সমস্যা বিশ্লেষণ", "প্রোগ্রাম ডিজাইন", "প্রোগ্রাম বাস্তবায়ন", "রক্ষণাবেক্ষণ"], correct: "প্রোগ্রাম ডিজাইন", explanation: "কোডিংয়ের আগে অ্যালগরিদম, ফ্লোচার্ট ও নকশা তৈরি করা হয়।" },
+  { q: "প্রোগ্রাম তৈরিতে প্রোগ্রাম ডিজাইনের পরবর্তী ধাপ কোনটি? [সকল বোর্ড ২০১৮]", options: ["সমস্যা বিশ্লেষণ", "প্রোগ্রাম কোডিং", "প্রোগ্রাম রক্ষণাবেক্ষণ", "ডকুমেন্টেশন"], correct: "প্রোগ্রাম কোডিং", explanation: "ডিজাইন অনুযায়ী প্রোগ্রামিং ভাষায় কোড লেখা হয়।" },
+  { q: "প্রোগ্রাম তৈরির ধাপে কোডিং কোনটির সাথে সম্পর্কিত? [ঢাকা বোর্ড ২০১৬]", options: ["সমস্যা বিশ্লেষণ ও ভাষার সাহায্যে কোড লেখা", "শুধু ভুল খোঁজা", "শুধু আউটপুট দেখা", "শুধু রক্ষণাবেক্ষণ"], correct: "সমস্যা বিশ্লেষণ ও ভাষার সাহায্যে কোড লেখা", explanation: "কোডিং হলো বিশ্লেষিত সমস্যা অনুযায়ী প্রোগ্রামিং ভাষায় নির্দেশ লেখা।" },
+  { q: "প্রোগ্রাম ডিজাইনের অন্তর্ভুক্ত কাজ হচ্ছে কোনগুলো? [বরিশাল বোর্ড ২০১৬]", options: ["অ্যালগরিদম ও প্রবাহচিত্র", "শুধু কোডিং", "শুধু রান", "শুধু রক্ষণাবেক্ষণ"], correct: "অ্যালগরিদম ও প্রবাহচিত্র", explanation: "অ্যালগরিদম, ফ্লোচার্ট ও সুডোকোড ডিজাইন পর্যায়ের কাজ।" },
+  { q: "প্রোগ্রামের ভুলত্রুটি খুঁজে বের করে সংশোধনের পদ্ধতিকে কী বলে? [কুমিল্লা বোর্ড ২০২৪]", options: ["কোডিং", "এনকোডিং", "ডিকোডিং", "ডিবাগিং"], correct: "ডিবাগিং", explanation: "Bug শনাক্ত ও সংশোধন করার প্রক্রিয়া debugging।" },
+  { q: "প্রোগ্রামে কোন ধরনের ভুলের জন্য কম্পিউটার বার্তা দেয়? [কুমিল্লা বোর্ড ২০১৭]", options: ["সিনট্যাক্স ভুল", "লজিক্যাল ভুল", "ডেটা ভুল", "যে কোনো ভুল"], correct: "সিনট্যাক্স ভুল", explanation: "Syntax error হলে compiler/interpreter সাধারণত error message দেয়।" },
+  { q: "পরবর্তী লাইনে যাওয়ার জন্য C ভাষায় ব্যবহৃত হয় কোনটি? [যশোর বোর্ড ২০১৯]", options: ["\\a", "\\n", "\\b", "\\t"], correct: "\\n", explanation: "\\n newline escape sequence।" },
+  { q: "C প্রোগ্রামের কাঠামোর সঠিক সিকুয়েন্স কোনটি? [ঢাকা বোর্ড ২০১৭]", options: ["main() তারপর #include", "#include তারপর main()", "main()#include", "শুধু main()"], correct: "#include তারপর main()", explanation: "সাধারণত শুরুতে header include করে পরে main() লেখা হয়।" },
+  { q: "নিচের কোনগুলো হেডার ফাইল? [কুমিল্লা বোর্ড ২০১৭]", options: ["stdio.h ও math.h", "stdio.h ও printf.h", "printf.h ও scanf.h", "main.h ও for.h"], correct: "stdio.h ও math.h", explanation: "stdio.h ও math.h C-এর প্রচলিত header file; printf.h নেই।" },
+  { q: "কোন ভাষায় কম মেমোরি ও রিসোর্স নিয়ে সহজে প্রোগ্রাম লেখা যায়? [যশোর বোর্ড ২০১৬]", options: ["অ্যাকসেস", "ওরাকল", "সি", "ফটোশপ"], correct: "সি", explanation: "C দ্রুত, ছোট এবং resource-efficient প্রোগ্রাম তৈরিতে জনপ্রিয়।" },
+  { q: "C প্রোগ্রাম কম্পাইল করার জন্য Turbo C-তে কোন কী ব্যবহৃত হয়? [ঢাকা বোর্ড ২০১৬]", options: ["Alt + F9", "Ctrl + S", "Alt + S", "Shift + F4"], correct: "Alt + F9", explanation: "প্রচলিত Turbo C পরিবেশে compile shortcut Alt + F9।" },
+  { q: "sqrt() ফাংশনের জন্য প্রয়োজনীয় হেডার ফাইল কোনটি? [বরিশাল বোর্ড ২০১৬]", options: ["stdio.h", "conio.h", "math.h", "string.h"], correct: "math.h", explanation: "sqrt() math.h লাইব্রেরির ফাংশন।" },
+  { q: "Structured Programming-এ নিয়ন্ত্রণ প্রবাহ সাধারণত কেমন? [বোর্ড অনুশীলনী ২০২৪]", options: ["Bottom-up", "Top-down", "Random", "Event-only"], correct: "Top-down", explanation: "Structured programming সমস্যাকে ওপর থেকে নিচে মডিউলে ভাগ করে।" },
+  { q: "Structured Programming-এর তিনটি মৌলিক গঠন কোনগুলো? [বোর্ড অনুশীলনী ২০২৪]", options: ["Class, Object, Method", "Sequence, Decision, Loop", "HTML, CSS, JS", "Input, Storage, Network"], correct: "Sequence, Decision, Loop", explanation: "Structured design-এর মূল control structure হলো sequence, decision ও loop।" },
+  { q: "Encapsulation বলতে কী বোঝায়? [বোর্ড অনুশীলনী ২০২৪]", options: ["ডেটা ও মেথড একত্র করা", "শুধু loop করা", "শুধু header লেখা", "ভুল সংশোধন"], correct: "ডেটা ও মেথড একত্র করা", explanation: "OOP-তে data এবং behavior একত্র করার ধারণা encapsulation।" },
+  { q: "Polymorphism শব্দের অর্থ কী? [বোর্ড অনুশীলনী ২০২৪]", options: ["এক রূপ", "বহুরূপতা", "ডেটা লুকানো", "সংরক্ষণ"], correct: "বহুরূপতা", explanation: "একই interface ভিন্নভাবে কাজ করার ক্ষমতা polymorphism।" },
+  { q: "Visual Programming কোন পদ্ধতিতে প্রোগ্রাম তৈরি করে? [বোর্ড অনুশীলনী ২০২৪]", options: ["চিত্রভিত্তিক নির্দেশ", "শুধু machine code", "শুধু assembly", "শুধু command line"], correct: "চিত্রভিত্তিক নির্দেশ", explanation: "Visual programming-এ form/control/diagram ব্যবহার করা হয়।" },
+  { q: "Event-driven programming-এ কোড কখন চালানো হয়? [বোর্ড অনুশীলনী ২০২৪]", options: ["ইভেন্ট ঘটলে", "কম্পিউটার বন্ধ হলে", "কোনো input ছাড়া", "শুধু compile হলে"], correct: "ইভেন্ট ঘটলে", explanation: "Mouse click, key press ইত্যাদি ঘটলে event handler চলে।" },
+  { q: "C ভাষা প্রথম বাস্তবায়িত হয় কোন কম্পিউটারে? [বোর্ড অনুশীলনী ২০২৪]", options: ["DEC PDP-11", "ENIAC", "IBM PC", "Apple II"], correct: "DEC PDP-11", explanation: "১৯৭২ সালে DEC PDP-11 এ C বাস্তবায়নের ঐতিহাসিক উল্লেখ পাওয়া যায়।" },
+  { q: "C ভাষাকে আধুনিক প্রোগ্রামিং ভাষার মাতৃভাষা বলা হয় কেন? [বোর্ড অনুশীলনী ২০২৪]", options: ["C-এর syntax বহু ভাষায় ব্যবহৃত", "C শুধু graphics করে", "C কোনো function দেয় না", "C web-only ভাষা"], correct: "C-এর syntax বহু ভাষায় ব্যবহৃত", explanation: "C++, Java, C#সহ অনেক ভাষা C-এর syntax ও ধারণা অনুসরণ করে।" },
+];

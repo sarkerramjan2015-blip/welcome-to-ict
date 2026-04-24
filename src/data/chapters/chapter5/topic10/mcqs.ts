@@ -1,17 +1,29 @@
 import { PracticeMCQ } from "../../../ict-syllabus";
 
 export const practiceMCQs: PracticeMCQ[] = [
-    {
-      q: "int a[5]; এই অ্যারেতে কতটি উপাদান রাখা যাবে?",
-      options: ["৪টি", "৫টি", "৬টি", "অসীম"],
-      correct: "৫টি",
-      explanation:
-        "a[5] দ্বারা ৫টি পূর্ণসংখ্যা রাখার জন্য একটি অ্যারে ঘোষণা করা হয়েছে।",
-    },
-    {
-      q: "অ্যারের প্রথম উপাদানের ইনডেক্স (Index) কত থেকে শুরু হয়?",
-      options: ["১", "০", "-১", "যেকোনো সংখ্যা"],
-      correct: "০",
-      explanation: "সি ভাষায় অ্যারের ইনডেক্সিং সবসময় 0 (শূন্য) থেকে শুরু হয়।",
-    },
-  ];
+  { q: "C ভাষায় সমজাতীয় data সংরক্ষণ করে কোনটি? [কুমিল্লা বোর্ড ২০২৪]", options: ["ফাংশন", "অ্যারে", "পয়েন্টার", "স্ট্রাকচার"], correct: "অ্যারে", explanation: "Array একই data type-এর একাধিক element সংরক্ষণ করে।" },
+  { q: "একই ধরনের data সংরক্ষণ করে কোনটি? [ঢাকা বোর্ড ২০২৩]", options: ["ফাংশন", "অ্যারে", "পয়েন্টার", "স্ট্রাকচার"], correct: "অ্যারে", explanation: "অ্যারে homogeneous data collection।" },
+  { q: "নিচের কোনটি দ্বিমাত্রিক অ্যারের উদাহরণ? [রাজশাহী বোর্ড ২০১৭]", options: ["mark[5,6]", "mark(5,6)", "mark[5][6]", "mark(5)(6)"], correct: "mark[5][6]", explanation: "দ্বিমাত্রিক array declaration-এ দুটি square bracket লাগে।" },
+  { q: "সমপ্রকৃতির data-এর সমাবেশকে কী বলা হয়? [সিলেট বোর্ড ২০১৭]", options: ["স্ট্রাকচার", "ফাংশন", "লিংকড লিস্ট", "অ্যারে"], correct: "অ্যারে", explanation: "অ্যারে একই ধরনের data-এর collection।" },
+  { q: "একটি string-এর দৈর্ঘ্য বের করতে কোন library function ব্যবহৃত হয়? [সিলেট বোর্ড ২০২৩]", options: ["strcat()", "strcmp()", "strcpy()", "strlen()"], correct: "strlen()", explanation: "strlen() string length দেয়।" },
+  { q: "C ভাষায় library function কোনটি? [কুমিল্লা বোর্ড ২০২৩]", options: ["printf()", "sum()", "average()", "if()"], correct: "printf()", explanation: "printf() stdio.h-এর library function।" },
+  { q: "C ভাষায় library function হলো কোনগুলো? [ঢাকা বোর্ড ২০১৯]", options: ["printf() ও scanf()", "printf() ও add()", "scanf() ও add()", "add() ও sum()"], correct: "printf() ও scanf()", explanation: "printf() ও scanf() standard library function।" },
+  { q: "নিচের কোনটি সংরক্ষিত শব্দ নয়? [চট্টগ্রাম বোর্ড ২০১৭]", options: ["break", "if", "else", "function"], correct: "function", explanation: "function ANSI C keyword নয়।" },
+  { q: "getch() এর জন্য প্রয়োজনীয় header file কোনটি? [রাজশাহী বোর্ড ২০১৭]", options: ["stdio.h", "conio.h", "math.h", "graphics.h"], correct: "conio.h", explanation: "getch() conio.h-এ পাওয়া যায়।" },
+  { q: "কোনটি C ভাষার function? [ঢাকা বোর্ড ২০১৬]", options: ["int", "stdio.h", "printf", "for"], correct: "printf", explanation: "printf হলো output function।" },
+  { q: "Library function হচ্ছে কোনটি? [ঢাকা বোর্ড ২০১৬]", options: ["পূর্ব থেকে তৈরিকৃত function", "শুধু গাণিতিক নির্দেশ", "কোনো statement নয়", "শুধু variable"], correct: "পূর্ব থেকে তৈরিকৃত function", explanation: "Library function আগে থেকেই লেখা থাকে।" },
+  { q: "স্থায়ী মেমোরি হচ্ছে কোনগুলো? [ঢাকা বোর্ড ২০২৪]", options: ["RAM", "Hard disk ও DVD", "Cache", "Register"], correct: "Hard disk ও DVD", explanation: "Hard disk ও DVD non-volatile storage।" },
+  { q: "Non-volatile memory কোনটি? [রাজশাহী বোর্ড ২০২৩]", options: ["Cache memory", "RAM", "Virtual memory", "ROM"], correct: "ROM", explanation: "ROM বিদ্যুৎ না থাকলেও data ধরে রাখে।" },
+  { q: "int id[5] অ্যারেতে index কত থেকে শুরু হয়? [বোর্ড অনুশীলনী ২০২৪]", options: ["0", "1", "5", "-1"], correct: "0", explanation: "C array index 0 থেকে শুরু।" },
+  { q: "int id[5] এ শেষ element কোনটি? [বোর্ড অনুশীলনী ২০২৪]", options: ["id[5]", "id[4]", "id[1]", "id[0]"], correct: "id[4]", explanation: "৫ element হলে index 0-4।" },
+  { q: "int mark[3][4] অ্যারেতে মোট element কত? [ময়মনসিংহ বোর্ড ২০২৪]", options: ["7", "12", "3", "4"], correct: "12", explanation: "3×4=12।" },
+  { q: "অ্যারের size সম্পর্কে কোনটি সঠিক? [বোর্ড অনুশীলনী ২০২৪]", options: ["আগে জানা থাকতে হয়", "কখনো লাগে না", "শুধু runtime-এ লেখা যায়", "সবসময় 1"], correct: "আগে জানা থাকতে হয়", explanation: "Static array declaration-এ size দিতে হয়।" },
+  { q: "Function চেনার সহজ উপায় কী? [চট্টগ্রাম বোর্ড ২০২৪]", options: ["নামের শেষে () থাকে", "নামের আগে # থাকে", "সবসময় digit দিয়ে শুরু", "space থাকে"], correct: "নামের শেষে () থাকে", explanation: "Function call/name সাধারণত parentheses সহ লেখা হয়।" },
+  { q: "Recursive function-এ কী থাকা জরুরি? [বোর্ড অনুশীলনী ২০২৪]", options: ["Exit condition", "শুধু printf", "শুধু array", "শুধু header বাদ"], correct: "Exit condition", explanation: "Exit condition না থাকলে recursion শেষ হবে না।" },
+  { q: "sqrt() কোন header file-এর function? [চট্টগ্রাম বোর্ড ২০১৯]", options: ["stdio.h", "math.h", "string.h", "conio.h"], correct: "math.h", explanation: "sqrt() math.h-এ ঘোষিত।" },
+  { q: "strcpy() কোন header file-এর function? [বোর্ড অনুশীলনী ২০২৪]", options: ["stdio.h", "math.h", "string.h", "conio.h"], correct: "string.h", explanation: "strcpy() string copy করার function।" },
+  { q: "scanf() কোন ধরনের কাজ করে? [ময়মনসিংহ বোর্ড ২০২৪]", options: ["Input", "Output", "String copy", "Power calculate"], correct: "Input", explanation: "scanf() ব্যবহারকারীর কাছ থেকে input নেয়।" },
+  { q: "puts() কোন ধরনের function? [ঢাকা বোর্ড ২০১৯]", options: ["Output", "Input", "Memory", "Loop"], correct: "Output", explanation: "puts() string output করে।" },
+  { q: "User-defined function কোনটি হতে পারে? [কুমিল্লা বোর্ড ২০২৩]", options: ["sum()", "printf()", "scanf()", "sqrt()"], correct: "sum()", explanation: "sum() প্রোগ্রামার নিজে তৈরি করতে পারে।" },
+  { q: "অ্যারের অসুবিধা কোনটি? [বোর্ড অনুশীলনী ২০২৪]", options: ["size পরিবর্তন কঠিন", "একাধিক data রাখা যায় না", "index নেই", "loop ব্যবহার করা যায় না"], correct: "size পরিবর্তন কঠিন", explanation: "Static array-এর size runtime-এ সহজে বদলানো যায় না।" },
+];

@@ -1,18 +1,31 @@
 import { PracticeMCQ } from "../../../ict-syllabus";
 
 export const practiceMCQs: PracticeMCQ[] = [
-    {
-      q: "নিচের কোনটি রিলেশনাল অপারেটর?",
-      options: ["+", "&&", "==", "="],
-      correct: "==",
-      explanation:
-        "== (সমান কি না) একটি রিলেশনাল বা তুলনামূলক অপারেটর। = হলো অ্যাসাইনমেন্ট অপারেটর।",
-    },
-    {
-      q: "লজিক্যাল AND অপারেটর কোনটি?",
-      options: ["&", "&&", "||", "!"],
-      correct: "&&",
-      explanation:
-        "&& হলো লজিক্যাল AND অপারেটর, যা দুটি শর্তই সত্য হলে সত্য রিটার্ন করে।",
-    },
-  ];
+  { q: "C ভাষায় % কোন ধরনের operator? [বরিশাল বোর্ড ২০২৪]", options: ["Arithmetic", "Logical", "Relational", "Assignment"], correct: "Arithmetic", explanation: "% ভাগশেষ নির্ণয় করে, তাই arithmetic operator।" },
+  { q: "x=10; y=x*5; y=y%5; শেষে y-এর মান কত? [ময়মনসিংহ বোর্ড ২০২৩]", options: ["0", "1", "2", "3"], correct: "0", explanation: "x*5=50 এবং 50%5=0।" },
+  { q: "C ভাষায় arithmetic operator দিয়ে কোনগুলো করা যায়? [যশোর বোর্ড ২০২৩]", options: ["যোগ ও ভাগশেষ", "ছোট-বড় তুলনা", "শুধু logical condition", "শুধু assignment"], correct: "যোগ ও ভাগশেষ", explanation: "+ ও % arithmetic operator। তুলনার জন্য relational operator লাগে।" },
+  { q: "X=100; X/=5; X=X%10; শেষে X-এর মান কত? [বরিশাল বোর্ড ২০১৬]", options: ["0", "2", "20", "10"], correct: "0", explanation: "X=100/5=20, এরপর 20%10=0।" },
+  { q: "X=100; X/=5; X=X%10; এখানে কোন operator ব্যবহৃত হয়েছে? [বরিশাল বোর্ড ২০১৬]", options: ["Arithmetic ও Assignment", "Arithmetic ও Logical", "Logical ও Relational", "শুধু Logical"], correct: "Arithmetic ও Assignment", explanation: "/=, = assignment; / ও % arithmetic কাজ করছে।" },
+  { q: "কোনটি relational operator? [সিলেট বোর্ড ২০২৩; ময়মনসিংহ বোর্ড ২০২৩]", options: ["+", ">=", "OR", "AND"], correct: ">=", explanation: ">= দুটি মান তুলনা করে।" },
+  { q: "C ভাষায় relational operator কয় ধরনের? [চট্টগ্রাম বোর্ড ২০১৭]", options: ["২", "৪", "৫", "৬"], correct: "৬", explanation: "==, !=, >, <, >=, <= মোট ৬টি।" },
+  { q: "কোনটি সম্পর্কযুক্ত operator? [রাজশাহী বোর্ড ২০১৬]", options: ["+", ">=", "AND", "<<"], correct: ">=", explanation: ">= relational operator।" },
+  { q: "NOT (!) operator-এর ক্ষেত্রে কোনগুলো সঠিক? [রাজশাহী বোর্ড ২০২৪]", options: ["শুধু একটি শর্ত নেয় এবং মান উল্টে দেয়", "দুটি operand বাধ্যতামূলক", "শুধু যোগ করে", "শুধু ভাগ করে"], correct: "শুধু একটি শর্ত নেয় এবং মান উল্টে দেয়", explanation: "! unary logical operator।" },
+  { q: "Logical AND operator-এর চিহ্ন কোনটি? [কুমিল্লা বোর্ড ২০১৯]", options: ["&&", "==", "||", "="], correct: "&&", explanation: "&& হলো logical AND।" },
+  { q: "C ভাষায় && কে কোন ধরনের operator বলা হয়? [রাজশাহী বোর্ড ২০১৭]", options: ["Arithmetic", "Relational", "Logical", "Assignment"], correct: "Logical", explanation: "&& logical condition যুক্ত করে।" },
+  { q: "X-এর মান 5 হলে X += 15 এর মান কত? [ঢাকা বোর্ড ২০২৩]", options: ["5", "10", "15", "20"], correct: "20", explanation: "X += 15 মানে X = X + 15 = 20।" },
+  { q: "int a=2; b=++a; printf(\"%d\", b); output কত? [ঢাকা বোর্ড ২০২৩]", options: ["0", "3", "2", "4"], correct: "3", explanation: "++a আগে a=3 করে, তারপর b=3।" },
+  { q: "a=2 হলে কোন পরিবর্তনে output 5 হবে? [ঢাকা বোর্ড ২০২৩]", options: ["b=a++", "b=a--", "b=a-3", "b=a+3"], correct: "b=a+3", explanation: "2+3=5।" },
+  { q: "int a=3; b=2*a; printf(\"%d\", b); output কত? [ঢাকা বোর্ড ২০১৯]", options: ["3", "4", "5", "6"], correct: "6", explanation: "2*3=6।" },
+  { q: "b=50; a=b%25; printf(\"%d\", a); output কত? [সিলেট বোর্ড ২০১৯]", options: ["0", "2", "25", "50"], correct: "0", explanation: "50 কে 25 দিয়ে ভাগ করলে ভাগশেষ 0।" },
+  { q: "C ভাষা সম্পর্কে কোনগুলো সঠিক: General purpose, Mid-level, Case sensitive? [সিলেট বোর্ড ২০১৭]", options: ["i ও ii", "i ও iii", "ii ও iii", "i, ii ও iii"], correct: "i, ii ও iii", explanation: "C তিন বৈশিষ্ট্যই বহন করে।" },
+  { q: "i=8; k=i++; printf(\"%d %d\", i, k); output কোনটি? [বরিশাল বোর্ড ২০১৯]", options: ["9 8", "8 9", "9 10", "10 9"], correct: "9 8", explanation: "post-increment-এ k=8, পরে i=9।" },
+  { q: "b=2*a; a=3 হলে b কত? [ঢাকা বোর্ড ২০১৭]", options: ["3", "4", "5", "6"], correct: "6", explanation: "2*3=6।" },
+  { q: "a=3 হলে b=a++ এবং b=a-- কোন ক্ষেত্রে output 3 হতে পারে? [ঢাকা বোর্ড ২০১৭]", options: ["i ও ii", "i ও iii", "ii ও iii", "সবগুলো"], correct: "i ও ii", explanation: "post increment/decrement পুরনো মান b-তে দেয়।" },
+  { q: "for(a=1; a<5; a++) s=s+a; s-এর মান কত? [বরিশাল বোর্ড ২০১৭]", options: ["1", "5", "10", "15"], correct: "10", explanation: "1+2+3+4=10।" },
+  { q: "a=3; b=++a; printf(\"%d\", b); output কত? [চট্টগ্রাম বোর্ড ২০১৬]", options: ["3", "4", "5", "6"], correct: "4", explanation: "++a হলে আগে a=4 হয়।" },
+  { q: "a=3 হলে b-এর মান 8 করতে কোন expression সঠিক? [চট্টগ্রাম বোর্ড ২০১৬]", options: ["b=a++", "b=a--", "b=a-5", "b=a+5"], correct: "b=a+5", explanation: "3+5=8।" },
+  { q: "a ও b input নিয়ে c=a+b; printf(\"c=%d\", c); প্রোগ্রামে output-এ কী দেখাবে? [রাজশাহী বোর্ড ২০২৩]", options: ["c-এর মান ও যোগফল", "শুধু a", "শুধু b", "address"], correct: "c-এর মান ও যোগফল", explanation: "c-তে a+b সংরক্ষিত হয়।" },
+  { q: "ভগ্নাংশ output পেতে কোন পরিবর্তন দরকার? [রাজশাহী বোর্ড ২০১৬]", options: ["data type ও format specifier পরিবর্তন", "শুধু variable name", "শুধু header বাদ", "শুধু comment"], correct: "data type ও format specifier পরিবর্তন", explanation: "float/double এবং %f/%lf ব্যবহার করতে হয়।" },
+  { q: "Logical OR operator-এর চিহ্ন কোনটি? [বোর্ড অনুশীলনী ২০২৪]", options: ["&&", "||", "==", "!="], correct: "||", explanation: "|| logical OR।" },
+  { q: "Assignment operator = এবং relational operator == এর পার্থক্য কী? [বোর্ড অনুশীলনী ২০২৪]", options: ["= মান বসায়, == তুলনা করে", "= তুলনা করে, == মান বসায়", "দুটিই যোগ করে", "দুটিই ভাগ করে"], correct: "= মান বসায়, == তুলনা করে", explanation: "এটি C-এর অত্যন্ত গুরুত্বপূর্ণ পার্থক্য।" },
+];

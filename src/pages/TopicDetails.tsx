@@ -224,7 +224,7 @@ export default function TopicDetails() {
                 </h2>
                 {(!currentTopic.video_url || currentTopic.video_url.trim() === '') && (
                   <span className="text-xs font-bold px-4 py-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full border border-amber-500/20 animate-pulse">
-                    Coming Soon
+                    ভিডিও আসছে
                   </span>
                 )}
               </div>
@@ -254,9 +254,9 @@ export default function TopicDetails() {
                       <div className="absolute inset-0 rounded-full border-t-2 border-indigo-400 animate-spin opacity-70"></div>
                       <PlayCircle className="w-10 h-10 text-indigo-300 ml-1 opacity-50" />
                    </div>
-                   <h3 className="text-3xl font-black text-white mb-4 tracking-tight drop-shadow-md">Video is Coming Soon!</h3>
+                   <h3 className="text-3xl font-black text-white mb-4 tracking-tight drop-shadow-md">ভিডিও খুব শিগগিরই আসছে... (Coming Soon 🚀)</h3>
                    <p className="text-indigo-200 text-lg max-w-lg mx-auto font-medium leading-relaxed opacity-80">
-                      We are currently recording premium video lectures for this topic. Please stay tuned!
+                      এই টপিকের ভিডিও লেকচার এখনো যোগ করা হয়নি।
                    </p>
                 </div>
               )}

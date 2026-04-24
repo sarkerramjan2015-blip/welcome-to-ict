@@ -1,18 +1,29 @@
 import { PracticeMCQ } from "../../../ict-syllabus";
 
 export const practiceMCQs: PracticeMCQ[] = [
-    {
-      q: "কোন লুপটি অন্তত একবার অবশ্যই এক্সিকিউট হয়?",
-      options: ["for", "while", "do-while", "nested loop"],
-      correct: "do-while",
-      explanation:
-        "do-while লুপে শর্ত শেষে চেক করা হয়, তাই শর্ত মিথ্যা হলেও প্রথমবার কাজ সম্পন্ন হয়।",
-    },
-    {
-      q: "for(i=1; i<=10; i++) লুপটি কতবার চলবে?",
-      options: ["৯ বার", "১০ বার", "১১ বার", "অসীম"],
-      correct: "১০ বার",
-      explanation:
-        "i এর মান 1 থেকে শুরু হয়ে 10 পর্যন্ত চলবে (1, 2, ..., 10), অর্থাৎ মোট 10 বার।",
-    },
-  ];
+  { q: "for(i=1; i<=9; i+=2) printf(\"%d\", i); output কোনটি? [কুমিল্লা বোর্ড ২০২৪]", options: ["1,2,3,4,5,6,7,8,9", "1,2,3,4,5,6,7,8", "1,3,5,7,9", "2,4,6,8"], correct: "1,3,5,7,9", explanation: "i ১ থেকে শুরু হয়ে প্রতি ধাপে ২ করে বাড়ে।" },
+  { q: "প্রোগ্রামের loop-এ i-এর মান বৃদ্ধি করতে কোনগুলো ব্যবহৃত হয়? [চট্টগ্রাম বোর্ড ২০২৪]", options: ["i++", "i=i+1", "i+=1", "সবগুলো"], correct: "সবগুলো", explanation: "তিনটিই i-এর মান ১ করে বাড়ায়।" },
+  { q: "M=5963; while(M<5) print(\"ICT\"); ICT কতবার print হবে? [বরিশাল বোর্ড ২০২৪]", options: ["0", "3", "4", "5"], correct: "0", explanation: "শুরুতেই M<5 false, তাই body চলে না।" },
+  { q: "উপরের while loop-এ M=M+2 ব্যবহার করলেও ICT কতবার দেখাবে? [বরিশাল বোর্ড ২০২৪]", options: ["0", "2", "3", "5"], correct: "0", explanation: "condition শুরুতেই false থাকায় update line চলবে না।" },
+  { q: "while loop-এ 1 থেকে 8 পর্যন্ত sum করলে output কত? [সিলেট বোর্ড ২০২৩]", options: ["21", "28", "36", "55"], correct: "36", explanation: "1+2+...+8=36।" },
+  { q: "for(i=1;i<=6;i++) if(i==4) continue; printf(\"HTML\"); HTML কতবার print হবে? [ঢাকা বোর্ড ২০২৪]", options: ["3", "4", "5", "6"], correct: "5", explanation: "i=4 iteration বাদ যায়, বাকি ৫ বার print।" },
+  { q: "for(i=1;i<=6;i++) if(i==4) continue; printf(\"HSC Exam\"); কতবার print হবে? [রাজশাহী বোর্ড ২০২৪]", options: ["2", "5", "4", "6"], correct: "5", explanation: "৬টির মধ্যে ১টি iteration বাদ।" },
+  { q: "for(x=5; x<=14; x=x+3) if(x==11) break; printf(\"ICT\"); ICT কতবার print হবে? [যশোর বোর্ড ২০২৩]", options: ["2", "3", "4", "5"], correct: "2", explanation: "x=5 ও 8 এ print, x=11 এ break।" },
+  { q: "for(i=1;i<=5;i++) if(i==3) continue; printf(\"HSC Exam\"); কতবার print হবে? [সকল বোর্ড ২০১৮]", options: ["1", "2", "4", "5"], correct: "4", explanation: "i=3 বাদ দিয়ে ৪ বার print।" },
+  { q: "for(c=2;c<=10;c=c+2) printf(\"ICT\"); if(c==6) break; ICT কতবার print হবে? [চট্টগ্রাম বোর্ড ২০১৭; সিলেট বোর্ড ২০১৭]", options: ["১", "২", "৩", "৫"], correct: "৩", explanation: "c=2,4,6 এ print, তারপর break।" },
+  { q: "break-এর পরিবর্তে continue ব্যবহার করলে ICT কতবার প্রদর্শিত হবে? [চট্টগ্রাম বোর্ড ২০২৩]", options: ["2", "3", "4", "5"], correct: "5", explanation: "continue loop বন্ধ করে না; c=2,4,6,8,10 সব iteration-এ print আগে হলে মোট ৫।" },
+  { q: "1 থেকে 10 পর্যন্ত সংখ্যা দেখাতে for loop-এর condition কী হতে পারে? [বোর্ড অনুশীলনী ২০২৪]", options: ["i<=10", "i>=10", "i==0", "i%10"], correct: "i<=10", explanation: "i=1 থেকে 10 পর্যন্ত চলবে।" },
+  { q: "১ থেকে n পর্যন্ত যোগফলের initialization কোনটি সঠিক? [রাজশাহী বোর্ড ২০২৩]", options: ["sum=0, i=1", "sum=1, i=0", "sum=n, i=n", "sum=0, i=0 only"], correct: "sum=0, i=1", explanation: "যোগফল শূন্য থেকে শুরু করে ১ থেকে n পর্যন্ত যোগ করা হয়।" },
+  { q: "2+4+6+...+n ধারার update কোনটি? [বোর্ড অনুশীলনী ২০২৪]", options: ["i=i+2", "i=i+1", "i=i*2", "i=i-1"], correct: "i=i+2", explanation: "জোড় ধারা ২ করে বাড়ে।" },
+  { q: "1+3+5+...+n ধারার শুরু মান কত? [বোর্ড অনুশীলনী ২০২৪]", options: ["0", "1", "2", "3"], correct: "1", explanation: "বিজোড় ধারা ১ থেকে শুরু।" },
+  { q: "4+7+10+...+n ধারার common difference কত? [বোর্ড অনুশীলনী ২০২৪]", options: ["2", "3", "4", "7"], correct: "3", explanation: "প্রতি পদে ৩ যোগ হয়।" },
+  { q: "10+16+22+...+70 ধারার update কোনটি? [সিলেট বোর্ড ২০২৩]", options: ["i+=6", "i+=5", "i+=10", "i++"], correct: "i+=6", explanation: "ধারাটি ৬ করে বাড়ে।" },
+  { q: "9^2+12^2+15^2+...+90^2 ধারায় i কত করে বাড়ে? [ঢাকা বোর্ড ২০২৪]", options: ["2", "3", "5", "9"], correct: "3", explanation: "9,12,15... পার্থক্য ৩।" },
+  { q: "Factorial নির্ণয়ে প্রাথমিক fact-এর মান কত ধরা হয়? [কুমিল্লা বোর্ড ২০২৩]", options: ["0", "1", "n", "-1"], correct: "1", explanation: "গুণফলের identity ১।" },
+  { q: "GCD নির্ণয়ে কোন operator সবচেয়ে গুরুত্বপূর্ণ? [বরিশাল বোর্ড ২০১৭]", options: ["%", "+", "&&", "=="], correct: "%", explanation: "Euclidean method ভাগশেষ ব্যবহার করে।" },
+  { q: "do-while loop কমপক্ষে কতবার execute হয়? [সিলেট বোর্ড ২০১৭]", options: ["0", "1", "2", "condition অনুযায়ী কখনোই নয়"], correct: "1", explanation: "do-while আগে body চালায়, পরে condition check করে।" },
+  { q: "SMART শব্দটি n বার print করতে কোন loop সুবিধাজনক? [রাজশাহী বোর্ড ২০২৩]", options: ["for loop", "শুধু if", "শুধু switch", "return"], correct: "for loop", explanation: "নির্দিষ্ট count থাকলে for loop compact।" },
+  { q: "Prime number নির্ণয়ে nested loop কেন লাগে? [যশোর বোর্ড ২০২৩]", options: ["প্রতিটি সংখ্যা divisibility পরীক্ষা করতে", "শুধু output সাজাতে", "header যোগ করতে", "string copy করতে"], correct: "প্রতিটি সংখ্যা divisibility পরীক্ষা করতে", explanation: "প্রতিটি n-এর জন্য 2 থেকে n/2 পর্যন্ত divisor পরীক্ষা করা হয়।" },
+  { q: "continue statement কী করে? [ময়মনসিংহ বোর্ড ২০২৪]", options: ["বর্তমান iteration বাদ দেয়", "পুরো প্রোগ্রাম বন্ধ করে", "header যুক্ত করে", "input নেয়"], correct: "বর্তমান iteration বাদ দেয়", explanation: "continue পরবর্তী iteration-এ যায়।" },
+  { q: "break statement কী করে? [চট্টগ্রাম বোর্ড ২০১৯]", options: ["loop বন্ধ করে", "শুধু current statement পুনরায় চালায়", "input নেয়", "variable ঘোষণা করে"], correct: "loop বন্ধ করে", explanation: "break loop/switch থেকে বের হয়।" },
+];

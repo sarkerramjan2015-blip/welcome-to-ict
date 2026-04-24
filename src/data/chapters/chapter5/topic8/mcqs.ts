@@ -1,18 +1,26 @@
 import { PracticeMCQ } from "../../../ict-syllabus";
 
 export const practiceMCQs: PracticeMCQ[] = [
-    {
-      q: "বহু বিকল্প থেকে একটি নির্দিষ্ট ব্লক এক্সিকিউট করতে কোনটি ব্যবহৃত হয়?",
-      options: ["if", "switch", "for", "while"],
-      correct: "switch",
-      explanation:
-        "অনেকগুলো Case বা বিকল্প থেকে নির্দিষ্ট একটি বেছে নিতে switch স্টেটমেন্ট ব্যবহৃত হয়।",
-    },
-    {
-      q: "switch স্টেটমেন্টে প্রতিটি case এর শেষে কোনটি ব্যবহার করা উচিত?",
-      options: ["continue", "break", "stop", "exit"],
-      correct: "break",
-      explanation:
-        "break ব্যবহার না করলে পরবর্তী case গুলোও এক্সিকিউট হয়ে যায় (যাকে fall-through বলে)।",
-    },
-  ];
+  { q: "for(i=10; i<=15; i+=2) if(i>12) printf(i+1) else printf(i-1); output কোনটি? [চট্টগ্রাম বোর্ড ২০২৪]", options: ["9 11 15", "10 11 15", "10 12 15", "9 11 14"], correct: "9 11 15", explanation: "i=10 হলে 9, i=12 হলে 11, i=14 হলে 15 print হয়।" },
+  { q: "উপরের প্রোগ্রামে i>12 এর পরিবর্তে i<12 হলে প্রথম output কী হবে? [চট্টগ্রাম বোর্ড ২০২৪]", options: ["11", "10", "9", "15"], correct: "11", explanation: "i=10 হলে condition true, তাই i+1=11 print হবে।" },
+  { q: "for loop-এ x=5 থেকে print করে x==6 হলে break; output কোনটি? [চট্টগ্রাম বোর্ড ২০১৯]", options: ["5", "5 6", "5 6 7 8 9", "6 7 8 9"], correct: "5 6", explanation: "প্রথমে 5, পরে 6 print হয়; তারপর break loop বন্ধ করে।" },
+  { q: "if statement কখন body execute করে? [বোর্ড অনুশীলনী ২০২৪]", options: ["condition সত্য হলে", "condition মিথ্যা হলে", "সবসময়", "কখনো নয়"], correct: "condition সত্য হলে", explanation: "if block শুধু true condition-এ চলে।" },
+  { q: "if-else statement-এ condition মিথ্যা হলে কোন block চলে? [বোর্ড অনুশীলনী ২০২৪]", options: ["if", "else", "দুটিই", "কোনোটিই নয়"], correct: "else", explanation: "condition false হলে else branch execute হয়।" },
+  { q: "একাধিক condition যাচাই করতে কোন statement উপযোগী? [বোর্ড অনুশীলনী ২০২৪]", options: ["else-if", "শুধু printf", "শুধু scanf", "return"], correct: "else-if", explanation: "else-if ladder একাধিক condition পরীক্ষা করে।" },
+  { q: "switch statement-এ একটি case শেষ করতে সাধারণত কী ব্যবহৃত হয়? [বোর্ড অনুশীলনী ২০২৪]", options: ["continue", "break", "goto", "scanf"], correct: "break", explanation: "break না দিলে fall-through হতে পারে।" },
+  { q: "switch statement-এ কোনো case না মিললে কোন block চলে? [বোর্ড অনুশীলনী ২০২৪]", options: ["default", "main", "include", "scanf"], correct: "default", explanation: "default হলো fallback branch।" },
+  { q: "জোড় সংখ্যা নির্ণয়ের condition কোনটি? [চট্টগ্রাম বোর্ড ২০২৩]", options: ["n % 2 == 0", "n % 2 == 1", "n / 2 == 0", "n + 2 == 0"], correct: "n % 2 == 0", explanation: "২ দ্বারা ভাগশেষ ০ হলে সংখ্যা জোড়।" },
+  { q: "বিজোড় সংখ্যা নির্ণয়ের condition কোনটি? [চট্টগ্রাম বোর্ড ২০২৩]", options: ["n % 2 != 0", "n % 2 == 0", "n == 2", "n = 2"], correct: "n % 2 != 0", explanation: "২ দ্বারা ভাগশেষ ০ না হলে বিজোড়।" },
+  { q: "ধনাত্মক সংখ্যা যাচাইয়ের condition কোনটি? [বোর্ড অনুশীলনী ২০২৪]", options: ["n >= 0", "n < 0", "n == 0", "n % 2"], correct: "n >= 0", explanation: "শূন্যসহ ধনাত্মক ধরলে n>=0 ব্যবহার করা হয়।" },
+  { q: "দুটি সংখ্যার মধ্যে বড় সংখ্যা পেতে কোন operator দরকার? [চট্টগ্রাম বোর্ড ২০১৭]", options: [">", "+", "%", "="], correct: ">", explanation: "বড়-ছোট তুলনার জন্য relational operator >।" },
+  { q: "Leap year condition-এ কোন logical operator ব্যবহৃত হয়? [কুমিল্লা বোর্ড ২০২৪]", options: ["|| এবং &&", "শুধু +", "শুধু %", "শুধু ="], correct: "|| এবং &&", explanation: "Leap year logic-এ OR ও AND দুটোই লাগে।" },
+  { q: "n=35 হলে 5 ও 7 দ্বারা বিভাজ্যতা প্রোগ্রামে output কী? [চট্টগ্রাম বোর্ড ২০২৪]", options: ["Flower", "River", "Good", "Try again"], correct: "Good", explanation: "35 উভয় 5 ও 7 দ্বারা বিভাজ্য।" },
+  { q: "n=25 হলে divisibility প্রোগ্রামে output কী? [চট্টগ্রাম বোর্ড ২০২৪]", options: ["Flower", "River", "Good", "Try again"], correct: "Flower", explanation: "25 শুধু 5 দ্বারা বিভাজ্য।" },
+  { q: "n=49 হলে divisibility প্রোগ্রামে output কী? [চট্টগ্রাম বোর্ড ২০২৪]", options: ["Flower", "River", "Good", "Try again"], correct: "River", explanation: "49 শুধু 7 দ্বারা বিভাজ্য।" },
+  { q: "Roll 75 হলে 1-50 A, 51-100 B, 101-200 C নিয়মে group কোনটি? [বরিশাল বোর্ড ২০২৪]", options: ["A", "B", "C", "Invalid"], correct: "B", explanation: "75 হলো 51 থেকে 100 এর মধ্যে।" },
+  { q: "Roll 31 হলে 1-30 A, 31-60 B, 61-100 C নিয়মে group কোনটি? [সম্মিলিত বোর্ড ২০১৮]", options: ["A", "B", "C", "Invalid"], correct: "B", explanation: "31 থেকে 60 পর্যন্ত B দল।" },
+  { q: "তিনটি সংখ্যার মধ্যে সবচেয়ে বড় নির্ণয়ে কোন condition সঠিক? [চট্টগ্রাম বোর্ড ২০১৯]", options: ["a>=b && a>=c", "a+b+c", "a=b=c", "a%b"], correct: "a>=b && a>=c", explanation: "a বড় বা সমান হলে দুইটির সাথেই তুলনা করতে হবে।" },
+  { q: "if-এর ভিতরে আরেকটি if ব্যবহৃত হলে তাকে কী বলে? [যশোর বোর্ড ২০১৭]", options: ["nested if", "switch", "for", "goto"], correct: "nested if", explanation: "if block-এর ভিতরে if হলো nested if।" },
+  { q: "চাকরির বয়সসীমা 18-35 হলে যোগ্যতার condition কোনটি? [বোর্ড অনুশীলনী ২০২৪]", options: ["age>=18 && age<=35", "age<18 && age>35", "age=18", "age%18"], correct: "age>=18 && age<=35", explanation: "বয়স দুটি সীমার মাঝখানে হতে হবে।" },
+  { q: "Pass/Fail নির্ণয়ে mark>=33 condition সত্য হলে কী print হতে পারে? [বোর্ড অনুশীলনী ২০২৪]", options: ["Pass", "Fail", "Invalid", "Odd"], correct: "Pass", explanation: "সাধারণ pass mark 33 ধরে mark>=33 হলে Pass।" },
+];

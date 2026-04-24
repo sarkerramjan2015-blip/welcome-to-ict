@@ -1,18 +1,34 @@
 import { PracticeMCQ } from "../../../ict-syllabus";
 
 export const practiceMCQs: PracticeMCQ[] = [
-    {
-      q: "সি ভাষায় পূর্ণসংখ্যা সংরক্ষণের জন্য কোন ডেটা টাইপ ব্যবহৃত হয়?",
-      options: ["float", "char", "int", "double"],
-      correct: "int",
-      explanation:
-        "পূর্ণসংখ্যা (Integer) সংরক্ষণের জন্য int ডেটা টাইপ ব্যবহৃত হয়।",
-    },
-    {
-      q: "নিচের কোনটি সঠিক চলকের নাম?",
-      options: ["1st_number", "my name", "total_sum", "int"],
-      correct: "total_sum",
-      explanation:
-        "চলকের নামের শুরুতে সংখ্যা থাকা যাবে না, স্পেস থাকা যাবে না এবং কিওয়ার্ড (যেমন int) ব্যবহার করা যাবে না। তাই total_sum সঠিক।",
-    },
-  ];
+  { q: "টেক্সট ডেটা টাইপে বর্ণের সংখ্যা সর্বোচ্চ কত হতে পারে? [চট্টগ্রাম বোর্ড ২০১৭]", options: ["128", "255", "256", "512"], correct: "256", explanation: "৮ বিটে ২^৮ = ২৫৬টি মান প্রকাশ করা যায়।" },
+  { q: "ডেটা টাইপ integer এর ফরম্যাট স্পেসিফায়ার কোনটি? [চট্টগ্রাম বোর্ড ২০২৩]", options: ["%c", "%i", "%d", "%if"], correct: "%d", explanation: "Integer input/output-এর জন্য %d সবচেয়ে প্রচলিত specifier।" },
+  { q: "C ভাষায় integer ডেটা টাইপ কত বিটের হিসেবে পাঠ্যবইয়ে ধরা হয়? [ঢাকা বোর্ড ২০১৯]", options: ["8", "16", "32", "64"], correct: "16", explanation: "HSC পাঠ্যবইয়ে অনেক ক্ষেত্রে int-এর সাইজ ১৬ bit/২ byte হিসেবে দেখানো হয়।" },
+  { q: "C ভাষায় long integer চলক মেমোরিতে সাধারণত কত বাইট জায়গা নেয়? [কুমিল্লা বোর্ড ২০১৬]", options: ["২ বাইট", "৪ বাইট", "৮ বাইট", "১৬ বাইট"], correct: "৪ বাইট", explanation: "পাঠ্যবইয়ের প্রচলিত ধারণায় long int সাধারণত ৪ byte।" },
+  { q: "সকল ধনাত্মক ও ঋণাত্মক পূর্ণসংখ্যাকে কী বলা হয়? [চট্টগ্রাম বোর্ড ২০১৬]", options: ["ক্যারেক্টার", "ইন্টিজার", "রিয়াল", "ডাবল"], correct: "ইন্টিজার", explanation: "পূর্ণসংখ্যা integer data type-এ সংরক্ষণ করা হয়।" },
+  { q: "float type ডেটা মেমোরিতে কত byte জায়গা দখল করে? [চট্টগ্রাম বোর্ড ২০২৩; সিলেট বোর্ড ২০২৩; ময়মনসিংহ বোর্ড ২০২৩]", options: ["৪", "৮", "১৬", "৩২"], correct: "৪", explanation: "float সাধারণত ৪ byte বা ৩২ bit।" },
+  { q: "C ভাষায় float ডেটা টাইপ কত বিটের? [রাজশাহী বোর্ড ২০১৯]", options: ["16", "32", "48", "64"], correct: "32", explanation: "float সাধারণত ৩২ bit।" },
+  { q: "ফ্লোটিং ডেটার ফরম্যাট স্পেসিফায়ার কোনটি? [যশোর বোর্ড ২০১৯]", options: ["%d", "%f", "%c", "%s"], correct: "%f", explanation: "Floating point number input/output-এর জন্য %f ব্যবহৃত হয়।" },
+  { q: "%f কাজ করে কোন ধরনের ডেটার সাথে? [যশোর বোর্ড ২০১৬]", options: ["ইন্টিজার", "ফ্লোট ও রিয়েল", "ক্যারেক্টার", "স্ট্রিং"], correct: "ফ্লোট ও রিয়েল", explanation: "%f দশমিক বা real number-এর জন্য।" },
+  { q: "ডেটা টাইপ double এর ফরম্যাট স্পেসিফায়ার কোনটি? [ঢাকা বোর্ড ২০২৪]", options: ["%d", "%f", "%ld", "%lf"], correct: "%lf", explanation: "double ইনপুটের জন্য %lf ব্যবহার করা হয়।" },
+  { q: "double ডেটা টাইপের ফরম্যাট স্পেসিফায়ার কোনটি? [চট্টগ্রাম বোর্ড ২০২৪]", options: ["%d", "%c", "%lf", "%f"], correct: "%lf", explanation: "double-এর জন্য %lf সঠিক specifier।" },
+  { q: "নিচের কোনটি ডেটা টাইপ? [বরিশাল বোর্ড ২০২৪]", options: ["main", "double", "printf", "scanf"], correct: "double", explanation: "double হলো দশমিক মান সংরক্ষণের data type।" },
+  { q: "Double টাইপ ডেটা মেমোরিতে কত বাইট জায়গা নেয়? [বরিশাল বোর্ড ২০২৩]", options: ["২", "৪", "১৬", "৮"], correct: "৮", explanation: "double সাধারণত ৮ byte।" },
+  { q: "C ভাষায় বৈধ চলক কোনটি? [ঢাকা বোর্ড ২০২৩]", options: ["ab@yahoo", "Roll107", "abe ny", "abc-n"], correct: "Roll107", explanation: "অক্ষর দিয়ে শুরু এবং digit থাকতে পারে; special character বা space নেই।" },
+  { q: "সঠিক চলক কোনটি? [রাজশাহী বোর্ড ২০২৩]", options: ["1number", "cop", "number 1", "number_1"], correct: "number_1", explanation: "number_1-এ underscore বৈধ এবং space নেই।" },
+  { q: "C ভাষায় সঠিক চলক কোনটি? [বরিশাল বোর্ড ২০১৭]", options: ["st_name", "$stname", "1stname", "1st name"], correct: "st_name", explanation: "underscore বৈধ; $, starting digit ও space অবৈধ।" },
+  { q: "নিচের কোনটি সঠিক declaration? [যশোর বোর্ড ২০১৯]", options: ["int number-1", "int number 1", "int 1number", "int number_1"], correct: "int number_1", explanation: "Variable name-এ hyphen/space বা starting digit থাকতে পারে না।" },
+  { q: "নিচের সঠিক চলক কোনটি? [কুমিল্লা বোর্ড ২০১৬; বরিশাল বোর্ড ২০১৬]", options: ["1 test", "test 1", "test @ 1", "test_1"], correct: "test_1", explanation: "test_1 বৈধ identifier।" },
+  { q: "C ভাষায় ধ্রুবক ঘোষণা করার নিয়ম কোনটি? [ঢাকা বোর্ড ২০১৯]", options: ["const float pi = 3.1416; ও #define pi 3.1416", "শুধু float pi = 3.1416;", "শুধু scanf()", "শুধু printf()"], correct: "const float pi = 3.1416; ও #define pi 3.1416", explanation: "const keyword এবং #define macro দিয়ে constant ঘোষণা করা যায়।" },
+  { q: "student_name, student name, student @name এর মধ্যে সঠিক কোনটি? [সকল বোর্ড ২০১৮]", options: ["student_name", "student name", "student @name", "সবগুলো"], correct: "student_name", explanation: "space বা @ ব্যবহার করা যায় না, underscore ব্যবহার করা যায়।" },
+  { q: "নিচের কোনটি keyword-এর উদাহরণ? [কুমিল্লা বোর্ড ২০১৯]", options: ["long, int, scanf", "short, cos, void", "for, line, while", "return, goto, break"], correct: "return, goto, break", explanation: "return, goto, break তিনটিই C keyword।" },
+  { q: "C ভাষায় switch কী? [সিলেট বোর্ড ২০১৯]", options: ["ভ্যারিয়েবল", "ফাংশন", "কী-ওয়ার্ড", "অপারেন্ড"], correct: "কী-ওয়ার্ড", explanation: "switch selection control statement-এর keyword।" },
+  { q: "কোনটি C ভাষায় ব্যবহৃত keyword? [রাজশাহী বোর্ড ২০১৬]", options: ["for", "ing", "href", "select"], correct: "for", explanation: "for লুপের keyword।" },
+  { q: "C ভাষার expression X = pow(3,2) + (5 % 2) + 3 এর মান কত? [চট্টগ্রাম বোর্ড ২০১৯]", options: ["10", "13", "11", "12"], correct: "13", explanation: "pow(3,2)=9, 5%2=1, তাই 9+1+3=13।" },
+  { q: "Y = p^2x + 2/3 এর সমতুল্য C expression কোনটি? [রাজশাহী বোর্ড ২০১৭]", options: ["Y = pow(p,2) * x + 2/3 এবং Y = p * p * x + 2/3", "Y = pow(2,p) * x", "Y = p + p * x", "Y = p / 2 * x"], correct: "Y = pow(p,2) * x + 2/3 এবং Y = p * p * x + 2/3", explanation: "p^2 প্রকাশ করা যায় pow(p,2) অথবা p*p দিয়ে।" },
+  { q: "String সবসময় কোন চিহ্নের মধ্যে লেখা হয়? [বোর্ড অনুশীলনী ২০২৪]", options: ["single quote", "double quote", "curly brace", "square bracket"], correct: "double quote", explanation: "C string double quotation mark-এর মধ্যে থাকে।" },
+  { q: "String-এর শেষ উপাদান কোনটি? [বোর্ড অনুশীলনী ২০২৪]", options: ["\\n", "\\t", "\\0", "\\b"], correct: "\\0", explanation: "C string null character \\0 দিয়ে শেষ হয়।" },
+  { q: "Identifier case-sensitive হওয়া মানে কী? [বোর্ড অনুশীলনী ২০২৪]", options: ["A ও a একই", "A ও a ভিন্ন", "digit নিষিদ্ধ", "underscore নিষিদ্ধ"], correct: "A ও a ভিন্ন", explanation: "C-তে uppercase ও lowercase আলাদা identifier তৈরি করে।" },
+  { q: "Special symbol # সাধারণত কোন কাজে ব্যবহৃত হয়? [বোর্ড অনুশীলনী ২০২৪]", options: ["হেডার ফাইল লিংক করতে", "যোগ করতে", "লুপ চালাতে", "স্ট্রিং শেষ করতে"], correct: "হেডার ফাইল লিংক করতে", explanation: "#include প্রিপ্রসেসর ডিরেক্টিভে # ব্যবহৃত হয়।" },
+  { q: "C ভাষায় মোট কতটি ANSI keyword আছে? [বোর্ড অনুশীলনী ২০২৪]", options: ["১৬", "২৫", "৩২", "৪৮"], correct: "৩২", explanation: "ANSI C ভাষায় ৩২টি keyword আছে।" },
+];

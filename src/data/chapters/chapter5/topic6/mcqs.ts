@@ -1,18 +1,26 @@
 import { PracticeMCQ } from "../../../ict-syllabus";
 
 export const practiceMCQs: PracticeMCQ[] = [
-    {
-      q: "সি ভাষায় আউটপুট দেখানোর জন্য কোন ফাংশন ব্যবহৃত হয়?",
-      options: ["scanf()", "printf()", "getch()", "main()"],
-      correct: "printf()",
-      explanation:
-        "ফলাফল বা যেকোনো টেক্সট স্ক্রিনে দেখানোর জন্য printf() ফাংশন ব্যবহৃত হয়।",
-    },
-    {
-      q: 'scanf("%d", &a); এখানে %d কী নির্দেশ করে?',
-      options: ["float", "char", "int", "double"],
-      correct: "int",
-      explanation:
-        "%d হলো integer (পূর্ণসংখ্যা) ডেটা টাইপের ফরম্যাট স্পেসিফায়ার।",
-    },
-  ];
+  { q: "C প্রোগ্রামে data output এর জন্য ব্যবহৃত function কোনটি? [কুমিল্লা বোর্ড ২০২৪]", options: ["printf()", "scanf()", "float()", "getch()"], correct: "printf()", explanation: "printf() আউটপুট প্রদর্শন করে।" },
+  { q: "scanf() এর জন্য কোন header file সংযুক্ত করতে হয়? [বরিশাল বোর্ড ২০২৪]", options: ["stdio.h", "conio.h", "math.h", "string.h"], correct: "stdio.h", explanation: "scanf() ও printf() stdio.h-এ ঘোষিত।" },
+  { q: "C ভাষায় উপাত্ত গ্রহণের command কোনটি? [ঢাকা বোর্ড ২০১৬]", options: ["main()", "printf()", "scanf()", "getch()"], correct: "scanf()", explanation: "scanf() keyboard থেকে input নেয়।" },
+  { q: "তিনটি পূর্ণসংখ্যা a,b,c input নেওয়ার সঠিক statement কোনটি? [চট্টগ্রাম বোর্ড ২০১৬]", options: ["scanf(\"%d,%d,%d\", &a, &h, &c)", "scanf(\"%d %d %d\", &a, &b, &c)", "scanf(\"%d,%% d d d\", &a, &b, &c)", "scanf(\"%d %d %d\", a, b, c)"], correct: "scanf(\"%d %d %d\", &a, &b, &c)", explanation: "প্রতিটি integer-এর জন্য %d এবং address-এর জন্য & ব্যবহার করতে হয়।" },
+  { q: "printf() এর সাহায্যে data কোথায় পাঠানো হয়? [দিনাজপুর বোর্ড ২০১৬]", options: ["input মাধ্যমে", "output মাধ্যমে", "memory address-এ", "compiler-এ"], correct: "output মাধ্যমে", explanation: "printf() output device-এ data পাঠায়।" },
+  { q: "Output statement হলো কোনগুলো? [কুমিল্লা বোর্ড ২০১৭]", options: ["printf() ও puts()", "printf() ও gets()", "scanf() ও gets()", "gets() ও scanf()"], correct: "printf() ও puts()", explanation: "printf() এবং puts() output দেয়, gets() input নেয়।" },
+  { q: "printf(\"%d\", &m); statement-এ ভুল কী? [যশোর বোর্ড ২০১৭]", options: ["int m ভুল", "printf message ভুল", "scanf ভুল", "output-এ &m ব্যবহার"], correct: "output-এ &m ব্যবহার", explanation: "মান দেখাতে printf(\"%d\", m) লেখা উচিত।" },
+  { q: "দুটি সংখ্যার যোগফল প্রোগ্রামে শুধু দ্বিতীয় সংখ্যা দেখা গেলে সম্ভাব্য কারণ কোনটি? [ঢাকা বোর্ড ২০১৬]", options: ["header file নেই", "ভগ্নাংশ input", "output function-এ ভুল চলক", "চলক নেই"], correct: "output function-এ ভুল চলক", explanation: "যোগফলের পরিবর্তে ভুল variable print করলে এমন হতে পারে।" },
+  { q: "scanf()-এ & operator কী নির্দেশ করে? [ময়মনসিংহ বোর্ড ২০২৪]", options: ["যোগ", "বিয়োগ", "address", "newline"], correct: "address", explanation: "& চলকের memory address নির্দেশ করে।" },
+  { q: "Integer input নেওয়ার format specifier কোনটি? [চট্টগ্রাম বোর্ড ২০২৩]", options: ["%c", "%d", "%f", "%s"], correct: "%d", explanation: "%d integer-এর জন্য।" },
+  { q: "Float input নেওয়ার format specifier কোনটি? [চট্টগ্রাম বোর্ড ২০২৩]", options: ["%d", "%f", "%c", "%x"], correct: "%f", explanation: "%f float-এর জন্য।" },
+  { q: "String input নেওয়ার format specifier কোনটি? [বোর্ড অনুশীলনী ২০২৪]", options: ["%d", "%s", "%c", "%lf"], correct: "%s", explanation: "%s string input/output-এর জন্য ব্যবহৃত হয়।" },
+  { q: "Character output করার function কোনটি? [বোর্ড অনুশীলনী ২০২৪]", options: ["putchar()", "getchar()", "scanf()", "sqrt()"], correct: "putchar()", explanation: "putchar() একটি character output করে।" },
+  { q: "Character input করার function কোনটি? [বোর্ড অনুশীলনী ২০২৪]", options: ["putchar()", "getchar()", "printf()", "pow()"], correct: "getchar()", explanation: "getchar() একটি character input নেয়।" },
+  { q: "দুটি সংখ্যার গড় নির্ণয়ের সঠিক expression কোনটি? [ঢাকা বোর্ড ২০১৯]", options: ["avg = a + b", "avg = (a + b) / 2", "avg = a * b", "avg = a - b"], correct: "avg = (a + b) / 2", explanation: "গড় = যোগফল / সংখ্যার পরিমাণ।" },
+  { q: "Celsius থেকে Fahrenheit রূপান্তরের সূত্র কোনটি? [বোর্ড অনুশীলনী ২০২৪]", options: ["F = (9*C/5)+32", "F = C + 273", "F = C/9", "F = C*32"], correct: "F = (9*C/5)+32", explanation: "সেলসিয়াসকে ফারেনহাইটে রূপান্তরের সূত্র F=(9C/5)+32।" },
+  { q: "Fahrenheit থেকে Celsius রূপান্তরের সূত্র কোনটি? [বোর্ড অনুশীলনী ২০২৪]", options: ["C = (F-32)*5/9", "C = F + 273", "C = F*9/5", "C = F/32"], correct: "C = (F-32)*5/9", explanation: "ফারেনহাইট থেকে সেলসিয়াস সূত্র C=(F-32)*5/9।" },
+  { q: "ত্রিভুজের ক্ষেত্রফল নির্ণয়ের সূত্র কোনটি? [বোর্ড অনুশীলনী ২০২৪]", options: ["area = l*w", "area = 0.5*b*h", "area = pi*r*r", "area = a+b+c"], correct: "area = 0.5*b*h", explanation: "ভূমি ও উচ্চতা দেওয়া থাকলে ক্ষেত্রফল = ১/২ × ভূমি × উচ্চতা।" },
+  { q: "Heron সূত্রে s কী? [বোর্ড অনুশীলনী ২০২৪]", options: ["অর্ধপরিসীমা", "ব্যাস", "উচ্চতা", "গড়"], correct: "অর্ধপরিসীমা", explanation: "s=(a+b+c)/2 হলো semiperimeter।" },
+  { q: "বৃত্তের ক্ষেত্রফল নির্ণয়ের expression কোনটি? [বোর্ড অনুশীলনী ২০২৪]", options: ["area = 3.1416*r*r", "area = l*w", "area = 2*r", "area = a+b"], correct: "area = 3.1416*r*r", explanation: "বৃত্তের ক্ষেত্রফল = πr²।" },
+  { q: "sqrt() ব্যবহারের জন্য কোন header file প্রয়োজন? [বরিশাল বোর্ড ২০১৬]", options: ["stdio.h", "math.h", "string.h", "graphics.h"], correct: "math.h", explanation: "sqrt() math.h-এ ঘোষিত।" },
+  { q: "printf(\"%.2f\", avg) কী নির্দেশ করে? [বোর্ড অনুশীলনী ২০২৪]", options: ["২ ঘর দশমিক দেখাবে", "২টি integer নেবে", "২ লাইন skip করবে", "address দেখাবে"], correct: "২ ঘর দশমিক দেখাবে", explanation: "%.2f float মান দশমিকের পর ২ ঘর দেখায়।" },
+];
