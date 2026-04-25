@@ -23,6 +23,7 @@ export default function Layout() {
   const { user, userRole, login, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [securityToastVisible, setSecurityToastVisible] = useState(false);
   
   // Determine title based on route
   let pageTitle = "";
@@ -35,23 +36,57 @@ export default function Layout() {
 
   // Anti-theft script (Phase 8)
   useEffect(() => {
-    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+    let toastTimer: ReturnType<typeof setTimeout> | undefined;
+    const showSecurityToast = () => {
+      setSecurityToastVisible(true);
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => setSecurityToastVisible(false), 1800);
+    };
+
+    const isEditableTarget = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false;
+      const tagName = target.tagName.toLowerCase();
+      return tagName === 'input' || tagName === 'textarea' || target.isContentEditable;
+    };
+
+    const blockEvent = (e: Event) => {
+      e.preventDefault();
+      showSecurityToast();
+    };
+
+    const handleContextMenu = (e: MouseEvent) => blockEvent(e);
     const handleKeyDown = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
       if (
         e.key === 'F12' ||
         (e.ctrlKey && e.shiftKey && e.key === 'I') ||
-        (e.ctrlKey && e.key === 'c')
+        (e.ctrlKey && ['u', 's', 'p'].includes(key)) ||
+        (e.ctrlKey && ['c', 'x', 'v'].includes(key) && !isEditableTarget(e.target))
       ) {
-        e.preventDefault();
+        blockEvent(e);
       }
+    };
+
+    const handleClipboard = (e: ClipboardEvent) => {
+      if (isEditableTarget(e.target)) return;
+      blockEvent(e);
     };
 
     document.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('copy', handleClipboard);
+    document.addEventListener('cut', handleClipboard);
+    document.addEventListener('paste', handleClipboard);
+    document.addEventListener('dragstart', blockEvent);
 
     return () => {
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('copy', handleClipboard);
+      document.removeEventListener('cut', handleClipboard);
+      document.removeEventListener('paste', handleClipboard);
+      document.removeEventListener('dragstart', blockEvent);
+      if (toastTimer) clearTimeout(toastTimer);
     };
   }, []);
 
@@ -199,9 +234,23 @@ export default function Layout() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col relative z-10">
+      <main className="watermarked-content flex-1 flex flex-col relative z-10" data-protected-content="true">
         <Outlet />
       </main>
+
+      <AnimatePresence>
+        {securityToastVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.96 }}
+            transition={{ duration: 0.22 }}
+            className="fixed left-1/2 bottom-24 z-[80] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-2xl border border-red-400/25 bg-slate-950/90 px-5 py-4 text-center text-sm font-black text-red-100 shadow-2xl shadow-red-950/40 backdrop-blur-2xl"
+          >
+            কন্টেন্ট কপি করা নিষেধ!
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Floating Action Button for Facebook */}
       <a 

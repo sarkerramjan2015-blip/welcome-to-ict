@@ -75,6 +75,24 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+main,
+.topic-notes,
+.topic-notes *,
+[data-protected-content],
+[data-protected-content] :where(p, h1, h2, h3, h4, li, td, th, span, strong, button, label, div) {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
 img,
 svg,
 video,
@@ -109,6 +127,7 @@ td {
 }
 
 .topic-notes {
+  position: relative;
   overflow-wrap: anywhere;
 }
 
@@ -205,6 +224,25 @@ td {
   border-radius: 9999px;
   border: 1px dashed rgba(255, 255, 255, 0.24);
   animation: mentor-dot-rotate 16s linear infinite reverse;
+}
+
+.watermarked-content::before,
+.topic-notes::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  opacity: 0.065;
+  background-image: url("data:image/svg+xml,%3Csvg width='360' height='220' viewBox='0 0 360 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform='translate(28 136) rotate(-24)'%3E%3Ctext x='0' y='0' fill='%23ffffff' fill-opacity='0.85' font-family='Inter, Arial, sans-serif' font-size='20' font-weight='800' letter-spacing='1'%3ETroyee %7C Md. Ramjan Sarker%3C/text%3E%3C/g%3E%3C/svg%3E");
+  background-size: 360px 220px;
+  background-repeat: repeat;
+  mix-blend-mode: difference;
+}
+
+.topic-notes::before {
+  position: fixed;
+  opacity: 0.055;
 }
 
 @media (max-width: 640px) {

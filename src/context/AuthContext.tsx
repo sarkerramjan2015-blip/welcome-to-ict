@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Mail, Check, X } from 'lucide-react';
+import { onAuthStateChanged, signInWithPopup, signOut, type User as FirebaseUser } from 'firebase/auth';
+import { firebaseAuth, googleProvider, isFirebaseConfigured } from '../lib/firebase';
 
 export type UserRole = 'admin' | 'student';
 
@@ -28,6 +30,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   userRole: UserRole | null;
   login: (credentials?: LoginInput) => Promise<User | void>;
+  loginWithGoogle: () => Promise<User | void>;
   register: (data: LoginInput) => Promise<User>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<void>;
@@ -39,6 +42,15 @@ const USER_KEY = 'user';
 const TOKEN_KEY = 'token';
 const ADMIN_TOKEN_KEY = 'adminToken';
 const USER_DIRECTORY_KEY = 'lms:users';
+
+const GoogleLogo = ({ className = 'w-5 h-5' }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
+);
 
 const getStoredUsers = (): User[] => {
   try {
@@ -59,12 +71,27 @@ const saveUserToDirectory = (user: User) => {
 const makeUserId = (email: string, role: UserRole) =>
   `${role}-${email.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'user'}`;
 
+const inferRole = (email: string, fallback: UserRole = 'student'): UserRole =>
+  email.trim().toLowerCase() === 'admin@ict.com' ? 'admin' : fallback;
+
 const buildMockUser = ({ email, name, role = 'student' }: LoginInput): User => {
   const normalizedEmail = email.trim().toLowerCase();
   return {
     id: makeUserId(normalizedEmail, role),
     name: name?.trim() || (role === 'admin' ? 'Admin' : 'Student'),
     email: normalizedEmail,
+    role,
+  };
+};
+
+const buildFirebaseUser = (firebaseUser: FirebaseUser): User => {
+  const email = firebaseUser.email || 'student@gmail.com';
+  const role = inferRole(email);
+  return {
+    id: firebaseUser.uid || makeUserId(email, role),
+    name: firebaseUser.displayName || 'Student',
+    email,
+    profileImage: firebaseUser.photoURL || null,
     role,
   };
 };
@@ -78,11 +105,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [showMockLogin, setShowMockLogin] = useState(false);
   const [mockEmail, setMockEmail] = useState('');
+  const [authError, setAuthError] = useState('');
 
-  const persistSession = (nextUser: User) => {
+  const persistSession = (nextUser: User, tokenPrefix = 'mock-token') => {
     setUser(nextUser);
     localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
-    localStorage.setItem(TOKEN_KEY, `mock-token-${nextUser.id}`);
+    localStorage.setItem(TOKEN_KEY, `${tokenPrefix}-${nextUser.id}`);
     saveUserToDirectory(nextUser);
 
     if (nextUser.role === 'admin') {
@@ -106,26 +134,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Listen for OAuth messages
-    const handleMessage = (event: MessageEvent) => {
-      const origin = event.origin;
-      if (!origin.endsWith('.run.app') && !origin.includes('localhost')) {
-        return;
-      }
-      if (event.data?.type === 'OAUTH_AUTH_SUCCESS') {
-        const oAuthUser = event.data.user;
-        persistSession({
-          id: oAuthUser.id || makeUserId(oAuthUser.email || 'student@gmail.com', 'student'),
-          name: oAuthUser.name || 'Student',
-          email: oAuthUser.email || 'student@gmail.com',
-          profileImage: oAuthUser.profileImage || null,
-          role: 'student',
-        });
-      }
-    };
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    if (!firebaseAuth) return undefined;
+
+    return onAuthStateChanged(firebaseAuth, async firebaseUser => {
+      if (!firebaseUser) return;
+      const nextUser = buildFirebaseUser(firebaseUser);
+      persistSession(nextUser, 'firebase-token');
+    });
   }, []);
+
+  const loginWithGoogle = async () => {
+    setAuthError('');
+
+    if (!isFirebaseConfigured || !firebaseAuth) {
+      setAuthError('Firebase keys are not configured yet. Use the preview fallback below.');
+      setShowMockLogin(true);
+      return;
+    }
+
+    const result = await signInWithPopup(firebaseAuth, googleProvider);
+    const nextUser = buildFirebaseUser(result.user);
+    persistSession(nextUser, 'firebase-token');
+    navigateWithoutRouter(nextUser.role === 'admin' ? '/admin/dashboard' : '/dashboard');
+    return nextUser;
+  };
 
   const register = async (data: LoginInput) => {
     const nextUser = buildMockUser(data);
@@ -135,11 +167,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (credentials?: LoginInput) => {
     if (!credentials) {
-      setShowMockLogin(true);
+      await loginWithGoogle();
       return;
     }
 
-    const role = credentials.role || (credentials.email.toLowerCase() === 'admin@ict.com' ? 'admin' : 'student');
+    const role = credentials.role || inferRole(credentials.email);
 
     if (role === 'admin') {
       const validAdmin = credentials.email.trim().toLowerCase() === 'admin@ict.com' && credentials.password === 'admin123';
@@ -172,6 +204,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(ADMIN_TOKEN_KEY);
+    if (firebaseAuth) {
+      void signOut(firebaseAuth).catch(() => undefined);
+    }
   };
 
   const updateProfile = async (data: Partial<User>) => {
@@ -184,7 +219,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const userRole = user?.role || null;
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, userRole, login, register, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, userRole, login, loginWithGoogle, register, logout, updateProfile }}>
       {children}
       
       {/* Simulated Google Login Popup */}
@@ -193,21 +228,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <svg viewBox="0 0 24 24" className="w-6 h-6" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                </svg>
+                <GoogleLogo className="w-6 h-6" />
                 Sign in with Google
               </h2>
               <button onClick={() => setShowMockLogin(false)} className="text-slate-500 dark:text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            <button
+              type="button"
+              onClick={() => void loginWithGoogle()}
+              className="mb-5 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-800 font-bold shadow-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-3"
+            >
+              <GoogleLogo />
+              Continue with Google
+            </button>
             
             <p className="text-sm text-gray-600 mb-6 border-l-4 border-amber-500 pl-3 bg-amber-50 p-2 rounded">
-              Actual Google Auth requires API Keys. This is a simulated fallback for preview purposes.
+              {authError || 'Actual Google Auth requires Firebase API keys. This fallback keeps preview login available.'}
             </p>
             
             <form onSubmit={handleMockSubmit}>
@@ -226,7 +265,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
               <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
-                Continue <Check className="w-5 h-5" />
+                Continue Preview Login <Check className="w-5 h-5" />
               </button>
             </form>
           </div>
