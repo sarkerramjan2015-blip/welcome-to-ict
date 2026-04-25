@@ -57,10 +57,25 @@ export default function Layout() {
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
-  }, [location.pathname]);
+  }, [location.pathname, location.hash]);
+
+  useEffect(() => {
+    if (!location.hash) return;
+
+    const targetId = location.hash.slice(1);
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(targetId)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.pathname, location.hash]);
 
   const navLinks = [
     { to: '/', label: 'Home' },
+    { to: '/#mentor-section', label: 'Meet Ramjan' },
     { to: '/courses', label: 'Courses' },
     { to: '/suggestions', label: 'ICT Short Suggestion' },
     { to: '/syllabus', label: 'HSC ICT' },
@@ -77,7 +92,7 @@ export default function Layout() {
         <Link to="/" className="min-w-0 text-xl sm:text-2xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-400 truncate">
           Welcome to ICT
         </Link>
-        <nav className="hidden lg:flex items-center gap-6 xl:gap-8 font-medium text-sm text-slate-600 dark:text-slate-300">
+        <nav className="hidden lg:flex items-center gap-4 xl:gap-6 font-medium text-sm text-slate-600 dark:text-slate-300">
           {navLinks.map(link => (
             <Link key={link.to} to={link.to} className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2 whitespace-nowrap">
               {link.label}

@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import Countdown from '../components/Countdown';
 import { BookOpen, BriefcaseBusiness, CreditCard, GraduationCap, NotebookTabs, Rocket, Timer, Trophy } from 'lucide-react';
+import bioImage from '@/src/asset/bio_image.png';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -16,6 +17,105 @@ const itemVariants = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
 };
+
+function MentorSection() {
+  return (
+    <motion.section
+      id="mentor-section"
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.25 }}
+      transition={{ duration: 0.55 }}
+      className="scroll-mt-28 px-4 sm:px-6 md:px-16 mb-10 md:mb-14 w-full"
+    >
+      <div className="mx-auto max-w-4xl">
+        <div className="group relative overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#071426]/95 p-4 shadow-xl shadow-black/25 backdrop-blur-3xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-950/30 sm:p-5">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(239,29,38,0.16),transparent_30%),radial-gradient(circle_at_84%_18%,rgba(18,161,80,0.15),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_46%)]" />
+          <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+
+          <div className="relative grid items-center gap-6 md:grid-cols-[0.56fr_1.44fr] md:gap-7">
+            <div className="flex flex-col items-center text-center">
+              <div className="mentor-photo-ring size-32 rounded-full sm:size-36 md:size-40">
+                <div className="relative size-full overflow-hidden rounded-full border border-white/15 bg-[#071426] p-1.5 shadow-2xl shadow-black/35">
+                  <img
+                    src={bioImage}
+                    alt="Mohammad Ramjan Mia Sarker"
+                    className="size-full rounded-full object-cover object-center"
+                  />
+                </div>
+              </div>
+              <div className="mt-5 rounded-full border border-white/10 bg-white/10 px-3.5 py-1.5 text-[0.66rem] font-bold uppercase tracking-[0.22em] text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-700">
+                ICT Mentor
+              </div>
+            </div>
+
+            <div className="min-w-0 text-center md:text-left">
+              <p className="mb-2 text-xs font-black uppercase tracking-[0.26em] text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-700">মেন্টর পরিচিতি</p>
+              <h2 className="text-2xl font-black leading-tight text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-700 sm:text-3xl md:text-[2.45rem]">
+                মোহাম্মদ রমজান সরকার
+              </h2>
+              <p className="mentor-gradient-text mt-1 text-transparent bg-clip-text text-sm font-bold leading-7 sm:text-base">
+                Mohammad Ramjan Mia Sarker
+              </p>
+
+              <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.055] p-3 text-left shadow-inner">
+                <div className="flex min-w-0 items-start gap-3">
+                  <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-xl border border-red-300/20 bg-red-400/10 text-red-200">
+                    <BookOpen className="size-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-700">Primary Role</p>
+                    <p className="mentor-gradient-text mt-1 break-words text-transparent bg-clip-text text-sm font-semibold leading-6 sm:text-[0.95rem]">
+                      Assistant Teacher, Shamsul Hoque Khan School & College
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-3">
+                <div className="flex min-w-0 items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.045] p-3">
+                  <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-xl border border-red-300/20 bg-red-400/10 text-red-200">
+                    <BriefcaseBusiness className="size-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-700">Leadership & Experience</p>
+                    <p className="mentor-gradient-text mt-1 break-words text-transparent bg-clip-text text-sm font-medium leading-6 sm:text-[0.95rem]">
+                      Head of ICT @ Troyee | Instructor @ Udvash–Unmesh Academic Care | Treasurer @ SHKSC Photography Club
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex min-w-0 items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.045] p-3">
+                  <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-xl border border-red-300/20 bg-red-400/10 text-red-200">
+                    <GraduationCap className="size-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-700">Academic Background</p>
+                    <p className="mentor-gradient-text mt-1 break-words text-transparent bg-clip-text text-sm font-medium leading-6 sm:text-[0.95rem]">
+                      EMCS (Computer Science), Cumilla University | B.Ed & B.A. (Hons) Philosophy, Jagannath University
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex min-w-0 items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.045] p-3">
+                  <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-xl border border-red-300/20 bg-red-400/10 text-red-200">
+                    <Trophy className="size-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-700">Key Achievement</p>
+                    <p className="mentor-gradient-text mt-1 break-words text-transparent bg-clip-text text-sm font-medium leading-6 sm:text-[0.95rem]">
+                      "Successfully guided 500+ students to top public universities using modern, analytical, and ICT-based teaching methods."
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.section>
+  );
+}
 
 export default function Home() {
   return (
@@ -158,6 +258,8 @@ export default function Home() {
           </div>
         </Link>
       </motion.section>
+
+      <MentorSection />
     </motion.div>
   );
 }
