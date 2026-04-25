@@ -33,7 +33,7 @@ export default function ChapterAnalysis({ isOpen, onClose, data }: ChapterAnalys
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white/60 dark:bg-slate-900/50 backdrop-blur-xl border border-white/40 dark:border-white/20 rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.3)] scrollbar-hide"
+            className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/40 dark:border-white/20 rounded-[1.5rem] md:rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.3)] scrollbar-hide"
           >
             {/* Close Button */}
             <button
@@ -44,17 +44,17 @@ export default function ChapterAnalysis({ isOpen, onClose, data }: ChapterAnalys
             </button>
 
             {data ? (
-              <div className="p-6 md:p-10 space-y-10">
+              <div className="p-4 sm:p-6 md:p-10 space-y-8 md:space-y-10">
                 {/* Header */}
                 <div className="text-center space-y-4 relative">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl -z-10"></div>
+                  <div className="absolute inset-x-8 top-1/2 h-px bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent -z-10"></div>
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 mb-2 border border-indigo-500/20 dark:border-indigo-500/30 shadow-lg">
                     <BarChart3 size={32} />
                   </div>
-                  <h2 className="text-3xl md:text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-sky-500 to-indigo-500 dark:from-sky-400 dark:to-indigo-400">
+                  <h2 className="text-2xl md:text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-sky-500 to-indigo-500 dark:from-sky-400 dark:to-indigo-400 leading-tight break-words">
                     {data.title}
                   </h2>
-                  <p className="text-slate-700 dark:text-slate-300 max-w-2xl mx-auto text-lg leading-relaxed font-medium">
+                  <p className="text-slate-700 dark:text-slate-300 max-w-2xl mx-auto text-base md:text-lg leading-8 font-medium">
                     {data.conclusion}
                   </p>
                 </div>
@@ -74,7 +74,7 @@ export default function ChapterAnalysis({ isOpen, onClose, data }: ChapterAnalys
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05 }}
                         key={i}
-                        className="px-4 py-2 rounded-full bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 dark:border-rose-500/50 font-bold shadow-[0_4px_15px_rgba(244,63,94,0.05)] backdrop-blur-md"
+                      className="px-4 py-2 rounded-full bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 dark:border-rose-500/50 font-bold shadow-[0_4px_15px_rgba(244,63,94,0.05)] backdrop-blur-md text-sm md:text-base break-words"
                       >
                         {topic}
                       </motion.span>

@@ -37,7 +37,7 @@ export interface Topic {
   title: string;
   thumbnail: string;
   board_notes: string;
-  video_url: string;
+  video_url?: string | null;
   importance?: "High" | "Medium" | "Low";
   shortQuestions: ShortQuestion[];
   practiceMcqs: PracticeMCQ[];

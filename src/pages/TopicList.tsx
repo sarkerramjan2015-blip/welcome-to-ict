@@ -11,6 +11,15 @@ import { chapter4Analysis } from '../data/chapters/chapter4/analysis';
 import { chapter5Analysis } from '../data/chapters/chapter5/analysis';
 import { chapter6Analysis } from '../data/chapters/chapter6/analysis';
 
+const chapterHeroImages = [
+  "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?auto=format&fit=crop&w=900&q=80",
+];
+
 export default function TopicList() {
   const { chapterId } = useParams();
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,27 +47,51 @@ export default function TopicList() {
   const filteredTopics = chapter.topics.filter(topic =>
     topic.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  const chapterIndex = ictSyllabus.findIndex(c => c.id === chapter.id);
+  const heroImage = chapterHeroImages[Math.max(chapterIndex, 0) % chapterHeroImages.length];
 
   return (
-    <div className="flex-1 flex flex-col px-8 md:px-16 py-12 max-w-7xl mx-auto w-full relative z-20">
-      <div className="mb-12">
+    <div className="flex-1 flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 py-8 md:py-12 max-w-7xl mx-auto w-full relative z-20">
+      <div className="mb-8 md:mb-12">
         <Link to="/syllabus" className="text-sky-400 hover:text-sky-300 text-sm font-medium mb-4 flex items-center gap-2 w-fit">
           <ArrowLeft size={16} /> Back to Chapters
         </Link>
         
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-400">
+        <div className="relative overflow-hidden rounded-[2rem] md:rounded-[2.5rem] bg-slate-950 border border-white/10 shadow-2xl p-5 sm:p-6 md:p-8">
+          <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(14,165,233,0.20),transparent_35%,rgba(16,185,129,0.16)_70%,transparent)]"></div>
+          <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6 md:gap-8">
+            <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-sky-200 via-white to-emerald-200 leading-tight break-words">
               {chapter.title}
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-4 max-w-2xl">
+            <p className="text-slate-300 mt-4 max-w-2xl text-sm md:text-base leading-7 md:leading-8">
               Select a topic below to explore board notes, video lectures, practice MCQs, and creative questions.
             </p>
+            </div>
+
+            <div className="relative w-full lg:w-[360px] shrink-0">
+              <div className="relative h-44 sm:h-52 lg:h-48 rounded-3xl overflow-hidden border border-white/10 bg-slate-900 shadow-2xl">
+                <img
+                  src={heroImage}
+                  alt={chapter.title}
+                  className="w-full h-full object-cover opacity-80"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-950/20 to-transparent"></div>
+                <svg className="absolute right-5 top-5 w-20 h-20 text-white/80" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+                  <circle cx="60" cy="60" r="42" stroke="currentColor" strokeWidth="4" strokeDasharray="10 12">
+                    <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="14s" repeatCount="indefinite" />
+                  </circle>
+                  <path d="M36 70h48M42 56h36M50 42h20" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
+                </svg>
+              </div>
+            </div>
           </div>
           
+          <div className="relative mt-6 flex justify-start lg:justify-end">
           <button 
             onClick={() => setIsAnalysisOpen(true)}
-            className="relative overflow-hidden flex items-center gap-2 px-6 py-3 rounded-full bg-slate-900 dark:bg-slate-800 font-bold shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_30px_rgba(239,68,68,0.5)] hover:-translate-y-1 transition-all duration-300 whitespace-nowrap shrink-0 border border-white/10 group"
+            className="relative overflow-hidden flex items-center justify-center gap-2 px-5 md:px-6 py-3 rounded-full bg-white/10 font-bold shadow-[0_0_20px_rgba(239,68,68,0.2)] hover:shadow-[0_0_30px_rgba(239,68,68,0.35)] hover:-translate-y-1 transition-all duration-300 whitespace-normal sm:whitespace-nowrap shrink-0 border border-white/10 group w-full sm:w-auto text-center"
           >
             {/* Shimmer Effect */}
             <div 
@@ -73,14 +106,15 @@ export default function TopicList() {
             `}</style>
             
             <BarChart3 size={20} className="text-red-500 relative z-10" />
-            <span className="relative z-10 bg-gradient-to-r from-red-500 to-white text-transparent bg-clip-text font-bold">
+            <span className="relative z-10 bg-gradient-to-r from-red-300 to-white text-transparent bg-clip-text font-bold text-sm md:text-base">
               চ্যাপ্টার অ্যানালাইসিস (Board Tracker)
             </span>
           </button>
+          </div>
         </div>
       </div>
 
-      <div className="mb-10 relative z-20">
+      <div className="mb-8 md:mb-10 relative z-20">
         <div className="relative max-w-lg w-full group">
           <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-400 dark:group-focus-within:text-sky-400 transition-colors" />
@@ -95,7 +129,7 @@ export default function TopicList() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         <AnimatePresence mode="popLayout">
           {filteredTopics.length > 0 ? (
             filteredTopics.map((topic, index) => (
@@ -108,7 +142,7 @@ export default function TopicList() {
                 transition={{ duration: 0.3, delay: index * 0.05 }}
               >
                 <Link to={`/topics/${topic.id}`} className="group block h-full">
-                  <div className="bg-slate-900/5 dark:bg-white/5 backdrop-blur-xl border border-slate-900/10 dark:border-white/10 rounded-3xl overflow-hidden shadow-xl shadow-black/20 hover:bg-slate-900/10 dark:hover:bg-white/10 transition-all duration-300 h-full flex flex-col">
+                  <div className="bg-slate-900/5 dark:bg-white/5 backdrop-blur-xl border border-slate-900/10 dark:border-white/10 rounded-3xl overflow-hidden shadow-xl shadow-black/20 hover:bg-slate-900/10 dark:hover:bg-white/10 transition-all duration-300 h-full flex flex-col min-w-0">
                     <div className="h-40 w-full relative overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-100 dark:from-slate-900 via-transparent to-transparent z-10"></div>
                       <img 
@@ -122,9 +156,9 @@ export default function TopicList() {
                       </div>
                     </div>
                     
-                    <div className="p-6 flex-1 flex flex-col">
+                    <div className="p-5 md:p-6 flex-1 flex flex-col min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-4">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors line-clamp-2">
+                        <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors line-clamp-3 break-words min-w-0">
                           {topic.title}
                         </h3>
                         {topic.importance && (

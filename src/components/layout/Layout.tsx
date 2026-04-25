@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { motion } from 'motion/react';
-import { Facebook, Sun, Moon } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import { Facebook, Sun, Moon, Menu, X } from 'lucide-react';
 import Footer from './Footer';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -22,6 +22,7 @@ export default function Layout() {
   const location = useLocation();
   const { user, login, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Determine title based on route
   let pageTitle = "";
@@ -54,28 +55,35 @@ export default function Layout() {
     };
   }, []);
 
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  const navLinks = [
+    { to: '/', label: 'Home' },
+    { to: '/courses', label: 'Courses' },
+    { to: '/suggestions', label: 'ICT Short Suggestion' },
+    { to: '/syllabus', label: 'HSC ICT' },
+    { to: '/monthly-quiz', label: 'Quiz Exam', live: true },
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-50 relative overflow-hidden flex flex-col font-sans select-none">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 relative overflow-x-hidden flex flex-col font-sans select-none">
       <SEO title={pageTitle} />
-      {/* Background Decorations (Liquid Glassmorphism) */}
-      <div className="absolute w-[400px] h-[400px] bg-indigo-600 rounded-full blur-[80px] -top-[100px] -right-[100px] opacity-40 -z-10"></div>
-      <div className="absolute w-[300px] h-[300px] bg-sky-500 rounded-full blur-[80px] -bottom-[50px] -left-[50px] opacity-30 -z-10"></div>
-      <div className="absolute w-[500px] h-[500px] bg-purple-600 rounded-full blur-[100px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20 -z-10"></div>
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[linear-gradient(120deg,rgba(14,165,233,0.10),transparent_28%,rgba(99,102,241,0.08)_58%,transparent_78%),linear-gradient(rgba(15,23,42,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.04)_1px,transparent_1px)] dark:bg-[linear-gradient(120deg,rgba(14,165,233,0.14),transparent_28%,rgba(16,185,129,0.08)_58%,transparent_78%),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:auto,32px_32px,32px_32px]"></div>
 
       {/* Header */}
-      <header className="px-8 md:px-16 py-6 flex items-center justify-between border-b border-slate-900/10 dark:border-white/10 bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
-        <Link to="/" className="text-2xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-400">
+      <header className="px-4 sm:px-6 md:px-10 lg:px-16 py-3 md:py-5 flex items-center justify-between gap-3 border-b border-slate-900/10 dark:border-white/10 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
+        <Link to="/" className="min-w-0 text-xl sm:text-2xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-400 truncate">
           Welcome to ICT
         </Link>
-        <nav className="hidden md:flex items-center gap-8 font-medium text-sm text-slate-600 dark:text-slate-300">
-          <Link to="/" className="hover:text-slate-900 dark:hover:text-white transition-colors">Home</Link>
-          <Link to="/courses" className="hover:text-slate-900 dark:hover:text-white transition-colors">Courses</Link>
-          <Link to="/suggestions" className="hover:text-slate-900 dark:hover:text-white transition-colors">ICT Short Suggestion</Link>
-          <Link to="/syllabus" className="hover:text-slate-900 dark:hover:text-white transition-colors">HSC ICT</Link>
-          <Link to="/monthly-quiz" className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2">
-            Quiz Exam
-            <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">LIVE</span>
-          </Link>
+        <nav className="hidden lg:flex items-center gap-6 xl:gap-8 font-medium text-sm text-slate-600 dark:text-slate-300">
+          {navLinks.map(link => (
+            <Link key={link.to} to={link.to} className="hover:text-slate-900 dark:hover:text-white transition-colors flex items-center gap-2 whitespace-nowrap">
+              {link.label}
+              {link.live && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">LIVE</span>}
+            </Link>
+          ))}
           {user ? (
             <div className="flex items-center gap-4">
               <Link to="/dashboard" className="flex items-center gap-2 hover:text-slate-900 dark:hover:text-white transition-colors group">
@@ -101,7 +109,7 @@ export default function Layout() {
               </button>
             </div>
           )}
-          <button 
+          <button
             onClick={toggleTheme}
             className="p-2 rounded-lg bg-slate-900/5 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-900/10 dark:hover:bg-white/20 transition-all flex items-center justify-center border border-slate-900/10 dark:border-white/10 shadow-sm"
             aria-label="Toggle Dark Mode"
@@ -109,6 +117,70 @@ export default function Layout() {
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </nav>
+
+        <div className="flex lg:hidden items-center gap-2 shrink-0">
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 rounded-xl bg-slate-900/5 dark:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-900/10 dark:border-white/10"
+            aria-label="Toggle Dark Mode"
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+          <button
+            onClick={() => setIsMobileMenuOpen(prev => !prev)}
+            className="p-2.5 rounded-xl bg-slate-900/5 dark:bg-white/10 text-slate-800 dark:text-white border border-slate-900/10 dark:border-white/10"
+            aria-label="Open navigation menu"
+            aria-expanded={isMobileMenuOpen}
+          >
+            {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
+
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+              className="absolute left-3 right-3 top-[calc(100%+0.5rem)] rounded-3xl border border-white/50 dark:border-white/10 bg-white/90 dark:bg-slate-950/95 backdrop-blur-2xl shadow-2xl p-3 lg:hidden"
+            >
+              <div className="grid gap-1">
+                {navLinks.map(link => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    className="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-900/5 dark:hover:bg-white/10"
+                  >
+                    <span>{link.label}</span>
+                    {link.live && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">LIVE</span>}
+                  </Link>
+                ))}
+                <div className="h-px bg-slate-900/10 dark:bg-white/10 my-2"></div>
+                {user ? (
+                  <>
+                    <Link to="/dashboard" className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-900/5 dark:hover:bg-white/10">
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-indigo-500 border border-slate-900/10 dark:border-white/20 flex items-center justify-center font-bold text-white">
+                        {user.profileImage ? (
+                          <img src={user.profileImage} alt={user.name || 'User'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        ) : (
+                          user.name?.charAt(0)?.toUpperCase() || 'S'
+                        )}
+                      </div>
+                      Dashboard
+                    </Link>
+                    <button onClick={logout} className="w-full text-left rounded-2xl px-4 py-3 text-sm font-bold text-rose-600 dark:text-rose-300 hover:bg-rose-500/10">Logout</button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/admin" className="rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-900/5 dark:hover:bg-white/10">Admin</Link>
+                    <button onClick={() => login()} className="w-full rounded-2xl px-4 py-3 bg-blue-600 text-white text-sm font-black">Sign in with Google</button>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Main Content Area */}
@@ -121,12 +193,12 @@ export default function Layout() {
         href="https://facebook.com" 
         target="_blank" 
         rel="noopener noreferrer"
-        className="fixed bottom-8 right-8 z-50 group"
+        className="fixed bottom-5 right-5 md:bottom-8 md:right-8 z-50 group"
       >
         <div className="absolute -inset-2 rounded-full border-2 border-dotted border-sky-400 animate-spin-slow opacity-70 group-hover:opacity-100 transition-opacity duration-500"></div>
         <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-sky-400 to-blue-600 rounded-full blur opacity-70 group-hover:opacity-100 animate-spin-slow transition duration-1000"></div>
-        <div className="relative bg-blue-600/80 backdrop-blur-md border border-slate-900/10 dark:border-white/20 text-white p-4 rounded-full shadow-lg transition-transform group-hover:scale-110 flex items-center justify-center">
-          <Facebook className="w-6 h-6" />
+        <div className="relative bg-blue-600/80 backdrop-blur-md border border-slate-900/10 dark:border-white/20 text-white p-3 md:p-4 rounded-full shadow-lg transition-transform group-hover:scale-110 flex items-center justify-center">
+          <Facebook className="w-5 h-5 md:w-6 md:h-6" />
         </div>
       </a>
 

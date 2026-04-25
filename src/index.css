@@ -7,6 +7,166 @@
   --animate-spin-slow: spin 8s linear infinite;
 }
 
+@property --moving-border-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes moving-border-spin {
+  to {
+    --moving-border-angle: 360deg;
+  }
+}
+
+@keyframes topic-orbit {
+  0% {
+    transform: rotate(0deg) translateX(8px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(8px) rotate(-360deg);
+  }
+}
+
+@keyframes topic-scan {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+html,
+body,
+#root {
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+svg,
+video,
+canvas,
+iframe {
+  max-width: 100%;
+}
+
+pre,
+code,
+kbd,
+samp {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.topic-notes {
+  overflow-wrap: anywhere;
+}
+
+.topic-notes :where(h1, h2, h3, h4, p, li, td, th, span, strong) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.topic-notes :where(pre, code) {
+  white-space: pre-wrap;
+}
+
+.topic-notes :where(table) {
+  min-width: 560px;
+}
+
+.topic-notes :where(.overflow-x-auto) {
+  -webkit-overflow-scrolling: touch;
+}
+
+.moving-light-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  background: #071426;
+}
+
+.moving-light-card::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -2;
+  background: conic-gradient(
+    from var(--moving-border-angle),
+    #ef1d26,
+    #f8d923,
+    #12a150,
+    #ffffff,
+    #ef1d26
+  );
+  animation: moving-border-spin 4s linear infinite;
+}
+
+.moving-light-card::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  border-radius: calc(1.5rem - 2px);
+  background:
+    linear-gradient(145deg, rgba(10, 23, 42, 0.98), rgba(3, 10, 24, 0.98)),
+    #071426;
+}
+
+.topic-visual-scan::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  animation: topic-scan 3s ease-in-out infinite;
+}
+
+@media (max-width: 640px) {
+  .topic-notes :where(.rounded-\[2\.5rem\]) {
+    border-radius: 1.5rem;
+  }
+
+  .topic-notes :where(h2) {
+    font-size: 1.65rem;
+    line-height: 1.25;
+  }
+
+  .topic-notes :where(h3) {
+    font-size: 1.35rem;
+    line-height: 1.3;
+  }
+
+  .topic-notes :where(p, li, td, th) {
+    font-size: 0.95rem;
+    line-height: 1.75;
+  }
+}
+
 @utility hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
