@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { Clock, CheckCircle, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { ictSyllabus } from '../data/ict-syllabus';
+import { useLms } from '../context/LmsContext';
 
 interface Props {
   challengeId: string;
@@ -9,7 +10,7 @@ interface Props {
 }
 
 export default function ChallengeExam({ challengeId, onComplete }: Props) {
-  const { user } = useAuth();
+  const { completeChallengeExam } = useLms();
   const [questions, setQuestions] = useState<any[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [timeLeft, setTimeLeft] = useState(30 * 60); // 30 minutes
@@ -32,17 +33,16 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
   }, [timeLeft, questions]);
 
   const fetchQuestions = async () => {
-    try {
-      const res = await fetch(`/api/challenges/${challengeId}/questions?userId=${user?.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setQuestions(data);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
+    const generatedQuestions = ictSyllabus
+      .flatMap(chapter => chapter.topics.flatMap(topic => topic.quizMcqs.map((mcq, index) => ({
+        id: `${topic.id}-${index}`,
+        question: mcq.q,
+        options: mcq.options,
+        correctAnswer: mcq.correct,
+      }))))
+      .slice(0, 30);
+    setQuestions(generatedQuestions);
+    setLoading(false);
   };
 
   const handleSelect = (questionId: string, option: string) => {
@@ -79,17 +79,8 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
       if (answers[q.id] === q.correctAnswer) score++;
     });
 
-    try {
-      await fetch(`/api/challenges/${challengeId}/submit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user?.id, score })
-      });
-      setShowThankYou(true);
-    } catch (error) {
-      console.error(error);
-      setSubmitting(false);
-    }
+    completeChallengeExam(challengeId, score, questions.length);
+    setShowThankYou(true);
   };
 
   const formatTime = (seconds: number) => {

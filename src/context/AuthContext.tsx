@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Mail, Check, X } from 'lucide-react';
 
-interface User {
+export type UserRole = 'admin' | 'student';
+
+export interface User {
   id: string;
   name: string | null;
   email: string;
+  role: UserRole;
   profileImage?: string | null;
   bio?: string | null;
   phone?: string | null;
@@ -13,24 +16,94 @@ interface User {
   upazila?: string | null;
 }
 
+interface LoginInput {
+  email: string;
+  password?: string;
+  name?: string;
+  role?: UserRole;
+}
+
 interface AuthContextType {
   user: User | null;
-  login: () => Promise<void>;
+  isAuthenticated: boolean;
+  userRole: UserRole | null;
+  login: (credentials?: LoginInput) => Promise<User | void>;
+  register: (data: LoginInput) => Promise<User>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const USER_KEY = 'user';
+const TOKEN_KEY = 'token';
+const ADMIN_TOKEN_KEY = 'adminToken';
+const USER_DIRECTORY_KEY = 'lms:users';
+
+const getStoredUsers = (): User[] => {
+  try {
+    return JSON.parse(localStorage.getItem(USER_DIRECTORY_KEY) || '[]') as User[];
+  } catch {
+    return [];
+  }
+};
+
+const saveUserToDirectory = (user: User) => {
+  const users = getStoredUsers();
+  const nextUsers = users.some(item => item.id === user.id)
+    ? users.map(item => item.id === user.id ? { ...item, ...user } : item)
+    : [user, ...users];
+  localStorage.setItem(USER_DIRECTORY_KEY, JSON.stringify(nextUsers));
+};
+
+const makeUserId = (email: string, role: UserRole) =>
+  `${role}-${email.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'user'}`;
+
+const buildMockUser = ({ email, name, role = 'student' }: LoginInput): User => {
+  const normalizedEmail = email.trim().toLowerCase();
+  return {
+    id: makeUserId(normalizedEmail, role),
+    name: name?.trim() || (role === 'admin' ? 'Admin' : 'Student'),
+    email: normalizedEmail,
+    role,
+  };
+};
+
+const navigateWithoutRouter = (path: string) => {
+  window.history.pushState({}, '', path);
+  window.dispatchEvent(new PopStateEvent('popstate'));
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [showMockLogin, setShowMockLogin] = useState(false);
   const [mockEmail, setMockEmail] = useState('');
 
+  const persistSession = (nextUser: User) => {
+    setUser(nextUser);
+    localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
+    localStorage.setItem(TOKEN_KEY, `mock-token-${nextUser.id}`);
+    saveUserToDirectory(nextUser);
+
+    if (nextUser.role === 'admin') {
+      localStorage.setItem(ADMIN_TOKEN_KEY, `mock-admin-token-${nextUser.id}`);
+    } else {
+      localStorage.removeItem(ADMIN_TOKEN_KEY);
+    }
+  };
+
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem(USER_KEY);
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        const parsedUser = JSON.parse(storedUser) as User;
+        setUser(parsedUser);
+        saveUserToDirectory(parsedUser);
+      } catch {
+        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(ADMIN_TOKEN_KEY);
+      }
     }
 
     // Listen for OAuth messages
@@ -41,82 +114,77 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       if (event.data?.type === 'OAUTH_AUTH_SUCCESS') {
         const oAuthUser = event.data.user;
-        setUser(oAuthUser);
-        localStorage.setItem('user', JSON.stringify(oAuthUser));
-        localStorage.setItem('token', `mock-token-${oAuthUser.id}`);
+        persistSession({
+          id: oAuthUser.id || makeUserId(oAuthUser.email || 'student@gmail.com', 'student'),
+          name: oAuthUser.name || 'Student',
+          email: oAuthUser.email || 'student@gmail.com',
+          profileImage: oAuthUser.profileImage || null,
+          role: 'student',
+        });
       }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  const login = async () => {
-    try {
-      // 1. Try Real Google OAuth
-      const response = await fetch('/api/auth/google/url');
-      if (response.ok) {
-        const { url } = await response.json();
-        const authWindow = window.open(url, 'oauth_popup', 'width=500,height=600');
-        if (!authWindow) {
-          alert('Please allow popups to sign in with Google');
-        }
-        return;
-      }
-    } catch (e) {
-      console.warn("Real OAuth not configured, using simulated login", e);
+  const register = async (data: LoginInput) => {
+    const nextUser = buildMockUser(data);
+    persistSession(nextUser);
+    return nextUser;
+  };
+
+  const login = async (credentials?: LoginInput) => {
+    if (!credentials) {
+      setShowMockLogin(true);
+      return;
     }
 
-    // 2. Fallback: Simulated Google Login Flow
-    setShowMockLogin(true);
+    const role = credentials.role || (credentials.email.toLowerCase() === 'admin@ict.com' ? 'admin' : 'student');
+
+    if (role === 'admin') {
+      const validAdmin = credentials.email.trim().toLowerCase() === 'admin@ict.com' && credentials.password === 'admin123';
+      if (!validAdmin) {
+        throw new Error('Invalid admin credentials');
+      }
+    }
+
+    const nextUser = buildMockUser({ ...credentials, role });
+    persistSession(nextUser);
+    return nextUser;
   };
 
   const handleMockSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: mockEmail || 'student@gmail.com', name: 'Student' })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('token', data.token);
-        setShowMockLogin(false);
-      }
-    } catch (error) {
-      console.error("Login failed", error);
+    const nextUser = await login({
+      email: mockEmail || 'student@gmail.com',
+      name: 'Student',
+      role: 'student',
+    });
+    setShowMockLogin(false);
+    setMockEmail('');
+    if (nextUser) {
+      navigateWithoutRouter(nextUser.role === 'admin' ? '/admin/dashboard' : '/dashboard');
     }
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
   };
 
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
-    try {
-      const res = await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, ...data })
-      });
-      if (res.ok) {
-        const updatedUser = await res.json();
-        setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-      }
-    } catch (error) {
-      console.error("Profile update failed", error);
-      throw error;
-    }
+    const updatedUser = { ...user, ...data, role: user.role };
+    persistSession(updatedUser);
   };
 
+  const isAuthenticated = Boolean(user);
+  const userRole = user?.role || null;
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, userRole, login, register, logout, updateProfile }}>
       {children}
       
       {/* Simulated Google Login Popup */}

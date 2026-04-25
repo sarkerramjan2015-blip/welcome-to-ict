@@ -14,6 +14,7 @@ export default function Suggestions() {
   const handleBuy = async () => {
     if (!user) {
       await login();
+      return;
     }
     setShowPayment(true);
   };

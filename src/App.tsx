@@ -21,31 +21,36 @@ import MegaChallenge from './pages/MegaChallenge';
 import Dashboard from './pages/Dashboard';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { LmsProvider } from './context/LmsContext';
+import PrivateRoute from './components/routes/PrivateRoute';
+import AdminRoute from './components/routes/AdminRoute';
 
 export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="courses" element={<Courses />} />
-            <Route path="course-player" element={<CoursePlayer />} />
-            <Route path="live-course-dashboard" element={<LiveCourseDashboard />} />
-            <Route path="suggestions" element={<Suggestions />} />
-            <Route path="ebook-reader" element={<EBookReader />} />
-            <Route path="syllabus" element={<ChapterList />} />
-            <Route path="chapters/:chapterId/topics" element={<TopicList />} />
-            <Route path="topics/:topicId" element={<TopicDetails />} />
-            <Route path="monthly-quiz" element={<MegaChallenge />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="admin" element={<AdminLogin />} />
-            <Route path="admin/dashboard" element={<AdminDashboard />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+        <LmsProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Home />} />
+                <Route path="courses" element={<Courses />} />
+                <Route path="course-player" element={<PrivateRoute><CoursePlayer /></PrivateRoute>} />
+                <Route path="live-course-dashboard" element={<PrivateRoute><LiveCourseDashboard /></PrivateRoute>} />
+                <Route path="suggestions" element={<Suggestions />} />
+                <Route path="ebook-reader" element={<PrivateRoute><EBookReader /></PrivateRoute>} />
+                <Route path="syllabus" element={<ChapterList />} />
+                <Route path="chapters/:chapterId/topics" element={<TopicList />} />
+                <Route path="topics/:topicId" element={<TopicDetails />} />
+                <Route path="monthly-quiz" element={<MegaChallenge />} />
+                <Route path="dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+                <Route path="admin" element={<AdminLogin />} />
+                <Route path="admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </LmsProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

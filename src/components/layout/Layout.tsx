@@ -20,7 +20,7 @@ function SEO({ title }: { title?: string }) {
 
 export default function Layout() {
   const location = useLocation();
-  const { user, login, logout } = useAuth();
+  const { user, userRole, login, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
@@ -101,7 +101,7 @@ export default function Layout() {
           ))}
           {user ? (
             <div className="flex items-center gap-4">
-              <Link to="/dashboard" className="flex items-center gap-2 hover:text-slate-900 dark:hover:text-white transition-colors group">
+              <Link to={userRole === 'admin' ? '/admin/dashboard' : '/dashboard'} className="flex items-center gap-2 hover:text-slate-900 dark:hover:text-white transition-colors group">
                 <div className="w-8 h-8 rounded-full overflow-hidden bg-indigo-500 border border-slate-900/10 dark:border-white/20 flex items-center justify-center font-bold text-white shadow-sm group-hover:scale-105 transition-transform">
                   {user.profileImage ? (
                     <img src={user.profileImage} alt={user.name || 'User'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -109,7 +109,7 @@ export default function Layout() {
                     user.name?.charAt(0)?.toUpperCase() || 'S'
                   )}
                 </div>
-                <span>Dashboard</span>
+                <span>{userRole === 'admin' ? 'Admin Dashboard' : 'Dashboard'}</span>
               </Link>
               <button onClick={logout} className="px-4 py-2 bg-slate-900/5 dark:bg-white/10 hover:bg-slate-900/20 dark:hover:bg-white/20 rounded-lg text-slate-900 dark:text-white transition-colors">Logout</button>
             </div>
@@ -174,7 +174,7 @@ export default function Layout() {
                 <div className="h-px bg-slate-900/10 dark:bg-white/10 my-2"></div>
                 {user ? (
                   <>
-                    <Link to="/dashboard" className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-900/5 dark:hover:bg-white/10">
+                    <Link to={userRole === 'admin' ? '/admin/dashboard' : '/dashboard'} className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-900/5 dark:hover:bg-white/10">
                       <div className="w-8 h-8 rounded-full overflow-hidden bg-indigo-500 border border-slate-900/10 dark:border-white/20 flex items-center justify-center font-bold text-white">
                         {user.profileImage ? (
                           <img src={user.profileImage} alt={user.name || 'User'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -182,7 +182,7 @@ export default function Layout() {
                           user.name?.charAt(0)?.toUpperCase() || 'S'
                         )}
                       </div>
-                      Dashboard
+                      {userRole === 'admin' ? 'Admin Dashboard' : 'Dashboard'}
                     </Link>
                     <button onClick={logout} className="w-full text-left rounded-2xl px-4 py-3 text-sm font-bold text-rose-600 dark:text-rose-300 hover:bg-rose-500/10">Logout</button>
                   </>

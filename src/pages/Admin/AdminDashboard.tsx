@@ -1,43 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, FileText, HelpCircle, LogOut, Plus, X, Save } from 'lucide-react';
+import { LayoutDashboard, BookOpen, FileText, HelpCircle, LogOut, Plus, X, Save, Users, Activity, CheckCircle } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { useLms } from '../../context/LmsContext';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ chapters: 0, topics: 0, mcqs: 0 });
-  const [loading, setLoading] = useState(true);
+  const { logout } = useAuth();
+  const { adminStats } = useLms();
   const [showTopicEditor, setShowTopicEditor] = useState(false);
   const [newTopic, setNewTopic] = useState({ title: '', importance: 'Medium' });
 
-  useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      navigate('/admin');
-      return;
-    }
-
-    fetch('/api/admin/stats')
-      .then(res => res.json())
-      .then(data => {
-        setStats(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [navigate]);
-
   const handleLogout = () => {
-    localStorage.removeItem('adminToken');
+    logout();
     navigate('/admin');
   };
-
-  if (loading) {
-    return (
-      <div className="flex-1 flex justify-center items-center">
-        <div className="w-10 h-10 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex-1 flex flex-col px-8 md:px-16 py-8 relative z-20">
@@ -57,45 +35,32 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="bg-slate-900/5 dark:bg-white/5 backdrop-blur-md border border-slate-900/10 dark:border-white/10 rounded-3xl p-6 flex items-center gap-6"
-        >
-          <div className="w-14 h-14 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-            <BookOpen size={28} />
-          </div>
-          <div>
-            <div className="text-3xl font-black">{stats.chapters}</div>
-            <div className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Chapters</div>
-          </div>
-        </motion.div>
-
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className="bg-slate-900/5 dark:bg-white/5 backdrop-blur-md border border-slate-900/10 dark:border-white/10 rounded-3xl p-6 flex items-center gap-6"
-        >
-          <div className="w-14 h-14 rounded-2xl bg-sky-500/20 text-sky-400 flex items-center justify-center">
-            <FileText size={28} />
-          </div>
-          <div>
-            <div className="text-3xl font-black">{stats.topics}</div>
-            <div className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Topics</div>
-          </div>
-        </motion.div>
-
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-          className="bg-slate-900/5 dark:bg-white/5 backdrop-blur-md border border-slate-900/10 dark:border-white/10 rounded-3xl p-6 flex items-center gap-6"
-        >
-          <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-            <HelpCircle size={28} />
-          </div>
-          <div>
-            <div className="text-3xl font-black">{stats.mcqs}</div>
-            <div className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total MCQs</div>
-          </div>
-        </motion.div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
+        {[
+          { label: 'Total Chapters', value: adminStats.chapters, icon: BookOpen, iconClass: 'bg-indigo-500/20 text-indigo-400', delay: 0.1 },
+          { label: 'Total Topics', value: adminStats.topics, icon: FileText, iconClass: 'bg-sky-500/20 text-sky-400', delay: 0.2 },
+          { label: 'Total MCQs', value: adminStats.mcqs, icon: HelpCircle, iconClass: 'bg-emerald-500/20 text-emerald-400', delay: 0.3 },
+          { label: 'Active Students', value: adminStats.activeStudents, icon: Users, iconClass: 'bg-pink-500/20 text-pink-400', delay: 0.4 },
+          { label: 'Quiz Attempts', value: adminStats.quizAttempts, icon: Activity, iconClass: 'bg-amber-500/20 text-amber-400', delay: 0.5 },
+          { label: 'Completed Topics', value: adminStats.completedTopics, icon: CheckCircle, iconClass: 'bg-green-500/20 text-green-400', delay: 0.6 },
+        ].map(stat => {
+          const Icon = stat.icon;
+          return (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: stat.delay }}
+              className="bg-slate-900/5 dark:bg-white/5 backdrop-blur-md border border-slate-900/10 dark:border-white/10 rounded-3xl p-6 flex items-center gap-6"
+            >
+              <div className={`w-14 h-14 rounded-2xl ${stat.iconClass} flex items-center justify-center`}>
+                <Icon size={28} />
+              </div>
+              <div>
+                <div className="text-3xl font-black">{stat.value}</div>
+                <div className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{stat.label}</div>
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Quick Actions (CRUD Placeholders) */}
@@ -189,13 +154,15 @@ export default function AdminDashboard() {
           onClick={async () => {
             const btn = document.getElementById('gen-btn');
             if(btn) btn.innerText = 'Generating... (Takes ~30s)';
-            try {
-              const res = await fetch('/api/admin/challenges/generate', { method: 'POST' });
-              if(res.ok) alert('Challenge Generated & Live!');
-              else alert('Failed to generate challenge');
-            } catch(e) {
-              alert('Error generating challenge');
-            }
+            await new Promise(resolve => setTimeout(resolve, 900));
+            localStorage.setItem('lms:activeChallenge', JSON.stringify({
+              id: 'monthly-hsc-ict',
+              month: new Date().toLocaleString('default', { month: 'long' }),
+              year: new Date().getFullYear(),
+              fee: 20,
+              generatedAt: new Date().toISOString(),
+            }));
+            alert('Challenge Generated & Live!');
             if(btn) btn.innerText = 'Generate Challenge Questions';
           }}
           id="gen-btn"

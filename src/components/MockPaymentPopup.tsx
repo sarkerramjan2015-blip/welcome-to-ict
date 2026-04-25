@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { X, Smartphone } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 
 interface Props {
   challengeId: string;
@@ -10,7 +9,6 @@ interface Props {
 }
 
 export default function MockPaymentPopup({ challengeId, fee, onClose, onSuccess }: Props) {
-  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [phone, setPhone] = useState('');
   const [pin, setPin] = useState('');
@@ -20,21 +18,13 @@ export default function MockPaymentPopup({ challengeId, fee, onClose, onSuccess 
     setLoading(true);
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    try {
-      const res = await fetch(`/api/challenges/${challengeId}/pay`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user?.id })
-      });
-      if (res.ok) {
-        onSuccess();
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
+    localStorage.setItem(`lms:payment:${challengeId}`, JSON.stringify({
+      challengeId,
+      fee,
+      paidAt: new Date().toISOString(),
+    }));
+    onSuccess();
+    setLoading(false);
   };
 
   return (

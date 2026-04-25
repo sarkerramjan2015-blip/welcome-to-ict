@@ -5,6 +5,7 @@ import { ictSyllabus } from '../data/ict-syllabus';
 import { FileText, PlayCircle, CheckCircle, Edit3, ArrowLeft, HelpCircle, Clock, Award, LockKeyhole } from 'lucide-react';
 import { cn } from '../lib/utils';
 import TopicView from '../components/ui/TopicView';
+import { useLms } from '../context/LmsContext';
 
 type Tab = 'notes' | 'video' | 'short_qs' | 'practice' | 'cq' | 'quiz';
 
@@ -78,6 +79,7 @@ export default function TopicDetails() {
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [score, setScore] = useState(0);
+  const { recordTopicVisit, isTopicCompleted, toggleTopicCompletion, saveQuizResult } = useLms();
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -89,6 +91,12 @@ export default function TopicDetails() {
     return () => clearInterval(timer);
   }, [quizStarted, timeLeft, quizSubmitted]);
 
+  useEffect(() => {
+    if (currentTopic) {
+      recordTopicVisit(currentTopic.id);
+    }
+  }, [currentTopic?.id, recordTopicVisit]);
+
   const handleQuizSubmit = () => {
     if (!currentTopic) return;
     let newScore = 0;
@@ -99,6 +107,18 @@ export default function TopicDetails() {
     });
     setScore(newScore);
     setQuizSubmitted(true);
+    saveQuizResult({
+      topicId: currentTopic.id,
+      topicTitle: currentTopic.title,
+      chapterId: parentChapter?.id,
+      chapterTitle: parentChapter?.title,
+      mode: 'topic',
+      score: newScore,
+      total: currentTopic.quizMcqs.length,
+    });
+    if (!isTopicCompleted(currentTopic.id)) {
+      toggleTopicCompletion(currentTopic.id);
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -128,6 +148,7 @@ export default function TopicDetails() {
   const videoUrl =
     typeof currentTopic.video_url === 'string' ? currentTopic.video_url.trim() : '';
   const hasVideo = videoUrl.length > 0;
+  const topicCompleted = isTopicCompleted(currentTopic.id);
 
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
     let newIndex = index;
@@ -182,6 +203,18 @@ export default function TopicDetails() {
             <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight leading-tight drop-shadow-lg text-balance break-words">
               {currentTopic.title}
             </h1>
+            <button
+              onClick={() => toggleTopicCompletion(currentTopic.id)}
+              className={cn(
+                "mt-6 inline-flex w-fit items-center gap-2 rounded-full px-5 py-2.5 text-sm font-black shadow-lg transition-all hover:scale-105",
+                topicCompleted
+                  ? "bg-emerald-400 text-slate-950 shadow-emerald-500/30"
+                  : "bg-white/15 text-white border border-white/25 backdrop-blur-md hover:bg-white/25"
+              )}
+            >
+              <CheckCircle className="w-4 h-4" />
+              {topicCompleted ? 'Completed' : 'Mark as Completed'}
+            </button>
           </motion.div>
         </div>
       </div>

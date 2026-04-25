@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Trophy, CheckCircle, Clock, Book, User as UserIcon, Edit2, Save, X, Camera, Plus, Trash2, ListTodo } from 'lucide-react';
+import { Trophy, CheckCircle, Clock, Book, User as UserIcon, Edit2, Save, X, Camera, Plus, Trash2, ListTodo, BarChart3, Target, Percent, History } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLms } from '../context/LmsContext';
 
 interface Task {
   id: string;
@@ -12,8 +13,7 @@ interface Task {
 
 export default function Dashboard() {
   const { user, updateProfile } = useAuth();
-  const [enrollments, setEnrollments] = useState<any[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { analytics, quizResults, tasks, addTask, toggleTaskCompletion: toggleStoredTaskCompletion, deleteTask: deleteStoredTask, challengeEnrollments, courseEnrollments } = useLms();
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState<'High' | 'Medium' | 'Low'>('Medium');
   const [loading, setLoading] = useState(true);
@@ -34,7 +34,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (user) {
-      fetchDashboard();
       setEditForm({
         name: user.name || '',
         phone: user.phone || '',
@@ -44,64 +43,22 @@ export default function Dashboard() {
         bio: user.bio || ''
       });
     }
+    setLoading(false);
   }, [user]);
-
-  const fetchDashboard = async () => {
-    try {
-      const [dashRes, tasksRes] = await Promise.all([
-        fetch(`/api/dashboard?userId=${user?.id}`),
-        fetch(`/api/tasks?userId=${user?.id}`)
-      ]);
-      const data = await dashRes.json();
-      const fetchedTasks = await tasksRes.json();
-      setEnrollments(data);
-      setTasks(fetchedTasks || []);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaskTitle.trim()) return;
-    try {
-      const res = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user?.id, title: newTaskTitle, priority: newTaskPriority })
-      });
-      const task = await res.json();
-      setTasks([task, ...tasks]);
-      setNewTaskTitle('');
-    } catch (error) {
-      console.error('Failed to create task', error);
-    }
+    addTask(newTaskTitle, newTaskPriority);
+    setNewTaskTitle('');
   };
 
   const toggleTaskCompletion = async (task: Task) => {
-    const updatedStatus = !task.completed;
-    try {
-      const res = await fetch(`/api/tasks/${task.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completed: updatedStatus })
-      });
-      const updatedTask = await res.json();
-      setTasks(tasks.map(t => t.id === task.id ? updatedTask : t));
-    } catch (error) {
-      console.error('Failed to update task', error);
-    }
+    toggleStoredTaskCompletion(task.id);
   };
 
   const deleteTask = async (taskId: string) => {
-    try {
-      await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
-      setTasks(tasks.filter(t => t.id !== taskId));
-    } catch (error) {
-      console.error('Failed to delete task', error);
-    }
+    deleteStoredTask(taskId);
   };
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -193,6 +150,7 @@ export default function Dashboard() {
   if (loading) return <div className="p-8 text-center text-slate-900 dark:text-white">Loading Dashboard...</div>;
 
   const hasPurchasedSuggestion = localStorage.getItem('hasPurchasedSuggestion') === 'true';
+  const enrollments = challengeEnrollments;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -334,6 +292,45 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* LMS Analytics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-slate-900/10 dark:border-white/20">
+          <div className="flex items-center gap-3 mb-3 text-sky-400">
+            <BarChart3 className="w-5 h-5" />
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Chapters Read</span>
+          </div>
+          <div className="text-3xl font-black text-slate-900 dark:text-white">{analytics.totalChaptersRead}</div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Out of 6 HSC ICT chapters</p>
+        </div>
+
+        <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-slate-900/10 dark:border-white/20">
+          <div className="flex items-center gap-3 mb-3 text-emerald-400">
+            <CheckCircle className="w-5 h-5" />
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Topic Progress</span>
+          </div>
+          <div className="text-3xl font-black text-slate-900 dark:text-white">{analytics.completedTopics}/{analytics.totalTopics}</div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{analytics.completionRate}% completed</p>
+        </div>
+
+        <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-slate-900/10 dark:border-white/20">
+          <div className="flex items-center gap-3 mb-3 text-amber-400">
+            <Target className="w-5 h-5" />
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Quiz Attempts</span>
+          </div>
+          <div className="text-3xl font-black text-slate-900 dark:text-white">{analytics.quizAttempts}</div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Topic and challenge quizzes</p>
+        </div>
+
+        <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-slate-900/10 dark:border-white/20">
+          <div className="flex items-center gap-3 mb-3 text-pink-400">
+            <Percent className="w-5 h-5" />
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Avg Accuracy</span>
+          </div>
+          <div className="text-3xl font-black text-slate-900 dark:text-white">{analytics.averageAccuracy}%</div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Best: {analytics.bestAccuracy}%</p>
+        </div>
+      </div>
+
       {/* Tasks Section */}
       <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-slate-900/10 dark:border-white/20 mb-8 mt-8 relative">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
@@ -466,6 +463,70 @@ export default function Dashboard() {
                   ) : (
                     <span className="text-gray-500 text-sm">Payment Required</span>
                   )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-slate-900/10 dark:border-white/20 mt-8">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+          <Book className="w-6 h-6 text-sky-400" />
+          My Courses
+        </h2>
+
+        {courseEnrollments.length === 0 ? (
+          <p className="text-slate-500 dark:text-gray-400">No premium courses purchased yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {courseEnrollments.map(course => (
+              <div key={course.id} className="bg-slate-900/5 dark:bg-white/5 rounded-xl p-6 border border-slate-900/10 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                    {course.courseType === 'RECORDED' ? 'ICT Full Course Recorded' : 'HSC ICT Live Course'}
+                  </h3>
+                  <p className="text-slate-500 dark:text-gray-400 text-sm mt-1">
+                    Purchased: {new Date(course.createdAt).toLocaleDateString()} · Fee: {course.fee} TK
+                  </p>
+                </div>
+                <Link
+                  to={course.courseType === 'RECORDED' ? '/course-player' : '/live-course-dashboard'}
+                  className="px-6 py-3 bg-sky-500 hover:bg-sky-400 text-white rounded-xl font-bold transition-colors"
+                >
+                  Continue Learning
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-slate-900/10 dark:border-white/20 mt-8">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+          <History className="w-6 h-6 text-emerald-400" />
+          Quiz History
+        </h2>
+
+        {quizResults.length === 0 ? (
+          <p className="text-slate-500 dark:text-gray-400">No quiz results saved yet. Complete a topic quiz to start building your record.</p>
+        ) : (
+          <div className="space-y-3">
+            {quizResults.slice(0, 8).map(result => (
+              <div key={result.id} className="bg-slate-900/5 dark:bg-white/5 rounded-xl p-4 border border-slate-900/10 dark:border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-bold text-slate-900 dark:text-white">{result.topicTitle}</h3>
+                  <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">
+                    {result.chapterTitle || (result.mode === 'mega' ? 'Monthly Challenge' : 'Topic Quiz')} · {new Date(result.completedAt).toLocaleString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-bold">
+                    {result.score}/{result.total}
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 text-sm font-bold">
+                    {result.accuracy}%
+                  </span>
                 </div>
               </div>
             ))}

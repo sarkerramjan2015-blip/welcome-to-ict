@@ -5,9 +5,11 @@ import MockPaymentPopup from '../components/MockPaymentPopup';
 import ChallengeExam from '../components/ChallengeExam';
 import Countdown from '../components/Countdown';
 import { motion } from 'motion/react';
+import { useLms } from '../context/LmsContext';
 
 export default function MegaChallenge() {
   const { user, login } = useAuth();
+  const { challengeEnrollments, enrollChallenge, markChallengePaid } = useLms();
   const [challenge, setChallenge] = useState<any>(null);
   const [enrollment, setEnrollment] = useState<any>(null);
   const [showPayment, setShowPayment] = useState(false);
@@ -22,29 +24,28 @@ export default function MegaChallenge() {
     if (user && challenge) {
       checkEnrollment();
     }
-  }, [user, challenge]);
+  }, [user, challenge, challengeEnrollments]);
 
   const fetchChallenge = async () => {
+    const fallbackChallenge = {
+      id: 'monthly-hsc-ict',
+      month: new Date().toLocaleString('default', { month: 'long' }),
+      year: new Date().getFullYear(),
+      fee: 20
+    };
     try {
-      const res = await fetch('/api/challenges/current');
-      const data = await res.json();
-      setChallenge(data);
-    } catch (error) {
-      console.error(error);
+      const storedChallenge = localStorage.getItem('lms:activeChallenge');
+      setChallenge(storedChallenge ? JSON.parse(storedChallenge) : fallbackChallenge);
+    } catch {
+      setChallenge(fallbackChallenge);
     } finally {
       setLoading(false);
     }
   };
 
   const checkEnrollment = async () => {
-    try {
-      const res = await fetch(`/api/dashboard?userId=${user?.id}`);
-      const data = await res.json();
-      const currentEnrollment = data.find((e: any) => e.challengeId === challenge.id);
-      setEnrollment(currentEnrollment);
-    } catch (error) {
-      console.error(error);
-    }
+    const currentEnrollment = challengeEnrollments.find(e => e.challengeId === challenge.id);
+    setEnrollment(currentEnrollment || null);
   };
 
   const handleJoin = async () => {
@@ -59,23 +60,17 @@ export default function MegaChallenge() {
       return;
     }
 
-    try {
-      const res = await fetch(`/api/challenges/${challenge.id}/enroll`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id })
-      });
-      const data = await res.json();
-      setEnrollment(data);
-      setShowPayment(true);
-    } catch (error) {
-      console.error(error);
-    }
+    const nextEnrollment = enrollChallenge(challenge.id, challenge.fee);
+    setEnrollment(nextEnrollment);
+    setShowPayment(true);
   };
 
   const handlePaymentSuccess = async () => {
+    if (challenge) {
+      markChallengePaid(challenge.id);
+    }
+    setEnrollment((prev: any) => prev ? { ...prev, paymentStatus: 'PAID', updatedAt: new Date().toISOString() } : prev);
     setShowPayment(false);
-    await checkEnrollment(); // Refresh enrollment status
   };
 
   const isResultPublished = (updatedAt: string) => {

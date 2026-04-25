@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PlayCircle, CheckCircle, Lock, AlertCircle } from 'lucide-react';
+import { useLms } from '../context/LmsContext';
 
 const dummyVideos = [
   { id: 1, title: 'Chapter 1: Global Village', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ?modestbranding=1&rel=0' },
@@ -8,6 +9,7 @@ const dummyVideos = [
 ];
 
 export default function CoursePlayer() {
+  const { saveQuizResult } = useLms();
   const [currentVideo, setCurrentVideo] = useState(0);
   const [unlockedUpTo, setUnlockedUpTo] = useState(0);
   const [showQuiz, setShowQuiz] = useState(false);
@@ -17,6 +19,13 @@ export default function CoursePlayer() {
     // Mocking a random score between 8 and 20
     const score = Math.floor(Math.random() * 13) + 8;
     setQuizScore(score);
+    saveQuizResult({
+      topicId: `course-${dummyVideos[currentVideo].id}`,
+      topicTitle: `Mini Quiz: ${dummyVideos[currentVideo].title}`,
+      mode: 'course',
+      score,
+      total: 20,
+    });
 
     if (score >= 12) {
       setUnlockedUpTo(prev => Math.max(prev, currentVideo + 1));
@@ -26,7 +35,7 @@ export default function CoursePlayer() {
   const handleNextVideo = () => {
     setShowQuiz(false);
     setQuizScore(null);
-    setCurrentVideo(prev => prev + 1);
+    setCurrentVideo(prev => Math.min(prev + 1, dummyVideos.length - 1));
   };
 
   const handleRetry = () => {

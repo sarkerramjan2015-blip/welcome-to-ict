@@ -4,9 +4,11 @@ import { BookOpen, Video, CheckCircle, CreditCard, Clock } from 'lucide-react';
 import MockPaymentPopup from '../components/MockPaymentPopup';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useLms } from '../context/LmsContext';
 
 export default function Courses() {
   const { user, login } = useAuth();
+  const { enrollCourse } = useLms();
   const navigate = useNavigate();
   const [showPayment, setShowPayment] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<{id: string, fee: number, type: string} | null>(null);
@@ -30,6 +32,7 @@ export default function Courses() {
   const handleJoin = async (courseId: string, fee: number, type: string) => {
     if (!user) {
       await login();
+      return;
     }
     setSelectedCourse({ id: courseId, fee, type });
     setShowPayment(true);
@@ -37,6 +40,9 @@ export default function Courses() {
 
   const handlePaymentSuccess = () => {
     setShowPayment(false);
+    if (selectedCourse) {
+      enrollCourse(selectedCourse.id, selectedCourse.fee, selectedCourse.type);
+    }
     if (selectedCourse?.type === 'RECORDED') {
       navigate('/course-player');
     } else {
