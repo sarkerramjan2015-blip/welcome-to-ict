@@ -392,16 +392,18 @@ export default function TopicDetails() {
                         <p className="text-slate-800 dark:text-slate-200 leading-loose text-lg font-medium"><QuestionText text={cq.stem} /></p>
                       </div>
                       <div className="flex flex-col gap-5 pl-2">
-                        <div className="bg-white dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                          <span className="font-black text-indigo-500 dark:text-indigo-400 text-lg mr-3">গ)</span>
-                          <span className="text-slate-700 dark:text-slate-300 font-medium text-lg">{cq.qC}</span>
-                          <span className="ml-4 text-[10px] font-black uppercase px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 shadow-sm">প্রয়োগ</span>
-                        </div>
-                        <div className="bg-white dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                          <span className="font-black text-indigo-500 dark:text-indigo-400 text-lg mr-3">ঘ)</span>
-                          <span className="text-slate-700 dark:text-slate-300 font-medium text-lg">{cq.qD}</span>
-                          <span className="ml-4 text-[10px] font-black uppercase px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 shadow-sm">উচ্চতর দক্ষতা</span>
-                        </div>
+                        {[
+                          { label: 'ক)', text: cq.qA, badge: 'জ্ঞানমূলক' },
+                          { label: 'খ)', text: cq.qB, badge: 'অনুধাবন' },
+                          { label: 'গ)', text: cq.qC, badge: 'প্রয়োগ' },
+                          { label: 'ঘ)', text: cq.qD, badge: 'উচ্চতর দক্ষতা' },
+                        ].filter(item => Boolean(item.text)).map(item => (
+                          <div key={item.label} className="bg-white dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                            <span className="font-black text-indigo-500 dark:text-indigo-400 text-lg mr-3">{item.label}</span>
+                            <span className="text-slate-700 dark:text-slate-300 font-medium text-lg"><QuestionText text={item.text || ''} /></span>
+                            <span className="ml-4 text-[10px] font-black uppercase px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 shadow-sm">{item.badge}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}

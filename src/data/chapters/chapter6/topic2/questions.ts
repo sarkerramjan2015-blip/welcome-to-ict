@@ -1,2 +1,43 @@
-export const knowledgeQuestions = [];
-export const analyticalQuestions = [];
+import { ShortQuestion } from "../../../ict-syllabus";
+
+export const questions: { knowledgeQuestions: ShortQuestion[]; analyticalQuestions: ShortQuestion[] } = {
+  "knowledgeQuestions": [
+    {
+      "q": "DBMS কী? [মাদরাসা বোর্ড ২০১৯]",
+      "a": "ডেটাবেজ তৈরি, পরিবর্তন, সংরক্ষণ, নিয়ন্ত্রণ ও পরিচালনার সফটওয়্যারকে DBMS বলে।",
+      "type": "জ্ঞানমূলক"
+    },
+    {
+      "q": "RDBMS কী? [সমন্বিত বোর্ড ২০১৮]",
+      "a": "Relational Database Management System হলো রিলেশনাল মডেলভিত্তিক DBMS, যেখানে ডেটা সম্পর্কযুক্ত টেবিলে সংরক্ষিত হয়।",
+      "type": "জ্ঞানমূলক"
+    },
+    {
+      "q": "ডেটাবেজ অ্যাডমিনিস্ট্রেটর কী? [ঢাকা বোর্ড ২০১৭]",
+      "a": "ডেটাবেজের সার্বিক দায়িত্বে নিয়োজিত ব্যক্তি বা ব্যক্তিবর্গকে DBA বলে।",
+      "type": "জ্ঞানমূলক"
+    },
+    {
+      "q": "DBMS এর দুটি উদাহরণ লেখ। [রাজশাহী বোর্ড ২০১৭]",
+      "a": "MySQL ও Microsoft Access DBMS/RDBMS সফটওয়্যারের উদাহরণ।",
+      "type": "জ্ঞানমূলক"
+    }
+  ],
+  "analyticalQuestions": [
+    {
+      "q": "DBMS এ ডেটা ভ্যালিডেশনের প্রয়োজনীয়তা ব্যাখ্যা কর। [দিনাজপুর বোর্ড ২০১৭]",
+      "a": "ভ্যালিডেশন ভুল, অসম্পূর্ণ বা অগ্রহণযোগ্য ডেটা ঢোকা রোধ করে। ফলে ডেটাবেজের সঠিকতা, রিপোর্টের নির্ভরযোগ্যতা ও সিদ্ধান্ত গ্রহণের মান বজায় থাকে।",
+      "type": "অনুধাবনমূলক"
+    },
+    {
+      "q": "ডেটাবেজ অ্যাডমিনিস্ট্রেটরের ভূমিকা ব্যাখ্যা কর। [কুমিল্লা বোর্ড ২০১৭]",
+      "a": "DBA ডেটাবেজ কাঠামো নকশা, user access control, security, backup, recovery, performance tuning ও report generation পরিচালনা করেন।",
+      "type": "অনুধাবনমূলক"
+    },
+    {
+      "q": "DBMS ও RDBMS এক নয় - ব্যাখ্যা কর। [চট্টগ্রাম বোর্ড ২০১৭]",
+      "a": "DBMS ডেটা সাধারণত file আকারে ব্যবস্থাপনা করতে পারে, কিন্তু RDBMS টেবিলভিত্তিক এবং টেবিলগুলোর মধ্যে key ব্যবহার করে relation তৈরি করে। তাই RDBMS DBMS-এর উন্নত relational রূপ।",
+      "type": "অনুধাবনমূলক"
+    }
+  ]
+};

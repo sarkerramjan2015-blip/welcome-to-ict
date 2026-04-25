@@ -6,7 +6,7 @@ import { practiceMCQs } from "./mcqs";
 import { questions } from "./questions";
 import { cqs } from "./cqs";
 
-export const topic2: Topic = {
+export const topic6: Topic = {
   ...meta,
   board_notes: notes,
   shortQuestions: [

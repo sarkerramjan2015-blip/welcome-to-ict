@@ -26,6 +26,8 @@ export interface QuizMCQ {
 
 export interface CQ {
   stem: string;
+  qA?: string;
+  qB?: string;
   qC: string;
   qD: string;
 }
