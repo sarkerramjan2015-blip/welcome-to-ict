@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'motion/react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Lock, Mail } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function GoogleLogo() {
@@ -16,79 +15,34 @@ function GoogleLogo() {
 }
 
 export default function Login() {
-  const { login, loginWithGoogle } = useAuth();
-  const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    try {
-      const user = await login({ email, password, role: email.toLowerCase() === 'admin@ict.com' ? 'admin' : 'student' });
-      if (user) navigate(user.role === 'admin' ? '/admin/dashboard' : '/dashboard');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { authError, loginWithGoogle } = useAuth();
+  const location = useLocation();
+  const routeState = location.state as { from?: { pathname?: string; search?: string; hash?: string } } | null;
+  const fromPath = routeState?.from?.pathname
+    ? `${routeState.from.pathname}${routeState.from.search || ''}${routeState.from.hash || ''}`
+    : '';
 
   return (
     <div className="flex-1 flex items-center justify-center px-8 py-12 relative z-20">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         <div className="bg-slate-900/5 dark:bg-white/5 backdrop-blur-xl border border-slate-900/10 dark:border-white/10 rounded-3xl p-10 shadow-2xl shadow-black/20">
           <h1 className="text-3xl font-black text-center mb-2">Welcome Back</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-center mb-8">Sign in to continue your ICT learning.</p>
+          <p className="text-slate-500 dark:text-slate-400 text-center mb-8">Sign in securely with your Google account.</p>
 
           <button
             type="button"
-            onClick={() => void loginWithGoogle()}
-            className="mb-5 w-full rounded-xl border border-slate-900/10 dark:border-white/10 bg-white text-slate-800 px-4 py-3 font-bold shadow-sm hover:bg-slate-50 transition-colors flex items-center justify-center gap-3"
+            onClick={() => void loginWithGoogle({ redirectTo: fromPath || undefined })}
+            className="w-full rounded-xl border border-slate-900/10 dark:border-white/10 bg-white text-slate-800 px-4 py-3 font-bold shadow-sm hover:bg-slate-50 transition-colors flex items-center justify-center gap-3"
           >
             <GoogleLogo />
             Sign in with Google
           </button>
 
-          {error && (
-            <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-3 rounded-xl mb-6 text-sm text-center font-medium">
-              {error}
+          {authError && (
+            <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-3 rounded-xl mt-5 text-sm text-left font-medium break-words">
+              {authError}
             </div>
           )}
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <div className="relative">
-              <Mail size={18} className="absolute inset-y-0 left-4 my-auto text-slate-500" />
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="Email"
-                required
-                className="w-full bg-slate-900/5 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-xl py-3 pl-11 pr-4 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all"
-              />
-            </div>
-            <div className="relative">
-              <Lock size={18} className="absolute inset-y-0 left-4 my-auto text-slate-500" />
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full bg-slate-900/5 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-xl py-3 pl-11 pr-4 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-2 w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 disabled:opacity-50"
-            >
-              {loading ? 'Signing in...' : 'Login'} <ArrowRight size={18} />
-            </button>
-          </form>
 
           <p className="mt-6 text-center text-sm text-slate-500">
             New here? <Link to="/register" className="font-bold text-sky-500 hover:text-sky-400">Create an account</Link>

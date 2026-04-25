@@ -3,13 +3,14 @@ import { motion } from 'motion/react';
 import { BookOpen, Video, CheckCircle, CreditCard, Clock } from 'lucide-react';
 import MockPaymentPopup from '../components/MockPaymentPopup';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useLms } from '../context/LmsContext';
 
 export default function Courses() {
   const { user, login } = useAuth();
   const { enrollCourse } = useLms();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPayment, setShowPayment] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<{id: string, fee: number, type: string} | null>(null);
   
@@ -31,7 +32,7 @@ export default function Courses() {
 
   const handleJoin = async (courseId: string, fee: number, type: string) => {
     if (!user) {
-      await login();
+      await login({ redirectTo: `${location.pathname}${location.search}${location.hash}` });
       return;
     }
     setSelectedCourse({ id: courseId, fee, type });

@@ -8,10 +8,10 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
         <div className="md:col-span-2">
           <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-4 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-400">
-            Welcome to ICT
+            ICT Toppers
           </h3>
           <p className="text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
-            ঘরে বসেই ICT এর সকল সমাধান। মাধ্যমিক ও উচ্চ মাধ্যমিক শিক্ষার্থীদের জন্য বাংলাদেশের সবচেয়ে আধুনিক ও পূর্ণাঙ্গ আইসিটি লার্নিং প্ল্যাটফর্ম।
+            ঘরে বসেই ICT mastery. Smart notes, interactive practice, quiz tracking, and mentor-guided problem solving for ambitious Bangladeshi students.
           </p>
         </div>
         <div>
@@ -25,7 +25,7 @@ export default function Footer() {
         <div>
           <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Contact Us</h4>
           <ul className="space-y-3 text-slate-500 dark:text-slate-400">
-            <li>Email: support@welcometoict.com</li>
+            <li>Email: support@icttoppers.com</li>
             <li>Phone: +880 1234 567890</li>
             <li>Dhaka, Bangladesh</li>
           </ul>
@@ -33,7 +33,7 @@ export default function Footer() {
       </div>
       
       <div className="max-w-7xl mx-auto text-center text-slate-500 border-t border-slate-900/10 dark:border-white/10 pt-8 text-sm">
-        &copy; {new Date().getFullYear()} Welcome to ICT. All rights reserved. Built with Liquid Clarity.
+        &copy; {new Date().getFullYear()} ICT Toppers. All rights reserved. Built for focused ICT mastery.
       </div>
     </footer>
   );

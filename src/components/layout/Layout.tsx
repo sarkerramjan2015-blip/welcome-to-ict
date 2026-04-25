@@ -1,18 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { Facebook, Sun, Moon, Menu, X } from 'lucide-react';
+import { Crown, Facebook, Sun, Moon, Menu, X } from 'lucide-react';
 import Footer from './Footer';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import PremiumSubscriptionModal, { type PremiumPlan } from '../PremiumSubscriptionModal';
+
+const PREMIUM_PROMPT_INTERVAL_MS = 24 * 60 * 60 * 1000;
+const DEFAULT_SEO_TITLE = 'ICT Toppers | 1st Time in Bangladesh: Interactive HSC ICT Platform';
+
+const getPremiumPromptKey = (userId: string) => `ict-toppers:premium-prompt:${userId}`;
 
 // Dynamic SEO Component
 function SEO({ title }: { title?: string }) {
   useEffect(() => {
     if (title) {
-      document.title = `${title} | Welcome to ICT`;
+      document.title = `${title} | ICT Toppers`;
     } else {
-      document.title = 'Welcome to ICT | Master ICT with Liquid Clarity';
+      document.title = DEFAULT_SEO_TITLE;
     }
   }, [title]);
   return null;
@@ -20,10 +26,11 @@ function SEO({ title }: { title?: string }) {
 
 export default function Layout() {
   const location = useLocation();
-  const { user, userRole, login, logout } = useAuth();
+  const { user, authReady, authError, userRole, login, logout, updateProfile } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [securityToastVisible, setSecurityToastVisible] = useState(false);
+  const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   
   // Determine title based on route
   let pageTitle = "";
@@ -108,9 +115,38 @@ export default function Layout() {
     return () => window.cancelAnimationFrame(frame);
   }, [location.pathname, location.hash]);
 
+  useEffect(() => {
+    if (!authReady || !user || user.role === 'admin' || user.isPremium) {
+      setPremiumModalOpen(false);
+      return;
+    }
+
+    const promptKey = getPremiumPromptKey(user.id);
+    const lastShown = Number(localStorage.getItem(promptKey) || '0');
+    const shouldShow = Date.now() - lastShown >= PREMIUM_PROMPT_INTERVAL_MS;
+
+    if (shouldShow) {
+      localStorage.setItem(promptKey, String(Date.now()));
+      setPremiumModalOpen(true);
+    }
+  }, [authReady, user?.id, user?.isPremium, user?.role]);
+
+  const handlePremiumUpgrade = async (plan: PremiumPlan) => {
+    await updateProfile({
+      isPremium: true,
+      premiumPlan: plan,
+      premiumSince: new Date().toISOString(),
+    });
+    localStorage.setItem(`ict-toppers:premium-payment:${user?.id || 'guest'}`, JSON.stringify({
+      plan,
+      activatedAt: new Date().toISOString(),
+    }));
+    setPremiumModalOpen(false);
+  };
+
   const navLinks = [
     { to: '/', label: 'Home' },
-    { to: '/#mentor-section', label: 'Meet Ramjan' },
+    { to: '/#mentor-section', label: 'Mentor' },
     { to: '/courses', label: 'Courses' },
     { to: '/suggestions', label: 'ICT Short Suggestion' },
     { to: '/syllabus', label: 'HSC ICT' },
@@ -118,14 +154,14 @@ export default function Layout() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 relative overflow-x-hidden flex flex-col font-sans select-none">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-slate-900 dark:text-slate-50 relative overflow-x-hidden flex flex-col font-sans select-none">
       <SEO title={pageTitle} />
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-[linear-gradient(120deg,rgba(14,165,233,0.10),transparent_28%,rgba(99,102,241,0.08)_58%,transparent_78%),linear-gradient(rgba(15,23,42,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.04)_1px,transparent_1px)] dark:bg-[linear-gradient(120deg,rgba(14,165,233,0.14),transparent_28%,rgba(16,185,129,0.08)_58%,transparent_78%),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:auto,32px_32px,32px_32px]"></div>
+      <div className="premium-mesh-bg" aria-hidden="true"></div>
 
       {/* Header */}
       <header className="px-4 sm:px-6 md:px-10 lg:px-16 py-3 md:py-5 flex items-center justify-between gap-3 border-b border-slate-900/10 dark:border-white/10 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
         <Link to="/" className="min-w-0 text-xl sm:text-2xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-400 truncate">
-          Welcome to ICT
+          ICT Toppers
         </Link>
         <nav className="hidden lg:flex items-center gap-4 xl:gap-6 font-medium text-sm text-slate-600 dark:text-slate-300">
           {navLinks.map(link => (
@@ -146,6 +182,16 @@ export default function Layout() {
                 </div>
                 <span>{userRole === 'admin' ? 'Admin Dashboard' : 'Dashboard'}</span>
               </Link>
+              {userRole !== 'admin' && (
+                <button
+                  onClick={() => !user.isPremium && setPremiumModalOpen(true)}
+                  disabled={user.isPremium}
+                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-black transition-colors ${user.isPremium ? 'bg-amber-400/15 text-amber-300 border border-amber-300/30' : 'bg-red-600 text-white hover:bg-red-500'}`}
+                >
+                  <Crown className="size-4" />
+                  {user.isPremium ? 'Premium' : 'Upgrade'}
+                </button>
+              )}
               <button onClick={logout} className="px-4 py-2 bg-slate-900/5 dark:bg-white/10 hover:bg-slate-900/20 dark:hover:bg-white/20 rounded-lg text-slate-900 dark:text-white transition-colors">Logout</button>
             </div>
           ) : (
@@ -219,6 +265,15 @@ export default function Layout() {
                       </div>
                       {userRole === 'admin' ? 'Admin Dashboard' : 'Dashboard'}
                     </Link>
+                    {userRole !== 'admin' && (
+                      <button
+                        onClick={() => !user.isPremium && setPremiumModalOpen(true)}
+                        disabled={user.isPremium}
+                        className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-black ${user.isPremium ? 'bg-amber-400/10 text-amber-600 dark:text-amber-300' : 'bg-red-600 text-white'}`}
+                      >
+                        {user.isPremium ? 'Premium Active' : 'Upgrade to Premium'}
+                      </button>
+                    )}
                     <button onClick={logout} className="w-full text-left rounded-2xl px-4 py-3 text-sm font-bold text-rose-600 dark:text-rose-300 hover:bg-rose-500/10">Logout</button>
                   </>
                 ) : (
@@ -234,9 +289,25 @@ export default function Layout() {
       </header>
 
       {/* Main Content Area */}
-      <main className="watermarked-content flex-1 flex flex-col relative z-10" data-protected-content="true">
-        <Outlet />
+      <main className="flex-1 flex flex-col relative z-10" data-protected-content="true">
+        <section className="flex-1 flex flex-col" aria-label="ICT Toppers page content">
+          <Outlet />
+        </section>
       </main>
+
+      <AnimatePresence>
+        {authError && (
+          <motion.div
+            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.98 }}
+            transition={{ duration: 0.22 }}
+            className="fixed left-1/2 top-24 z-[85] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 rounded-2xl border border-rose-400/25 bg-slate-950/95 px-5 py-4 text-left text-sm font-bold text-rose-100 shadow-2xl shadow-rose-950/35 backdrop-blur-2xl break-words"
+          >
+            {authError}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {securityToastVisible && (
@@ -251,6 +322,12 @@ export default function Layout() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <PremiumSubscriptionModal
+        open={premiumModalOpen}
+        onClose={() => setPremiumModalOpen(false)}
+        onUpgrade={handlePremiumUpgrade}
+      />
 
       {/* Floating Action Button for Facebook */}
       <a 

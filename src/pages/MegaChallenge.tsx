@@ -50,8 +50,7 @@ export default function MegaChallenge() {
 
   const handleJoin = async () => {
     if (!user) {
-      // Mock Google Login
-      await login();
+      await login({ redirectTo: '/monthly-quiz' });
       return;
     }
     
@@ -62,7 +61,28 @@ export default function MegaChallenge() {
 
     const nextEnrollment = enrollChallenge(challenge.id, challenge.fee);
     setEnrollment(nextEnrollment);
+    if (user.isPremium && nextEnrollment) {
+      markChallengePaid(challenge.id);
+      setEnrollment({
+        ...nextEnrollment,
+        paymentStatus: 'PAID',
+        updatedAt: new Date().toISOString(),
+      });
+      return;
+    }
     setShowPayment(true);
+  };
+
+  const handlePremiumAccess = () => {
+    if (!user?.isPremium || !challenge) return;
+    const nextEnrollment = enrollment || enrollChallenge(challenge.id, challenge.fee);
+    if (!nextEnrollment) return;
+    markChallengePaid(challenge.id);
+    setEnrollment({
+      ...nextEnrollment,
+      paymentStatus: 'PAID',
+      updatedAt: new Date().toISOString(),
+    });
   };
 
   const handlePaymentSuccess = async () => {
@@ -169,7 +189,9 @@ export default function MegaChallenge() {
             <div className="bg-black/20 backdrop-blur-md rounded-2xl p-6 mb-8 border border-slate-900/10 dark:border-white/10 shadow-inner">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-slate-600 dark:text-gray-300 font-medium">Entry Fee</span>
-                <span className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-400">৳ {displayChallenge.fee}</span>
+                <span className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-400">
+                  {user?.isPremium ? 'Free' : `৳ ${displayChallenge.fee}`}
+                </span>
               </div>
               <div className="flex justify-between items-center mb-4">
                 <span className="text-slate-600 dark:text-gray-300 font-medium">Total Marks</span>
@@ -182,18 +204,28 @@ export default function MegaChallenge() {
             </div>
 
             <div className="flex items-center justify-center gap-6 mb-8">
-              <div className="flex flex-col items-center gap-2 group cursor-pointer">
-                <div className="h-12 w-20 bg-white/90 rounded-xl p-2 flex items-center justify-center border border-slate-900/10 dark:border-white/20 shadow-lg group-hover:scale-105 transition-transform">
-                  <img src="https://www.logo.wine/a/logo/BKash/BKash-Icon-Logo.wine.svg" alt="bKash" className="h-full object-contain" />
+              {user?.isPremium ? (
+                <div className="w-full rounded-2xl border border-emerald-300/25 bg-emerald-400/10 px-4 py-4 text-center text-emerald-300 shadow-inner">
+                  <Sparkles className="mx-auto mb-2 h-6 w-6" />
+                  <p className="text-sm font-black uppercase tracking-[0.18em]">Premium pass active</p>
+                  <p className="mt-1 text-xs font-medium text-emerald-100/80">Monthly Mega Exam fee is waived.</p>
                 </div>
-                <span className="text-xs text-slate-600 dark:text-gray-300 font-medium group-hover:text-pink-300 transition-colors">bKash</span>
-              </div>
-              <div className="flex flex-col items-center gap-2 group cursor-pointer">
-                <div className="h-12 w-20 bg-white/90 rounded-xl p-2 flex items-center justify-center border border-slate-900/10 dark:border-white/20 shadow-lg group-hover:scale-105 transition-transform">
-                  <img src="https://download.logo.wine/logo/Nagad/Nagad-Logo.wine.png" alt="Nagad" className="h-full object-contain scale-125" />
-                </div>
-                <span className="text-xs text-slate-600 dark:text-gray-300 font-medium group-hover:text-orange-300 transition-colors">Nagad</span>
-              </div>
+              ) : (
+                <>
+                  <div className="flex flex-col items-center gap-2 group cursor-pointer">
+                    <div className="h-12 w-20 bg-white/90 rounded-xl p-2 flex items-center justify-center border border-slate-900/10 dark:border-white/20 shadow-lg group-hover:scale-105 transition-transform">
+                      <img src="https://www.logo.wine/a/logo/BKash/BKash-Icon-Logo.wine.svg" alt="bKash" className="h-full object-contain" />
+                    </div>
+                    <span className="text-xs text-slate-600 dark:text-gray-300 font-medium group-hover:text-pink-300 transition-colors">bKash</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2 group cursor-pointer">
+                    <div className="h-12 w-20 bg-white/90 rounded-xl p-2 flex items-center justify-center border border-slate-900/10 dark:border-white/20 shadow-lg group-hover:scale-105 transition-transform">
+                      <img src="https://download.logo.wine/logo/Nagad/Nagad-Logo.wine.png" alt="Nagad" className="h-full object-contain scale-125" />
+                    </div>
+                    <span className="text-xs text-slate-600 dark:text-gray-300 font-medium group-hover:text-orange-300 transition-colors">Nagad</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -212,16 +244,26 @@ export default function MegaChallenge() {
                 className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-5 h-5" />
-                Join the Exam for ৳{displayChallenge.fee}
+                {user?.isPremium ? 'Activate Free Premium Exam' : `Join the Exam for ৳${displayChallenge.fee}`}
               </button>
             ) : enrollment.paymentStatus === 'PENDING' ? (
-              <button 
-                onClick={() => setShowPayment(true)}
-                className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
-              >
-                <CreditCard className="w-5 h-5" />
-                Pay ৳{displayChallenge.fee} & Join
-              </button>
+              user?.isPremium ? (
+                <button 
+                  onClick={handlePremiumAccess}
+                  className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  Unlock with Premium
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setShowPayment(true)}
+                  className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <CreditCard className="w-5 h-5" />
+                  Pay ৳{displayChallenge.fee} & Join
+                </button>
+              )
             ) : enrollment.score !== null ? (
               <div className="bg-green-500/20 backdrop-blur-md border border-green-500/50 rounded-2xl p-6 text-center shadow-lg shadow-green-500/20">
                 <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-2" />

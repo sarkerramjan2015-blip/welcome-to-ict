@@ -3,17 +3,18 @@ import { motion } from 'motion/react';
 import { Book, Eye, ShoppingCart, Lock, CheckCircle } from 'lucide-react';
 import MockPaymentPopup from '../components/MockPaymentPopup';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function Suggestions() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPayment, setShowPayment] = useState(false);
   const [showDemo, setShowDemo] = useState(false);
 
   const handleBuy = async () => {
     if (!user) {
-      await login();
+      await login({ redirectTo: `${location.pathname}${location.search}${location.hash}` });
       return;
     }
     setShowPayment(true);

@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Mail, Check, X } from 'lucide-react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut, type User as FirebaseUser } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
 import { firebaseAuth, googleProvider, isFirebaseConfigured } from '../lib/firebase';
 
 export type UserRole = 'admin' | 'student';
@@ -10,6 +10,9 @@ export interface User {
   name: string | null;
   email: string;
   role: UserRole;
+  isPremium: boolean;
+  premiumPlan?: 'monthly' | 'yearly' | null;
+  premiumSince?: string | null;
   profileImage?: string | null;
   bio?: string | null;
   phone?: string | null;
@@ -18,20 +21,19 @@ export interface User {
   upazila?: string | null;
 }
 
-interface LoginInput {
-  email: string;
-  password?: string;
-  name?: string;
-  role?: UserRole;
+interface LoginOptions {
+  redirectTo?: string;
+  replace?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
+  authReady: boolean;
+  authError: string;
   isAuthenticated: boolean;
   userRole: UserRole | null;
-  login: (credentials?: LoginInput) => Promise<User | void>;
-  loginWithGoogle: () => Promise<User | void>;
-  register: (data: LoginInput) => Promise<User>;
+  login: (options?: LoginOptions) => Promise<void>;
+  loginWithGoogle: (options?: LoginOptions) => Promise<User | void>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<void>;
 }
@@ -43,28 +45,37 @@ const TOKEN_KEY = 'token';
 const ADMIN_TOKEN_KEY = 'adminToken';
 const USER_DIRECTORY_KEY = 'lms:users';
 
-const GoogleLogo = ({ className = 'w-5 h-5' }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-  </svg>
-);
-
 const getStoredUsers = (): User[] => {
   try {
-    return JSON.parse(localStorage.getItem(USER_DIRECTORY_KEY) || '[]') as User[];
+    const users = JSON.parse(localStorage.getItem(USER_DIRECTORY_KEY) || '[]') as Partial<User>[];
+    return users.map(normalizeUser);
   } catch {
     return [];
   }
 };
 
+const normalizeUser = (user: Partial<User>): User => ({
+  id: user.id || makeUserId(user.email || 'student@gmail.com', user.role || 'student'),
+  name: user.name || null,
+  email: user.email || 'student@gmail.com',
+  role: user.role || inferRole(user.email || 'student@gmail.com'),
+  isPremium: Boolean(user.isPremium),
+  premiumPlan: user.premiumPlan || null,
+  premiumSince: user.premiumSince || null,
+  profileImage: user.profileImage || null,
+  bio: user.bio || null,
+  phone: user.phone || null,
+  institution: user.institution || null,
+  district: user.district || null,
+  upazila: user.upazila || null,
+});
+
 const saveUserToDirectory = (user: User) => {
+  const normalizedUser = normalizeUser(user);
   const users = getStoredUsers();
-  const nextUsers = users.some(item => item.id === user.id)
-    ? users.map(item => item.id === user.id ? { ...item, ...user } : item)
-    : [user, ...users];
+  const nextUsers = users.some(item => item.id === normalizedUser.id)
+    ? users.map(item => item.id === normalizedUser.id ? { ...item, ...normalizedUser } : item)
+    : [normalizedUser, ...users];
   localStorage.setItem(USER_DIRECTORY_KEY, JSON.stringify(nextUsers));
 };
 
@@ -74,136 +85,125 @@ const makeUserId = (email: string, role: UserRole) =>
 const inferRole = (email: string, fallback: UserRole = 'student'): UserRole =>
   email.trim().toLowerCase() === 'admin@ict.com' ? 'admin' : fallback;
 
-const buildMockUser = ({ email, name, role = 'student' }: LoginInput): User => {
-  const normalizedEmail = email.trim().toLowerCase();
-  return {
-    id: makeUserId(normalizedEmail, role),
-    name: name?.trim() || (role === 'admin' ? 'Admin' : 'Student'),
-    email: normalizedEmail,
-    role,
-  };
-};
-
 const buildFirebaseUser = (firebaseUser: FirebaseUser): User => {
   const email = firebaseUser.email || 'student@gmail.com';
   const role = inferRole(email);
+  const existingUser = getStoredUsers().find(item =>
+    item.id === firebaseUser.uid || item.email.toLowerCase() === email.toLowerCase()
+  );
   return {
     id: firebaseUser.uid || makeUserId(email, role),
-    name: firebaseUser.displayName || 'Student',
+    name: firebaseUser.displayName || existingUser?.name || 'Student',
     email,
-    profileImage: firebaseUser.photoURL || null,
+    profileImage: firebaseUser.photoURL || existingUser?.profileImage || null,
     role,
+    isPremium: existingUser?.isPremium || false,
+    premiumPlan: existingUser?.premiumPlan || null,
+    premiumSince: existingUser?.premiumSince || null,
   };
 };
 
-const navigateWithoutRouter = (path: string) => {
-  window.history.pushState({}, '', path);
-  window.dispatchEvent(new PopStateEvent('popstate'));
+const getAuthErrorMessage = (error: unknown) => {
+  const code = typeof error === 'object' && error && 'code' in error
+    ? String((error as { code?: unknown }).code)
+    : '';
+  const message = typeof error === 'object' && error && 'message' in error
+    ? String((error as { message?: unknown }).message)
+    : error instanceof Error
+      ? error.message
+      : String(error || 'Unknown Firebase auth error');
+
+  return code ? `${code}: ${message}` : message;
 };
 
+const getUserHomePath = (nextUser: User) =>
+  nextUser.role === 'admin' ? '/admin/dashboard' : '/dashboard';
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
+  const pendingLoginOptionsRef = useRef<LoginOptions | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [showMockLogin, setShowMockLogin] = useState(false);
-  const [mockEmail, setMockEmail] = useState('');
+  const [authReady, setAuthReady] = useState(false);
   const [authError, setAuthError] = useState('');
 
-  const persistSession = (nextUser: User, tokenPrefix = 'mock-token') => {
-    setUser(nextUser);
-    localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
-    localStorage.setItem(TOKEN_KEY, `${tokenPrefix}-${nextUser.id}`);
-    saveUserToDirectory(nextUser);
+  const clearStoredSession = useCallback(() => {
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+  }, []);
 
-    if (nextUser.role === 'admin') {
-      localStorage.setItem(ADMIN_TOKEN_KEY, `mock-admin-token-${nextUser.id}`);
+  const persistSession = useCallback((nextUser: User) => {
+    const normalizedUser = normalizeUser(nextUser);
+    setUser(normalizedUser);
+    localStorage.setItem(USER_KEY, JSON.stringify(normalizedUser));
+    localStorage.setItem(TOKEN_KEY, `firebase-token-${normalizedUser.id}`);
+    saveUserToDirectory(normalizedUser);
+
+    if (normalizedUser.role === 'admin') {
+      localStorage.setItem(ADMIN_TOKEN_KEY, `firebase-admin-token-${normalizedUser.id}`);
     } else {
       localStorage.removeItem(ADMIN_TOKEN_KEY);
     }
-  };
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem(USER_KEY);
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser) as User;
-        setUser(parsedUser);
-        saveUserToDirectory(parsedUser);
-      } catch {
-        localStorage.removeItem(USER_KEY);
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(ADMIN_TOKEN_KEY);
-      }
-    }
-
-    if (!firebaseAuth) return undefined;
-
-    return onAuthStateChanged(firebaseAuth, async firebaseUser => {
-      if (!firebaseUser) return;
-      const nextUser = buildFirebaseUser(firebaseUser);
-      persistSession(nextUser, 'firebase-token');
-    });
   }, []);
 
-  const loginWithGoogle = async () => {
+  useEffect(() => {
+    if (!firebaseAuth) {
+      clearStoredSession();
+      setUser(null);
+      setAuthReady(true);
+      return undefined;
+    }
+
+    return onAuthStateChanged(
+      firebaseAuth,
+      firebaseUser => {
+        if (firebaseUser) {
+          const nextUser = buildFirebaseUser(firebaseUser);
+          persistSession(nextUser);
+          const options = pendingLoginOptionsRef.current;
+          if (options) {
+            pendingLoginOptionsRef.current = null;
+            navigate(options.redirectTo || getUserHomePath(nextUser), { replace: options.replace ?? true });
+          }
+        } else {
+          setUser(null);
+          clearStoredSession();
+        }
+        setAuthReady(true);
+      },
+      error => {
+        setAuthError(getAuthErrorMessage(error));
+        setAuthReady(true);
+      }
+    );
+  }, [clearStoredSession, persistSession]);
+
+  const loginWithGoogle = async (options: LoginOptions = {}) => {
     setAuthError('');
 
     if (!isFirebaseConfigured || !firebaseAuth) {
-      setAuthError('Firebase keys are not configured yet. Use the preview fallback below.');
-      setShowMockLogin(true);
+      setAuthError('auth/missing-config: Firebase keys are not configured. Check your VITE_FIREBASE_* environment variables.');
       return;
     }
 
-    const result = await signInWithPopup(firebaseAuth, googleProvider);
-    const nextUser = buildFirebaseUser(result.user);
-    persistSession(nextUser, 'firebase-token');
-    navigateWithoutRouter(nextUser.role === 'admin' ? '/admin/dashboard' : '/dashboard');
-    return nextUser;
-  };
-
-  const register = async (data: LoginInput) => {
-    const nextUser = buildMockUser(data);
-    persistSession(nextUser);
-    return nextUser;
-  };
-
-  const login = async (credentials?: LoginInput) => {
-    if (!credentials) {
-      await loginWithGoogle();
+    try {
+      pendingLoginOptionsRef.current = options;
+      await signInWithPopup(firebaseAuth, googleProvider);
+    } catch (error) {
+      const message = getAuthErrorMessage(error);
+      setAuthError(message);
+      pendingLoginOptionsRef.current = null;
       return;
     }
-
-    const role = credentials.role || inferRole(credentials.email);
-
-    if (role === 'admin') {
-      const validAdmin = credentials.email.trim().toLowerCase() === 'admin@ict.com' && credentials.password === 'admin123';
-      if (!validAdmin) {
-        throw new Error('Invalid admin credentials');
-      }
-    }
-
-    const nextUser = buildMockUser({ ...credentials, role });
-    persistSession(nextUser);
-    return nextUser;
   };
 
-  const handleMockSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const nextUser = await login({
-      email: mockEmail || 'student@gmail.com',
-      name: 'Student',
-      role: 'student',
-    });
-    setShowMockLogin(false);
-    setMockEmail('');
-    if (nextUser) {
-      navigateWithoutRouter(nextUser.role === 'admin' ? '/admin/dashboard' : '/dashboard');
-    }
+  const login = async (options?: LoginOptions) => {
+    await loginWithGoogle(options);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    clearStoredSession();
     if (firebaseAuth) {
       void signOut(firebaseAuth).catch(() => undefined);
     }
@@ -212,65 +212,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;
     const updatedUser = { ...user, ...data, role: user.role };
-    persistSession(updatedUser);
+    persistSession(normalizeUser(updatedUser));
   };
 
   const isAuthenticated = Boolean(user);
   const userRole = user?.role || null;
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, userRole, login, loginWithGoogle, register, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, authReady, authError, isAuthenticated, userRole, login, loginWithGoogle, logout, updateProfile }}>
       {children}
-      
-      {/* Simulated Google Login Popup */}
-      {showMockLogin && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] px-4">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <GoogleLogo className="w-6 h-6" />
-                Sign in with Google
-              </h2>
-              <button onClick={() => setShowMockLogin(false)} className="text-slate-500 dark:text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => void loginWithGoogle()}
-              className="mb-5 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-800 font-bold shadow-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-3"
-            >
-              <GoogleLogo />
-              Continue with Google
-            </button>
-            
-            <p className="text-sm text-gray-600 mb-6 border-l-4 border-amber-500 pl-3 bg-amber-50 p-2 rounded">
-              {authError || 'Actual Google Auth requires Firebase API keys. This fallback keeps preview login available.'}
-            </p>
-            
-            <form onSubmit={handleMockSubmit}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Gmail Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 dark:text-gray-400" />
-                  <input 
-                    type="email" 
-                    required
-                    className="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg pl-10 pr-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter your Gmail"
-                    value={mockEmail}
-                    onChange={(e) => setMockEmail(e.target.value)}
-                  />
-                </div>
-              </div>
-              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
-                Continue Preview Login <Check className="w-5 h-5" />
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </AuthContext.Provider>
   );
 }

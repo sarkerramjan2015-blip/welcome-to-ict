@@ -6,6 +6,7 @@ import { FileText, PlayCircle, CheckCircle, Edit3, ArrowLeft, HelpCircle, Clock,
 import { cn } from '../lib/utils';
 import TopicView from '../components/ui/TopicView';
 import { useLms } from '../context/LmsContext';
+import AdBanner from '../components/AdBanner';
 
 type Tab = 'notes' | 'video' | 'short_qs' | 'practice' | 'cq' | 'quiz';
 
@@ -272,6 +273,7 @@ export default function TopicDetails() {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }} 
               />
+              <AdBanner />
             </motion.div>
           )}
 

@@ -30,9 +30,9 @@ import AdminRoute from './components/routes/AdminRoute';
 export default function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <LmsProvider>
-          <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
+          <LmsProvider>
             <Routes>
               <Route path="/" element={<Layout />}>
                 <Route index element={<Home />} />
@@ -52,9 +52,9 @@ export default function App() {
                 <Route path="admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
               </Route>
             </Routes>
-          </BrowserRouter>
-        </LmsProvider>
-      </AuthProvider>
+          </LmsProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </ThemeProvider>
   );
 }

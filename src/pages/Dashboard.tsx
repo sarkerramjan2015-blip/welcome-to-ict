@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Trophy, CheckCircle, Clock, Book, User as UserIcon, Edit2, Save, X, Camera, Plus, Trash2, ListTodo, BarChart3, Target, Percent, History } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLms } from '../context/LmsContext';
+import AdBanner from '../components/AdBanner';
 
 interface Task {
   id: string;
@@ -184,7 +185,12 @@ export default function Dashboard() {
                 </button>
               )}
             </div>
-            <p className="text-sky-300 mb-4">{user.email}</p>
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <p className="text-sky-300">{user.email}</p>
+              <span className={`rounded-full border px-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.16em] ${user.isPremium ? 'border-amber-300/40 bg-amber-400/15 text-amber-300' : 'border-slate-400/20 bg-slate-900/5 text-slate-500 dark:bg-white/5 dark:text-slate-400'}`}>
+                {user.isPremium ? 'Premium' : 'Free'}
+              </span>
+            </div>
 
             {isEditing ? (
               <form onSubmit={handleProfileUpdate} className="mt-6 bg-slate-900/5 dark:bg-white/5 p-6 rounded-xl border border-slate-900/10 dark:border-white/10">
@@ -554,6 +560,8 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      <AdBanner placement="dashboard" />
     </div>
   );
 }
