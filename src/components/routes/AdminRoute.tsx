@@ -1,22 +1,15 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { Navigate, useLocation, Outlet } from 'react-router-dom';
 
-export default function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { authReady, isAuthenticated, userRole } = useAuth();
+export default function AdminRoute({ children }: { children?: React.ReactNode }) {
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
   const location = useLocation();
 
-  if (!authReady) {
-    return <div className="flex-1 p-8 text-center text-slate-900 dark:text-white">Loading your session...</div>;
-  }
-
-  if (!isAuthenticated) {
+  if (!isAdmin) {
     return <Navigate to="/admin" replace state={{ from: location }} />;
   }
 
-  if (userRole !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  return <>{children}</>;
+  return <>{children || <Outlet />}</>;
 }
+
+
