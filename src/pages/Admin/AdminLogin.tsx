@@ -1,53 +1,257 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { Lock } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Lock, User, KeyRound, MessageSquare, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-function GoogleLogo() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-    </svg>
-  );
-}
+// ─── Constants ────────────────────────────────────────────────────────────────
+const VALID_USER_ID  = 'noman02';
+const VALID_PASSWORD = '172002@aA';
+const MOCK_OTP       = '123456';
+const WHATSAPP_NUM   = '01518657869';
 
+// ─── Component ────────────────────────────────────────────────────────────────
 export default function AdminLogin() {
-  const { authError, loginWithGoogle } = useAuth();
+  const navigate = useNavigate();
 
+  // Step tracking: 'credentials' | 'otp'
+  const [step, setStep] = useState<'credentials' | 'otp'>('credentials');
+
+  // Credential fields
+  const [userId,   setUserId]   = useState('');
+  const [password, setPassword] = useState('');
+  const [showPass,  setShowPass] = useState(false);
+
+  // OTP field
+  const [otp, setOtp] = useState('');
+
+  // Error / loading
+  const [error,   setError]   = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // ── Step 1: Validate credentials ──────────────────────────────────────────
+  function handleCredentialSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+
+    if (userId.trim() !== VALID_USER_ID || password !== VALID_PASSWORD) {
+      setError('Invalid User ID or Password. Please try again.');
+      return;
+    }
+
+    // Mock: simulate sending OTP to WhatsApp
+    console.log(`Sending OTP to ${WHATSAPP_NUM}`);
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setStep('otp');
+    }, 800);
+  }
+
+  // ── Step 2: Validate OTP ──────────────────────────────────────────────────
+  function handleOtpSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+
+    if (otp.trim() !== MOCK_OTP) {
+      setError('Incorrect OTP. Please check your WhatsApp and try again.');
+      return;
+    }
+
+    setLoading(true);
+    setTimeout(() => {
+      localStorage.setItem('isAdmin', 'true');
+      navigate('/admin/dashboard');
+    }, 600);
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="flex-1 flex items-center justify-center px-8 py-12 relative z-20">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
         <div className="bg-slate-900/5 dark:bg-white/5 backdrop-blur-xl border border-slate-900/10 dark:border-white/10 rounded-3xl p-10 shadow-2xl shadow-black/20">
+
+          {/* Icon */}
           <div className="w-16 h-16 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <Lock size={32} />
           </div>
-          
+
+          {/* Title */}
           <h1 className="text-3xl font-black text-center mb-2">Admin Portal</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-center mb-8">Use the authorized Firebase Google account to continue.</p>
 
-          <button 
-            type="button"
-            onClick={() => void loginWithGoogle({ redirectTo: '/admin/dashboard' })}
-            className="w-full rounded-xl border border-slate-900/10 dark:border-white/10 bg-white text-slate-800 px-4 py-3 font-bold shadow-sm hover:bg-slate-50 transition-colors flex items-center justify-center gap-3"
-          >
-            <GoogleLogo />
-            Continue with Google
-          </button>
+          {/* Step indicator */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <StepDot active={step === 'credentials'} done={step === 'otp'} label="1" />
+            <div className="w-8 h-px bg-slate-400/30" />
+            <StepDot active={step === 'otp'} done={false} label="2" />
+          </div>
 
-          {authError && (
-            <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-3 rounded-xl mt-5 text-sm text-left font-medium break-words">
-              {authError}
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+
+            {/* ── STEP 1: Credentials ── */}
+            {step === 'credentials' && (
+              <motion.form
+                key="credentials"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.25 }}
+                onSubmit={handleCredentialSubmit}
+                className="space-y-4"
+              >
+                <p className="text-slate-500 dark:text-slate-400 text-center text-sm mb-4">
+                  Enter your admin credentials to continue.
+                </p>
+
+                {/* User ID */}
+                <div className="relative">
+                  <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <input
+                    id="admin-userid"
+                    type="text"
+                    autoComplete="username"
+                    placeholder="User ID"
+                    value={userId}
+                    onChange={e => setUserId(e.target.value)}
+                    required
+                    className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-900/10 dark:border-white/10 bg-slate-900/5 dark:bg-white/5 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                  />
+                </div>
+
+                {/* Password */}
+                <div className="relative">
+                  <KeyRound size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <input
+                    id="admin-password"
+                    type={showPass ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    className="w-full pl-9 pr-10 py-3 rounded-xl border border-slate-900/10 dark:border-white/10 bg-slate-900/5 dark:bg-white/5 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                    aria-label={showPass ? 'Hide password' : 'Show password'}
+                  >
+                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+
+                {/* Error */}
+                {error && <ErrorBox message={error} />}
+
+                {/* Submit */}
+                <button
+                  id="admin-credentials-submit"
+                  type="submit"
+                  disabled={loading}
+                  className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white px-4 py-3 font-bold shadow-sm transition-colors flex items-center justify-center gap-2"
+                >
+                  {loading ? <Spinner /> : <>Continue <ArrowRight size={16} /></>}
+                </button>
+              </motion.form>
+            )}
+
+            {/* ── STEP 2: OTP ── */}
+            {step === 'otp' && (
+              <motion.form
+                key="otp"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.25 }}
+                onSubmit={handleOtpSubmit}
+                className="space-y-4"
+              >
+                <p className="text-slate-500 dark:text-slate-400 text-center text-sm mb-4">
+                  An OTP has been sent to your WhatsApp&nbsp;
+                  <span className="font-semibold text-indigo-400">+880 {WHATSAPP_NUM}</span>.
+                  Enter it below.
+                </p>
+
+                {/* OTP input */}
+                <div className="relative">
+                  <MessageSquare size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <input
+                    id="admin-otp"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder="6-digit OTP"
+                    value={otp}
+                    onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
+                    required
+                    autoFocus
+                    className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-900/10 dark:border-white/10 bg-slate-900/5 dark:bg-white/5 text-sm font-medium tracking-[0.3em] placeholder:tracking-normal placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                  />
+                </div>
+
+                {/* Error */}
+                {error && <ErrorBox message={error} />}
+
+                {/* Submit */}
+                <button
+                  id="admin-otp-submit"
+                  type="submit"
+                  disabled={loading || otp.length < 6}
+                  className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white px-4 py-3 font-bold shadow-sm transition-colors flex items-center justify-center gap-2"
+                >
+                  {loading ? <Spinner /> : <><CheckCircle2 size={16} /> Verify & Login</>}
+                </button>
+
+                {/* Back link */}
+                <button
+                  type="button"
+                  onClick={() => { setStep('credentials'); setError(''); setOtp(''); }}
+                  className="w-full text-center text-xs text-slate-500 dark:text-slate-400 hover:text-indigo-400 transition-colors pt-1"
+                >
+                  ← Back to credentials
+                </button>
+              </motion.form>
+            )}
+
+          </AnimatePresence>
         </div>
       </motion.div>
     </div>
+  );
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function StepDot({ active, done, label }: { active: boolean; done: boolean; label: string }) {
+  return (
+    <div
+      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition-all duration-300
+        ${done   ? 'bg-indigo-500 border-indigo-500 text-white' :
+          active ? 'bg-indigo-500/20 border-indigo-500 text-indigo-400' :
+                   'bg-slate-500/10 border-slate-400/30 text-slate-400'}`}
+    >
+      {done ? <CheckCircle2 size={14} /> : label}
+    </div>
+  );
+}
+
+function ErrorBox({ message }: { message: string }) {
+  return (
+    <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-3 rounded-xl text-sm text-left font-medium break-words">
+      {message}
+    </div>
+  );
+}
+
+function Spinner() {
+  return (
+    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+    </svg>
   );
 }
