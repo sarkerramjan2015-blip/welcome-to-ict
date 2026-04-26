@@ -147,9 +147,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const isManualAdmin = localStorage.getItem('isAdmin') === 'true';
+
     if (!firebaseAuth) {
-      clearStoredSession();
-      setUser(null);
+      if (isManualAdmin) {
+        setUser({
+          id: 'admin-manual',
+          name: 'Super Admin',
+          email: 'admin@ict.com',
+          role: 'admin',
+          isPremium: true,
+        });
+      } else {
+        clearStoredSession();
+        setUser(null);
+      }
       setAuthReady(true);
       return undefined;
     }
@@ -165,6 +177,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             pendingLoginOptionsRef.current = null;
             navigate(options.redirectTo || getUserHomePath(nextUser), { replace: options.replace ?? true });
           }
+        } else if (isManualAdmin) {
+          // Keep manual admin session even if Firebase auth is signed out
+          setUser({
+            id: 'admin-manual',
+            name: 'Super Admin',
+            email: 'admin@ict.com',
+            role: 'admin',
+            isPremium: true,
+          });
         } else {
           setUser(null);
           clearStoredSession();
@@ -172,11 +193,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setAuthReady(true);
       },
       error => {
-        setAuthError(getAuthErrorMessage(error));
+        if (isManualAdmin) {
+          setUser({
+            id: 'admin-manual',
+            name: 'Super Admin',
+            email: 'admin@ict.com',
+            role: 'admin',
+            isPremium: true,
+          });
+        } else {
+          setAuthError(getAuthErrorMessage(error));
+        }
         setAuthReady(true);
       }
     );
   }, [clearStoredSession, persistSession]);
+
 
   const loginWithGoogle = async (options: LoginOptions = {}) => {
     setAuthError('');
@@ -204,10 +236,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setUser(null);
     clearStoredSession();
+    localStorage.removeItem('isAdmin');
     if (firebaseAuth) {
       void signOut(firebaseAuth).catch(() => undefined);
     }
   };
+
 
   const updateProfile = async (data: Partial<User>) => {
     if (!user) return;

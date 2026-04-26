@@ -9,12 +9,44 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { adminStats } = useLms();
+  const [isGenerating, setIsGenerating] = useState(false);
   const [showTopicEditor, setShowTopicEditor] = useState(false);
   const [newTopic, setNewTopic] = useState({ title: '', importance: 'Medium' });
 
+
   const handleLogout = () => {
     logout();
+    localStorage.removeItem('isAdmin');
     navigate('/admin');
+  };
+
+  const generateChallenge = async () => {
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    if (!isAdmin) {
+      alert("Unauthorized: Manual admin session required.");
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const response = await fetch('/api/admin/challenges/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        alert('Challenge Generated & Live! New questions have been added to the database.');
+        // Refresh stats if needed
+      } else {
+        throw new Error(data.error || 'Failed to generate challenge');
+      }
+    } catch (error) {
+      console.error('Challenge generation error:', error);
+      alert('Error generating challenge. Please check server logs.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -134,7 +166,12 @@ export default function AdminDashboard() {
               </button>
               <button 
                 onClick={() => {
-                  alert(`Saved! In a real app, this would mutate ict-syllabus.ts or the DB.\nSaved: ${newTopic.title} (${newTopic.importance} Importance)`);
+                  const isAdmin = localStorage.getItem('isAdmin') === 'true';
+                  if (!isAdmin) {
+                    alert("Unauthorized: Manual admin session required.");
+                    return;
+                  }
+                  alert(`Saved! In a real app, this would mutate ict-syllabus.ts or the DB via API.\nSaved: ${newTopic.title} (${newTopic.importance} Importance)`);
                   setShowTopicEditor(false);
                   setNewTopic({ title: '', importance: 'Medium' });
                 }}
@@ -151,26 +188,14 @@ export default function AdminDashboard() {
       <div className="bg-slate-900/5 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-3xl p-8 text-center">
         <p className="text-slate-600 dark:text-gray-300 mb-6">Generate a new set of 30 AI-powered MCQs for this month's Mega Challenge.</p>
         <button 
-          onClick={async () => {
-            const btn = document.getElementById('gen-btn');
-            if(btn) btn.innerText = 'Generating... (Takes ~30s)';
-            await new Promise(resolve => setTimeout(resolve, 900));
-            localStorage.setItem('lms:activeChallenge', JSON.stringify({
-              id: 'monthly-hsc-ict',
-              month: new Date().toLocaleString('default', { month: 'long' }),
-              year: new Date().getFullYear(),
-              fee: 20,
-              generatedAt: new Date().toISOString(),
-            }));
-            alert('Challenge Generated & Live!');
-            if(btn) btn.innerText = 'Generate Challenge Questions';
-          }}
-          id="gen-btn"
-          className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold rounded-xl shadow-lg transition-all"
+          onClick={generateChallenge}
+          disabled={isGenerating}
+          className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-wait"
         >
-          Generate Challenge Questions
+          {isGenerating ? 'Generating... (Takes ~30s)' : 'Generate Challenge Questions'}
         </button>
       </div>
+
     </div>
   );
 }
