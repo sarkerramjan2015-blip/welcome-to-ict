@@ -8,7 +8,6 @@ import { topic6 } from "./topic6";
 import { topic7 } from "./topic7";
 import { topic8 } from "./topic8";
 import { topic9 } from "./topic9";
-import { topic10 } from "./topic10";
 
 export const chapter1: Chapter = {
   id: "chap-1",
@@ -25,6 +24,5 @@ export const chapter1: Chapter = {
     topic7,
     topic8,
     topic9,
-    topic10,
   ],
 };

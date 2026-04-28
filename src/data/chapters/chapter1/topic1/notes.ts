@@ -7,55 +7,130 @@ export const notes = `
         </div>
         <div class="relative z-10">
           <div class="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-indigo-100 font-semibold text-sm mb-4 border border-white/30 truncate">
-            অধ্যায় ১: তথ্য ও যোগাযোগ প্রযুক্তি
+            অধ্যায় ১: তথ্য ও যোগাযোগ প্রযুক্তি: বিশ্ব ও বাংলাদেশ প্রেক্ষিত
           </div>
-          <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">বিশ্বগ্রাম: পুরো পৃথিবী এক গ্রাম 🌍</h2>
-          <p class="text-indigo-100 leading-relaxed text-lg md:text-xl font-medium max-w-3xl">
-            কানাডিয়ান দার্শনিক <strong>মার্শাল ম্যাকলুহান (Marshall McLuhan)</strong> সর্বপ্রথম "Global Village" ধারণাটি প্রদান করেন। এটি এমন একটি পরিবেশ যেখানে পৃথিবীর সকল প্রান্তের মানুষ তথ্য ও যোগাযোগ প্রযুক্তির (ICT) মাধ্যমে একটি একক সমাজের ন্যায় বসবাস করে।
+          <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">বিশ্বগ্রামের ধারণা ও সংশ্লিষ্ট উপাদান 🌐</h2>
+          <p class="text-indigo-100 leading-relaxed text-lg md:text-xl font-medium max-w-4xl">
+            কানাডিয়ান দার্শনিক ও যোগাযোগ তত্ত্ববিদ <strong>মার্শাল ম্যাকলুহান (Marshall McLuhan)</strong> ১৯৬২ এবং ১৯৬৪ সালে তাঁর প্রকাশিত দুটি গ্রন্থ <em>"The Gutenberg Galaxy"</em> এবং <em>"Understanding Media"</em> তে "The global village" (বিশ্বগ্রাম) ধারণার প্রবর্তন করেন।
           </p>
         </div>
       </div>
 
+      <!-- Introduction Section -->
+      <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-8 rounded-3xl shadow-xl border border-slate-200/50 dark:border-slate-700/50">
+        <p class="text-slate-700 dark:text-slate-300 leading-relaxed text-lg italic border-l-4 border-indigo-500 pl-6 mb-6">
+          "বিশ্বগ্রাম হলো এমন একটি পরিবেশ বা ধারণা যেখানে পৃথিবীর সকল প্রান্তের লোক একে অপরের সাথে তাৎক্ষণিকভাবে তথ্য আদান-প্রদান ও যোগাযোগ করতে পারে।"
+        </p>
+        <p class="text-slate-700 dark:text-slate-300 leading-relaxed">
+          অতীতের শিল্পবিপ্লবের অনুরূপ এই মুহূর্তে আমরা <strong>চতুর্থ শিল্পবিপ্লবের (4IR)</strong> ভেতর দিয়ে যাচ্ছি। এই বিপ্লবের মূল উপাদান হলো তথ্য ও যোগাযোগ প্রযুক্তি, যা প্রতিটি মানুষের জীবনধারাকে স্পর্শ করেছে এবং কার্যপ্রণালীকে স্বয়ংক্রিয় করছে।
+        </p>
+      </div>
+
+      <!-- 5 Components Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Key Components Box -->
-        <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-8 rounded-3xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 hover:-translate-y-1 transition-transform duration-300">
+        <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-8 rounded-3xl shadow-xl border border-slate-200/50 dark:border-slate-700/50">
           <h3 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mb-6 flex items-center gap-3">
-            <span class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl">⚙️</span> বিশ্বগ্রামের মূল উপাদানসমূহ
+            <span class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl">⚙️</span> বিশ্বগ্রামের ৫টি প্রধান উপাদান
           </h3>
           <ul class="space-y-4 text-slate-700 dark:text-slate-300">
-            <li class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl"><span class="text-indigo-500 font-bold text-xl">১</span> <strong>হার্ডওয়্যার:</strong> কম্পিউটার, মোবাইল, রাউটার।</li>
-            <li class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl"><span class="text-indigo-500 font-bold text-xl">২</span> <strong>সফটওয়্যার:</strong> ব্রাউজার, ওএস, অ্যাপ্লিকেশন।</li>
-            <li class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl border border-indigo-200 dark:border-indigo-800/50 relative overflow-hidden">
-               <div class="absolute inset-0 bg-indigo-500/5 dark:bg-indigo-400/10 animate-pulse"></div>
-               <span class="text-indigo-600 dark:text-indigo-400 font-bold text-xl relative z-10">৩</span> <strong class="relative z-10">নেটওয়ার্ক বা কানেক্টিভিটি:</strong> (এটি বিশ্বগ্রামের মেরুদণ্ড)।
+            <li class="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl">
+              <span class="text-indigo-500 font-bold">১. হার্ডওয়্যার (Hardware):</span> কম্পিউটার, মোবাইল ফোন, রাউটার, মডেম ইত্যাদি সরঞ্জাম।
             </li>
-            <li class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl"><span class="text-indigo-500 font-bold text-xl">৪</span> <strong>ডেটা:</strong> অডিও, ভিডিও, টেক্সট।</li>
-            <li class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl"><span class="text-indigo-500 font-bold text-xl">৫</span> <strong>মানুষের সক্ষমতা:</strong> প্রযুক্তি ব্যবহারের জ্ঞান।</li>
+            <li class="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl">
+              <span class="text-indigo-500 font-bold">২. সফটওয়্যার (Software):</span> অপারেটিং সিস্টেম, অ্যাপ্লিকেশন, ব্রাউজার ইত্যাদি যা হার্ডওয়্যারকে সচল রাখে।
+            </li>
+            <li class="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl">
+              <span class="text-indigo-500 font-bold">৩. ডেটা (Data):</span> বিশ্বগ্রামের মূল ভিত্তি; যা টেক্সট, ছবি, অডিও বা ভিডিও হতে পারে।
+            </li>
+            <li class="flex items-start gap-3 p-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 rounded-xl">
+              <span class="text-indigo-600 dark:text-indigo-400 font-bold">৪. ইন্টারনেট সংযোগ:</span> বিশ্বগ্রামের প্রধান চালিকাশক্তি যা সারা বিশ্বকে যুক্ত করে।
+            </li>
+            <li class="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl">
+              <span class="text-indigo-500 font-bold">৫. মানুষের সক্ষমতা:</span> প্রযুক্তি ব্যবহারের জ্ঞান, দক্ষতা এবং আগ্রহ।
+            </li>
           </ul>
         </div>
 
-        <!-- Concept Matrix -->
-        <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-8 rounded-3xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 hover:-translate-y-1 transition-transform duration-300">
-          <h3 class="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-6 flex items-center gap-3">
-            <span class="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-xl">🌐</span> বিশ্বগ্রামের প্রভাব
-          </h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 p-4 rounded-2xl border border-green-200/50 dark:border-green-800/30">
-               <strong class="text-green-700 dark:text-green-400 block mb-1">যাতায়াত</strong>
-               <p class="text-sm text-slate-600 dark:text-slate-400">দূরত্ব কমেছে, ই-টিকেটিং।</p>
-            </div>
-            <div class="bg-gradient-to-br from-blue-50 to-sky-100 dark:from-blue-900/20 dark:to-sky-900/20 p-4 rounded-2xl border border-blue-200/50 dark:border-blue-800/30">
-               <strong class="text-blue-700 dark:text-blue-400 block mb-1">শিক্ষা</strong>
-               <p class="text-sm text-slate-600 dark:text-slate-400">ই-লার্নিং, ডিজিটাল লাইব্রেরি।</p>
-            </div>
-            <div class="bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-900/20 p-4 rounded-2xl border border-orange-200/50 dark:border-orange-800/30">
-               <strong class="text-orange-700 dark:text-orange-400 block mb-1">চিকিৎসা</strong>
-               <p class="text-sm text-slate-600 dark:text-slate-400">টেলিমেডিসিন সেবা।</p>
-            </div>
-            <div class="bg-gradient-to-br from-pink-50 to-rose-100 dark:from-pink-900/20 dark:to-rose-900/20 p-4 rounded-2xl border border-pink-200/50 dark:border-pink-800/30">
-               <strong class="text-pink-700 dark:text-pink-400 block mb-1">কর্মসংস্থান</strong>
-               <p class="text-sm text-slate-600 dark:text-slate-400">আউটসোর্সিং, রিমোট জব।</p>
-            </div>
+        <div class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/10 dark:to-purple-900/10 p-8 rounded-3xl border border-indigo-100 dark:border-indigo-800/30">
+          <h3 class="text-2xl font-bold text-indigo-700 dark:text-indigo-300 mb-6">কেন আমরা বিশ্বগ্রাম অনুভব করি?</h3>
+          <p class="text-slate-700 dark:text-slate-300 leading-relaxed mb-4">
+            ভৌগোলিক দূরত্বে থেকেও গ্রামীণ পরিবেশের মতো একে অপরের পাশাপাশি থাকার অনুভূতিই হলো বিশ্বগ্রাম। এর ফলে:
+          </p>
+          <ul class="space-y-3">
+             <li class="flex items-center gap-2 text-slate-600 dark:text-slate-400">✨ জীবনযাত্রার মান ও কর্মদক্ষতা বৃদ্ধি</li>
+             <li class="flex items-center gap-2 text-slate-600 dark:text-slate-400">✨ তথ্যের অবাধ ও সহজলভ্য উৎস</li>
+             <li class="flex items-center gap-2 text-slate-600 dark:text-slate-400">✨ বিশ্বব্যাপী ব্যাপক কর্মসংস্থান</li>
+             <li class="flex items-center gap-2 text-slate-600 dark:text-slate-400">✨ জাতিগত ও ধর্মীয় বিভেদ হ্রাস</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Detailed Components -->
+      <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-8 rounded-3xl shadow-xl border border-slate-200/50 dark:border-slate-700/50">
+        <h3 class="text-2xl font-bold text-fuchsia-600 dark:text-fuchsia-400 mb-8 text-center">বিশ্বগ্রামের ধারণা-সংশ্লিষ্ট প্রধান উপাদানসমূহ</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Communication -->
+          <div class="p-6 bg-slate-50 dark:bg-slate-700/30 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-colors">
+            <h4 class="font-bold text-indigo-600 dark:text-indigo-400 mb-3 flex items-center gap-2">📱 যোগাযোগ</h4>
+            <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">তারবিহীন মোবাইল, ই-মেইল, মেসেঞ্জার, হোয়াটসঅ্যাপ, জুম ইত্যাদি ব্যবহারের মাধ্যমে মুহূর্তের মধ্যে সংযোগ।</p>
+            <span class="text-xs font-semibold px-2 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-md">Telecommunication</span>
+          </div>
+
+          <!-- Employment -->
+          <div class="p-6 bg-slate-50 dark:bg-slate-700/30 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-colors">
+            <h4 class="font-bold text-indigo-600 dark:text-indigo-400 mb-3 flex items-center gap-2">💼 কর্মসংস্থান</h4>
+            <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">আউটসোর্সিং ও ফ্রিল্যান্সিংয়ের মাধ্যমে ঘরে বসে বৈদেশিক মুদ্রা অর্জন। জনপ্রিয় সাইট: Upwork, Fiverr।</p>
+            <span class="text-xs font-semibold px-2 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-md">Freelancing</span>
+          </div>
+
+          <!-- Education -->
+          <div class="p-6 bg-slate-50 dark:bg-slate-700/30 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-colors">
+            <h4 class="font-bold text-indigo-600 dark:text-indigo-400 mb-3 flex items-center gap-2">🎓 শিক্ষা</h4>
+            <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">ই-লার্নিং, ই-বুক এবং অনলাইন ক্লাসের (Google Meet, Zoom) মাধ্যমে বিশ্বমানের শিক্ষা গ্রহণ।</p>
+            <span class="text-xs font-semibold px-2 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-md">E-Learning</span>
+          </div>
+
+          <!-- Medical -->
+          <div class="p-6 bg-slate-50 dark:bg-slate-700/30 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-colors">
+            <h4 class="font-bold text-indigo-600 dark:text-indigo-400 mb-3 flex items-center gap-2">🏥 চিকিৎসা</h4>
+            <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">টেলিমেডিসিন ব্যবহার করে দূরবর্তী রোগীদের বিশেষজ্ঞ ডাক্তারের সেবা প্রদান ও EHR সংরক্ষণ।</p>
+            <span class="text-xs font-semibold px-2 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-md">Telemedicine</span>
+          </div>
+
+          <!-- Office -->
+          <div class="p-6 bg-slate-50 dark:bg-slate-700/30 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-colors">
+            <h4 class="font-bold text-indigo-600 dark:text-indigo-400 mb-3 flex items-center gap-2">🏢 অফিস</h4>
+            <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">কাগজবিহীন ডিজিটাল অফিস। গুগল ড্রাইভ, ড্রপবক্স ও অফিস ৩৬৫ ব্যবহারের মাধ্যমে কাজের স্বয়ংক্রিয়করণ।</p>
+            <span class="text-xs font-semibold px-2 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-md">Paperless Office</span>
+          </div>
+
+          <!-- Business -->
+          <div class="p-6 bg-slate-50 dark:bg-slate-700/30 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-colors">
+            <h4 class="font-bold text-indigo-600 dark:text-indigo-400 mb-3 flex items-center gap-2">🛍️ ব্যবসা-বাণিজ্য</h4>
+            <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">ই-কমার্স (Amazon, Daraz) ও ইলেকট্রনিক লেনদেনের (EFT) মাধ্যমে বৈশ্বিক বাজারে পণ্য কেনাবেচা।</p>
+            <span class="text-xs font-semibold px-2 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-md">E-Commerce</span>
+          </div>
+
+          <!-- Residence -->
+          <div class="p-6 bg-slate-50 dark:bg-slate-700/30 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-colors">
+            <h4 class="font-bold text-indigo-600 dark:text-indigo-400 mb-3 flex items-center gap-2">🏠 বাসস্থান</h4>
+            <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">স্মার্ট হোম বা হোম অটোমেশন। রিমোট কন্ট্রোলে নিরাপত্তা, তাপমাত্রা ও লাইটিং নিয়ন্ত্রণ।</p>
+            <span class="text-xs font-semibold px-2 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-md">Smart Home</span>
+          </div>
+
+          <!-- News -->
+          <div class="p-6 bg-slate-50 dark:bg-slate-700/30 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-colors">
+            <h4 class="font-bold text-indigo-600 dark:text-indigo-400 mb-3 flex items-center gap-2">📰 সংবাদ</h4>
+            <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">অনলাইন নিউজ পোর্টাল ও আন্তর্জাতিক চ্যানেল (BBC, CNN) থেকে মুহূর্তের খবর জানা।</p>
+            <span class="text-xs font-semibold px-2 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-md">Digital Media</span>
+          </div>
+
+          <!-- Cultural Exchange -->
+          <div class="p-6 bg-slate-50 dark:bg-slate-700/30 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-colors">
+            <h4 class="font-bold text-indigo-600 dark:text-indigo-400 mb-3 flex items-center gap-2">🎭 সংস্কৃতি</h4>
+            <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">বিভিন্ন জাতি ও সংস্কৃতির মধ্যে বিনিময় ও সম্পর্ক স্থাপন। পুরো বিশ্ব একটি একক সংস্কৃতিতে রূপান্তর।</p>
+            <span class="text-xs font-semibold px-2 py-1 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-md">Globalization</span>
           </div>
         </div>
       </div>
@@ -67,10 +142,10 @@ export const notes = `
             <span class="animate-bounce">💡</span> Exam Master Tips
           </h3>
           <ul class="space-y-3 text-slate-700 dark:text-slate-300">
-            <li class="flex items-start gap-3"><span class="text-amber-500 font-bold">✓</span> <strong>MCQ হ্যাক:</strong> 'Understanding Media' এবং 'The Gutenberg Galaxy' বই দুটির লেখকের নাম <em>মার্শাল ম্যাকলুহান</em>। এটি প্রায় প্রত্যেক বোর্ড পরীক্ষায় আসে।</li>
-            <li class="flex items-start gap-3"><span class="text-amber-500 font-bold">✓</span> <strong>CQ হ্যাক:</strong> উদ্দীপকে যদি ইন্টারনেটের কারণে দূরত্ব কমে যাওয়া, মুহূর্তের মধ্যে তথ্য আদান-প্রদান বা পৃথিবী ছোট হয়ে যাওয়ার কথা বলা হয়— তবে বুঝতে হবে গ/ঘ নম্বর প্রশ্নে <strong>"বিশ্বগ্রাম (Global Village)"</strong> নিয়ে লিখতে বলা হয়েছে।</li>
+            <li class="flex items-start gap-3"><span class="text-amber-500 font-bold">✓</span> <strong>MCQ হ্যাক:</strong>Marshall McLuhan-এর বই দুটির নাম এবং প্রকাশের সাল (১৯৬২ ও ১৯৬৪) মনে রাখতে হবে। "কানেক্টিভিটি" হলো বিশ্বগ্রামের মেরুদণ্ড।</li>
+            <li class="flex items-start gap-3"><span class="text-amber-500 font-bold">✓</span> <strong>CQ হ্যাক:</strong> উদ্দীপকে যদি ঘরে বসে বিদেশে কাজ করা (আউটসোর্সিং), দূরত্ব অতিক্রম করে চিকিৎসা (টেলিমেডিসিন), বা ভার্চুয়াল ক্লাসের কথা বলে— তবে তার উত্তর হবে <strong>বিশ্বগ্রামের উপাদান</strong>।</li>
           </ul>
         </div>
       </div>
     </div>
-  `;
+`;

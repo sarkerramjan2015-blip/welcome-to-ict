@@ -1,7 +1,7 @@
 export const meta = {
-  id: "topic-1-8",
-  title: "১.৮ ন্যানোটেকনোলজি (Nanotechnology)",
-  importance: "High",
+  id: "chap1-topic8",
+  title: "১.৮ কৃত্রিম বুদ্ধিমত্তা ও রোবটিকস",
+  importance: "High" as const,
   thumbnail: "",
   video_url: ""
-} as const;
+};

@@ -1,7 +1,7 @@
 export const meta = {
   id: "chap1-topic4",
-  title: "১.৪ বায়োমেট্রিক্স ও বায়োইনফরমেটিক্স",
+  title: "১.৪ ইন্টারনেট অব থিংস (IoT), মহাকাশ ও প্রতিরক্ষা",
   importance: "High" as const,
   video_url: "",
-  thumbnail: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80",
+  thumbnail: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
 };

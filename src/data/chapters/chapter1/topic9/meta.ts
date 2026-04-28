@@ -1,7 +1,7 @@
 export const meta = {
-  id: "topic-1-9",
-  title: "১.৯ কৃত্রিম বুদ্ধিমত্তা ও রোবটিকস",
-  importance: "High",
+  id: "chap1-topic9",
+  title: "১.৯ তথ্য ও যোগাযোগ প্রযুক্তিতে নৈতিকতা (ICT Ethics)",
+  importance: "High" as const,
   thumbnail: "",
   video_url: ""
-} as const;
+};

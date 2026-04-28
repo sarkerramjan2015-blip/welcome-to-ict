@@ -57,6 +57,17 @@ function ComingSoonVideoPlaceholder() {
 export default function TopicDetails() {
   const { topicId } = useParams();
   const [activeTab, setActiveTab] = useState<Tab>('notes');
+  const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(new Set(['notes']));
+  const [showProgressToast, setShowProgressToast] = useState(false);
+  const [progressInfo, setProgressInfo] = useState<{ percent: number; missing: string[] }>({ percent: 0, missing: [] });
+
+  useEffect(() => {
+    setVisitedTabs(prev => {
+      const next = new Set(prev);
+      next.add(activeTab);
+      return next;
+    });
+  }, [activeTab]);
 
   // Find the topic from our static syllabus data
   let currentTopic = null;
@@ -151,6 +162,52 @@ export default function TopicDetails() {
   const hasVideo = videoUrl.length > 0;
   const topicCompleted = isTopicCompleted(currentTopic.id);
 
+  const calculateProgress = () => {
+    console.log('Calculating progress for:', currentTopic.id);
+    const missing: string[] = [];
+    let completedCount = 1; // Video is always 100% complete as per instruction
+
+    // Notes: Always considered complete if we are on this page, but let's be safe
+    completedCount++; 
+
+    // MCQ
+    if (visitedTabs.has('practice')) {
+      completedCount++;
+    } else {
+      missing.push('MCQ Practice');
+    }
+
+    // CQ
+    if (visitedTabs.has('cq')) {
+      completedCount++;
+    } else {
+      missing.push('CQ (সৃজনশীল)');
+    }
+
+    // Quiz
+    const hasQuizResult = quizResults.some(r => r.topicId === currentTopic.id);
+    if (quizSubmitted || hasQuizResult) {
+      completedCount++;
+    } else {
+      missing.push('MCQ Quiz');
+    }
+
+    const percent = (completedCount / 5) * 100;
+    console.log('Progress Percentage:', percent, 'Missing items:', missing);
+    setProgressInfo({ percent, missing });
+
+    if (percent === 100) {
+      if (!topicCompleted) {
+        toggleTopicCompletion(currentTopic.id);
+      }
+      setShowProgressToast(true);
+      setTimeout(() => setShowProgressToast(false), 5000);
+    } else {
+      setShowProgressToast(true);
+      setTimeout(() => setShowProgressToast(false), 5000);
+    }
+  };
+
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
     let newIndex = index;
     if (e.key === 'ArrowRight') {
@@ -204,24 +261,12 @@ export default function TopicDetails() {
             <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight leading-tight drop-shadow-lg text-balance break-words">
               {currentTopic.title}
             </h1>
-            <button
-              onClick={() => toggleTopicCompletion(currentTopic.id)}
-              className={cn(
-                "mt-6 inline-flex w-fit items-center gap-2 rounded-full px-5 py-2.5 text-sm font-black shadow-lg transition-all hover:scale-105",
-                topicCompleted
-                  ? "bg-emerald-400 text-slate-950 shadow-emerald-500/30"
-                  : "bg-white/15 text-white border border-white/25 backdrop-blur-md hover:bg-white/25"
-              )}
-            >
-              <CheckCircle className="w-4 h-4" />
-              {topicCompleted ? 'Completed' : 'Mark as Completed'}
-            </button>
           </motion.div>
         </div>
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex overflow-x-auto hide-scrollbar gap-2 mb-6 md:mb-8 pb-4 -mx-1 px-1" role="tablist">
+      <div className="flex w-full overflow-x-auto flex-nowrap gap-3 pb-2 scrollbar-hide" role="tablist">
         <AnimatePresence>
           {tabs.map((tab, idx) => {
             const Icon = tab.icon;
@@ -236,7 +281,7 @@ export default function TopicDetails() {
                 onClick={() => setActiveTab(tab.id as Tab)}
                 onKeyDown={(e) => handleTabKeyDown(e, idx)}
                 className={cn(
-                  "relative flex items-center gap-2 px-4 md:px-6 py-3 md:py-3.5 rounded-2xl font-bold text-xs md:text-sm tracking-wide transition-all whitespace-nowrap outline-none focus:ring-2 focus:ring-indigo-400 overflow-hidden",
+                  "relative flex items-center gap-2 px-4 md:px-6 py-3 md:py-3.5 rounded-2xl font-bold text-xs md:text-sm tracking-wide transition-all whitespace-nowrap outline-none focus:ring-2 focus:ring-indigo-400 overflow-hidden snap-center min-w-max justify-center flex-shrink-0",
                   isActive 
                     ? "text-white shadow-[0_0_20px_rgba(79,70,229,0.5)] scale-100 ring-1 ring-indigo-500/50" 
                     : "bg-slate-800/50 dark:bg-white/10 text-slate-400 dark:text-slate-400 hover:bg-slate-700/50 dark:hover:bg-white/20 hover:text-white dark:hover:text-white scale-95 hover:scale-100 backdrop-blur-md"
@@ -604,6 +649,105 @@ export default function TopicDetails() {
 
         </AnimatePresence>
       </div>
+
+      <AnimatePresence>
+        {showProgressToast && (
+          <ProgressToast 
+            key="progress-toast"
+            info={progressInfo} 
+            isCompleted={topicCompleted} 
+            onClose={() => setShowProgressToast(false)} 
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Floating Action Button (FAB) */}
+      <motion.button
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => {
+          console.log('FAB Clicked');
+          calculateProgress();
+        }}
+        className={cn(
+          "fixed bottom-6 left-6 md:bottom-10 md:left-10 z-[999] flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-sm md:text-base shadow-2xl transition-all border backdrop-blur-xl group shine-sweep",
+          topicCompleted
+            ? "bg-emerald-500/90 text-white border-emerald-400 shadow-emerald-500/40"
+            : "bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white border-white/20 shadow-slate-900/20"
+        )}
+      >
+        <div className={cn(
+          "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+          topicCompleted ? "bg-white/20" : "bg-emerald-500 text-white"
+        )}>
+          {topicCompleted ? <CheckCircle size={18} /> : <Edit3 size={18} />}
+        </div>
+        <span className="hidden sm:inline">
+          {topicCompleted ? 'Completed' : 'Mark as Complete'}
+        </span>
+        <span className="sm:hidden">
+          {topicCompleted ? 'Done' : 'Finish'}
+        </span>
+      </motion.button>
     </div>
   );
 }
+
+const ProgressToast = ({ info, isCompleted, onClose }: { info: { percent: number; missing: string[] }; isCompleted: boolean; onClose: () => void }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 100, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 100, scale: 0.9 }}
+      className="fixed bottom-24 left-4 right-4 md:left-auto md:right-8 md:w-96 z-[100] bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 backdrop-blur-xl"
+    >
+      <div className="flex items-start gap-4">
+        <div className={cn(
+          "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg",
+          info.percent === 100 ? "bg-emerald-500 text-white shadow-emerald-500/20" : "bg-amber-500 text-white shadow-amber-500/20"
+        )}>
+          {info.percent === 100 ? <CheckCircle size={24} /> : <HelpCircle size={24} />}
+        </div>
+        <div className="flex-1">
+          <h4 className="text-lg font-black text-slate-900 dark:text-white mb-1">
+            {info.percent === 100 ? 'সবগুলো টাস্ক সম্পন্ন হয়েছে!' : 'টপিক সম্পন্ন হয়নি'}
+          </h4>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+            {info.percent === 100 
+              ? 'অভিনন্দন! আপনি এই টপিকটি ১০০% সম্পন্ন করেছেন।' 
+              : `এই টপিকটি বর্তমানে ${info.percent}% সম্পন্ন হয়েছে।`}
+          </p>
+          
+          <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden mb-4">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${info.percent}%` }}
+              className={cn("h-full", info.percent === 100 ? "bg-emerald-500" : "bg-amber-500")}
+            />
+          </div>
+
+          {info.missing.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">বাকি আছে:</p>
+              <div className="flex flex-wrap gap-2">
+                {info.missing.map(m => (
+                  <span key={m} className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold rounded-lg border border-slate-200 dark:border-slate-700">
+                    {m}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      <button 
+        onClick={onClose}
+        className="mt-6 w-full py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold rounded-2xl transition-colors text-sm"
+      >
+        Close
+      </button>
+    </motion.div>
+  );
+};

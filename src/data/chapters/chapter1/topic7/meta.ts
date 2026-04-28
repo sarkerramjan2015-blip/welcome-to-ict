@@ -1,7 +1,7 @@
 export const meta = {
-  id: "topic-1-7",
-  title: "১.৭ বায়োইনফরমেটিক্স (Bioinformatics)",
-  importance: "High",
+  id: "chap1-topic7",
+  title: "১.৭ ন্যানোটেকনোলজি (Nanotechnology)",
+  importance: "High" as const,
   thumbnail: "",
   video_url: ""
-} as const;
+};

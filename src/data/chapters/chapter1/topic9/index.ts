@@ -1,18 +1,18 @@
-import { Topic } from "../../../ict-syllabus";
-// @ts-ignore
-import { generateQuiz } from "../../../utils";
-import { meta } from "./meta";
-import { notes } from "./notes";
-import { mcqs } from "./mcqs";
-import { questions } from "./questions";
-import { cqs } from "./cqs";
+import { meta } from './meta';
+import { notes } from './notes';
+import { practiceMcqs } from './mcqs';
+import { questions } from './questions';
+import { cqs } from './cqs';
+import { Topic } from '../../../ict-syllabus';
 
 export const topic9: Topic = {
   ...meta,
   board_notes: notes,
-  shortQuestions: [...questions.knowledgeQuestions, ...questions.analyticalQuestions],
-  practiceMcqs: mcqs,
+  practiceMcqs: practiceMcqs,
+  quizMcqs: practiceMcqs.slice(0, 10),
+  shortQuestions: [
+    ...questions.knowledgeQuestions,
+    ...questions.analyticalQuestions
+  ],
   cqs: cqs,
-  // @ts-ignore
-  quizMcqs: generateQuiz(mcqs, 2)
 };

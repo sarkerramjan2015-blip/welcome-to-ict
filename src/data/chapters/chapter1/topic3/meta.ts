@@ -1,7 +1,7 @@
 export const meta = {
   id: "chap1-topic3",
-  title: "১.৩ ভার্চুয়াল রিয়েলিটি",
+  title: "১.৩ বায়োমেট্রিক্স ও বায়োইনফরমেটিক্স",
   importance: "High" as const,
   video_url: "",
-  thumbnail: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Yybzh6cjIxeTRhZXB6cXcwNXh4MW04ZG5xeGd3a3lyNXJ1MjdtdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L2Nf3yYvV4sDkXF3aI/giphy.gif",
+  thumbnail: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80",
 };
