@@ -1,8 +1,8 @@
-import React from 'react';
-import { motion } from 'motion/react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import Countdown from '../components/Countdown';
-import { BookOpen, BriefcaseBusiness, CreditCard, GraduationCap, NotebookTabs, Rocket, Timer, Trophy } from 'lucide-react';
+import { BookOpen, BriefcaseBusiness, CreditCard, GraduationCap, NotebookTabs, Rocket, Timer, Trophy, Video, Users, Star, User, ChevronDown, Zap, ArrowRight } from 'lucide-react';
 import bioImage from '@/src/asset/bio_image.png';
 
 const containerVariants = {
@@ -37,71 +37,53 @@ function MentorSection() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.25 }}
       transition={{ duration: 0.55 }}
-      className="scroll-mt-28 px-4 sm:px-6 md:px-16 mb-10 md:mb-14 w-full"
+      className="scroll-mt-28 px-4 sm:px-6 md:px-16 mb-16 md:mb-20 w-full"
     >
-      <div className="mx-auto max-w-3xl">
-        <div className="mentor-cinema-card group relative overflow-hidden rounded-[1.35rem] border border-red-500/20 bg-[#050505] p-3 text-white shadow-[0_26px_90px_rgba(0,0,0,0.55)] backdrop-blur-3xl transition-all duration-500 hover:-translate-y-1 hover:border-red-400/35 sm:p-4">
+      <div className="mx-auto max-w-5xl">
+        <div className="relative overflow-hidden rounded-[2rem] border border-red-500/20 bg-slate-50/50 dark:bg-slate-900/40 p-6 md:p-10 shadow-2xl shadow-red-900/10 backdrop-blur-3xl transition-all duration-500 hover:border-red-400/35">
           <a
             href="https://wa.me/8801518657869"
             target="_blank"
             rel="noopener noreferrer"
-            className="mentor-wa-button absolute right-3 top-3 z-20 inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-500 px-3 py-2 text-xs font-black text-white shadow-lg shadow-emerald-950/40 transition-all duration-300 hover:scale-105 hover:bg-emerald-400 hover:shadow-emerald-400/30"
+            className="absolute right-4 top-4 z-20 inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:scale-105 hover:bg-emerald-400"
             aria-label="Message mentor on WhatsApp"
           >
             <WhatsAppIcon className="size-5" />
             <span className="hidden sm:inline">WhatsApp</span>
           </a>
 
-          <div className="relative z-10 grid items-center gap-4 pr-12 sm:pr-28 md:grid-cols-[8.5rem_1fr] md:gap-5 md:pr-28">
-            <div className="flex flex-col items-center text-center md:items-start">
+          <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8">
+            <div className="shrink-0">
               <div className="relative">
-                <div className="mentor-cinema-aura" />
-                <div className="mentor-cinema-photo relative size-24 overflow-hidden rounded-2xl border border-red-200/15 bg-black p-1 shadow-2xl shadow-red-950/35 sm:size-28 md:size-32">
+                <div className="absolute inset-0 bg-red-500/20 blur-2xl rounded-full" />
+                <div className="relative size-36 sm:size-48 overflow-hidden rounded-[2rem] border-2 border-red-200/20 bg-black/5 p-1 shadow-xl">
                   <img
                     src={bioImage}
-                    alt="Mohammad Ramjan Mia Sarker"
-                    className="size-full rounded-[1rem] object-cover object-center"
+                    alt="Md. Ramjan Sarker"
+                    className="size-full rounded-[1.8rem] object-cover object-top"
                   />
                 </div>
               </div>
-              <div className="mt-3 rounded-full border border-red-400/20 bg-red-950/30 px-3 py-1 text-[0.62rem] font-black uppercase tracking-[0.2em] text-red-100">
-                ICT Mentor
-              </div>
             </div>
 
-            <div className="min-w-0 text-center md:text-left">
-              <p className="mentor-cinema-kicker mb-1 text-[0.68rem] font-black uppercase tracking-[0.28em] text-red-300">Mentor Profile</p>
-              <h2 className="mentor-cinema-name text-2xl font-black leading-tight text-white sm:text-3xl">
-                মোহাম্মদ রমজান সরকার
+            <div className="flex-1 text-center md:text-left pt-2">
+              <p className="mb-2 text-[0.7rem] font-black uppercase tracking-[0.2em] text-red-500 dark:text-red-400">About the Mentor</p>
+              <h2 className="text-3xl sm:text-4xl font-black leading-tight text-slate-900 dark:text-white mb-3">
+                Md. Ramjan Sarker
               </h2>
-              <p className="mentor-cinema-copy mt-1 text-sm font-bold leading-6 text-red-50/90">
-                Mohammad Ramjan Mia Sarker
-              </p>
+              <div className="inline-block rounded-full border border-slate-900/10 dark:border-white/10 bg-slate-900/5 dark:bg-white/10 px-4 py-1.5 text-sm font-bold text-slate-700 dark:text-gray-200 mb-5 shadow-inner">
+                সহকারী শিক্ষক, সামসুল হক খান স্কুল এন্ড কলেজ, ঢাকা।
+              </div>
 
-              <div className="mt-4 grid gap-3 text-left sm:grid-cols-2">
-                <div className="min-w-0 border-l border-red-400/35 pl-3">
-                  <p className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-red-300/90">Primary Role</p>
-                  <p className="mentor-cinema-copy mt-1 break-words text-sm font-semibold leading-6 text-white/82">
-                    Assistant Teacher, Shamsul Hoque Khan School & College
-                  </p>
-                </div>
-                <div className="min-w-0 border-l border-red-400/35 pl-3">
-                  <p className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-red-300/90">Leadership</p>
-                  <p className="mentor-cinema-copy mt-1 break-words text-sm font-medium leading-6 text-white/78" style={{ animationDelay: '0.25s' }}>
-                    Head of ICT @ Troyee | Instructor @ Udvash-Unmesh Academic Care
-                  </p>
-                </div>
-                <div className="min-w-0 border-l border-red-400/35 pl-3">
-                  <p className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-red-300/90">Academic Background</p>
-                  <p className="mentor-cinema-copy mt-1 break-words text-sm font-medium leading-6 text-white/78" style={{ animationDelay: '0.5s' }}>
-                    EMCS, Cumilla University | B.Ed & B.A. (Hons), Jagannath University
-                  </p>
-                </div>
-                <div className="min-w-0 border-l border-red-400/35 pl-3">
-                  <p className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-red-300/90">Student Impact</p>
-                  <p className="mentor-cinema-copy mt-1 break-words text-sm font-medium leading-6 text-white/78" style={{ animationDelay: '0.75s' }}>
-                    500+ students guided through analytical, exam-focused ICT learning.
-                  </p>
+              <div className="space-y-5 text-slate-600 dark:text-gray-300">
+                <p className="font-semibold flex flex-col sm:flex-row items-center justify-center md:justify-start gap-2">
+                  <span className="shrink-0 w-8 h-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                    <GraduationCap className="size-5" />
+                  </span>
+                  বি.এ (অনার্স), বি.এড (জগন্নাথ বিশ্ববিদ্যালয়) | ই.এম.সি.এস (কুমিল্লা বিশ্ববিদ্যালয়)।
+                </p>
+                <div className="relative border-l-2 border-red-500/50 pl-5 italic font-medium leading-relaxed bg-slate-900/5 dark:bg-white/5 py-3 rounded-r-xl">
+                  "বিগত কয়েক বছর ধরে আমি মাধ্যমিক ও উচ্চ মাধ্যমিক স্তরের শিক্ষার্থীদের ICT এবং বাংলাদেশ ও বিশ্ব পরিচয় সহজভাবে বুঝিয়ে আসছি। আমার লক্ষ্য হলো প্রযুক্তির সঠিক ব্যবহারের মাধ্যমে পড়াশোনাকে সবার জন্য আনন্দদায়ক করা।"
                 </div>
               </div>
             </div>
@@ -112,7 +94,81 @@ function MentorSection() {
   );
 }
 
+function FAQSection() {
+  const faqs = [
+    { q: "কোর্সগুলো কি সবার জন্য উন্মুক্ত?", a: "আমাদের কিছু ফ্রি কন্টেন্ট আছে, তবে প্রিমিয়াম ভিডিও ও সাজেশনের জন্য এনরোল করতে হবে।" },
+    { q: "কিভাবে কুইজে অংশ নেব?", a: "'Quiz Exam' ট্যাবে গিয়ে সরাসরি লাইভ কুইজে অংশ নেওয়া যাবে।" },
+    { q: "পেমেন্ট পদ্ধতি কী?", a: "বিকাশ বা নগদের মাধ্যমে খুব সহজেই পেমেন্ট করা যাবে।" },
+    { q: "এখানে কি HSC ICT-এর সম্পূর্ণ সিলেবাস কভার করা হয়েছে?", a: "হ্যাঁ, ১ম থেকে ৬ষ্ঠ অধ্যায় পর্যন্ত প্রতিটি টপিকের বিস্তারিত নোট, ভিডিও এবং বোর্ড স্ট্যান্ডার্ড প্রশ্ন এখানে পাওয়া যাবে।" },
+    { q: "৩য় অধ্যায় (সংখ্যা পদ্ধতি) এবং ৫ম অধ্যায় (সি প্রোগ্রামিং) কি সহজভাবে বুঝানো হয়েছে?", a: "অবশ্যই! কঠিন টপিকগুলো রিয়েল-লাইফ উদাহরণ এবং লজিক গেট/কোডিং প্র্যাকটিসের মাধ্যমে সহজভাবে বুঝানো হয়েছে।" },
+    { q: "এখান থেকে কি বোর্ড পরীক্ষার জন্য স্পেশাল সাজেশন পাওয়া যাবে?", a: "আমাদের 'ICT Short Suggestion' সেকশনে পরীক্ষার জন্য ১০০% কমন উপযোগী সৃজনশীল ও বহুনির্বাচনী প্রশ্নের স্পেশাল পিডিএফ ও সলিউশন দেওয়া হয়।" },
+    { q: "আমি কি লেকচার নোটগুলো পিডিএফ (PDF) আকারে ডাউনলোড করতে পারব?", a: "হ্যাঁ, প্রতিটি গুরুত্বপূর্ণ অধ্যায়ের নোট এবং সাজেশন আমাদের এনরোল করা স্টুডেন্টরা ডাউনলোড করার সুযোগ পাবে।" },
+    { q: "কোনো টপিক বুঝতে সমস্যা হলে সমাধানের উপায় কী?", a: "আমাদের আছে ডেডিকেটেড মেন্টর সাপোর্ট। তোমরা সরাসরি হোয়াটসঅ্যাপে বা কমেন্ট সেকশনে প্রশ্ন করলে আমরা দ্রুত সমাধান দিয়ে দেব।" },
+    { q: "কুইজ টেস্ট দেওয়ার পর কি আমার রেজাল্ট বা প্রগ্রেস দেখতে পারব?", a: "হ্যাঁ, প্রতিটি কুইজের পর অটোমেটেড রেজাল্ট শিট এবং তোমার ভুলের সঠিক ব্যাখ্যা সাথে সাথেই দেখতে পারবে।" }
+  ];
+
+  const [openIdx, setOpenIdx] = useState<number | null>(0);
+
+  return (
+    <motion.section 
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{ duration: 0.55 }}
+      className="px-4 sm:px-6 md:px-16 mb-20 max-w-4xl mx-auto w-full"
+    >
+      <div className="text-center mb-10">
+        <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">Frequently Asked Questions</h2>
+        <p className="text-slate-600 dark:text-gray-300">যেকোনো প্রশ্নের উত্তর পেয়ে যাও এখানে</p>
+      </div>
+      <div className="space-y-3">
+        {faqs.map((faq, idx) => (
+          <div key={idx} className="bg-slate-900/5 dark:bg-white/5 backdrop-blur-md border border-slate-900/10 dark:border-white/10 rounded-2xl overflow-hidden transition-all duration-300">
+            <button 
+              onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
+              className="w-full text-left px-6 py-5 flex items-center justify-between font-bold text-slate-900 dark:text-white hover:bg-slate-900/5 dark:hover:bg-white/5 transition-colors"
+            >
+              <span className="pr-4">{faq.q}</span>
+              <ChevronDown className={`size-5 shrink-0 transition-transform duration-300 ${openIdx === idx ? 'rotate-180 text-sky-500' : 'text-slate-400'}`} />
+            </button>
+            <AnimatePresence>
+              {openIdx === idx && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="px-6 pb-5 text-slate-600 dark:text-gray-300 leading-relaxed border-t border-slate-900/5 dark:border-white/5 pt-4">
+                    {faq.a}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        ))}
+      </div>
+    </motion.section>
+  );
+}
+
 export default function Home() {
+  const phrases = [
+    "ঘরে বসেই ICT Mastery",
+    "বোর্ড পরীক্ষার ১০০% প্রস্তুতি",
+    "সহজ নোটে জটিল টপিক সমাধান",
+    "স্মার্ট কুইজে নিজের মেধা যাচাই"
+  ];
+
+  const [phraseIndex, setPhraseIndex] = useState(0);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setPhraseIndex((prev) => (prev + 1) % phrases.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -127,31 +183,73 @@ export default function Home() {
           transition={{ duration: 0.5, type: "spring" }}
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 break-words"
         >
-          <span className="text-slate-900 dark:text-white">ICT Toppers</span><br />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-red-600">ঘরে বসেই ICT Mastery</span>
+          <span className="text-slate-900 dark:text-white block">ICT Toppers</span>
+          <div className="h-24 sm:h-28 md:h-24 lg:h-32 flex items-center justify-center mt-2 px-2 overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={phraseIndex}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-red-600 inline-block w-full max-w-full"
+              >
+                {phrases[phraseIndex]}
+              </motion.span>
+            </AnimatePresence>
+          </div>
         </motion.h1>
         <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="text-base md:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 md:mb-12 leading-8 md:leading-relaxed"
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.7, ease: "easeOut" }}
+          className="text-base md:text-[1.15rem] text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 md:mb-12 leading-relaxed md:leading-[1.8] font-medium px-2"
         >
-          Bangladesh's first interactive ICT platform experience for serious students: chapter-wise smart notes, instant MCQ/CQ practice, progress tracking, and mentor support এক জায়গায়। বাসা থেকেই confusion কমাও, confidence বাড়াও, exam-ready হও।
+          ICT কি কঠিন লাগে? আর নয় দুশ্চিন্তা! বাংলাদেশের প্রথম <span className="text-sky-500 dark:text-sky-400 font-bold">ইন্টারঅ্যাকটিভ লার্নিং প্ল্যাটফর্মে</span> জটিল সব অধ্যায় বুঝে নাও একদম পানির মতো <span className="text-amber-600 dark:text-amber-400 font-bold">সহজ ভাষায়</span>। স্মার্ট নোট, আনলিমিটেড কুইজ আর মেন্টর সাপোর্ট—সবকিছু এখন <span className="text-sky-500 dark:text-sky-400 font-bold">এক জায়গায়</span>। বাসা থেকেই কনফিউশন কমাও, কনফিডেন্স বাড়াও এবং বোর্ড পরীক্ষার জন্য নিজেকে <span className="text-amber-600 dark:text-amber-400 font-bold">১০০% প্রস্তুত</span> করো।
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.32, duration: 0.45 }}
-          className="mb-12 flex flex-col items-center justify-center gap-3 sm:flex-row"
+          className="mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
-          <Link to="/syllabus" className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-6 py-3.5 text-sm font-black text-white shadow-2xl shadow-red-950/25 transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-500 hover:shadow-red-500/25 sm:w-auto">
-            Start HSC ICT <Rocket className="size-4" />
+          <Link to="/syllabus" className="group relative inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-red-600 via-rose-500 to-pink-600 p-[2px] text-sm font-black text-white shadow-[0_0_40px_rgba(225,29,72,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(225,29,72,0.6)] sm:w-auto overflow-hidden">
+            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%,transparent_100%)] bg-[length:250%_250%] animate-[shimmer_2s_infinite]"></div>
+            <div className="relative flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 px-8 py-4 rounded-[14px] w-full border border-white/10">
+              <Zap className="size-5 text-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.8)] group-hover:scale-125 transition-transform duration-300" />
+              <span className="tracking-wide text-base">Start HSC ICT</span>
+              <ArrowRight className="size-5 opacity-70 group-hover:translate-x-1.5 group-hover:opacity-100 transition-all duration-300" />
+            </div>
           </Link>
-          <Link to="/monthly-quiz" className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-900/10 bg-white/75 px-6 py-3.5 text-sm font-black text-slate-900 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-red-400/30 hover:text-red-600 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:text-red-100 sm:w-auto">
-            Join Quiz Exam <Trophy className="size-4" />
+          <Link to="/monthly-quiz" className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-900/10 bg-white/75 px-8 py-4 text-base font-black text-slate-900 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-red-400/30 hover:text-red-600 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:text-red-400 sm:w-auto shadow-xl hover:shadow-red-500/20">
+            Join Quiz Exam <Trophy className="size-5 text-amber-500 group-hover:scale-110 transition-transform" />
           </Link>
         </motion.div>
       </section>
+
+      {/* Stats Counter Section */}
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+        className="px-4 sm:px-6 md:px-16 mb-16 max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-6"
+      >
+        <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-xl border border-sky-500/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-[0_0_20px_rgba(56,189,248,0.1)] hover:shadow-[0_0_30px_rgba(56,189,248,0.2)] transition-shadow group">
+          <Video className="w-10 h-10 text-sky-400 mb-3 group-hover:scale-110 transition-transform" />
+          <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-1">১০০+</h3>
+          <p className="text-slate-600 dark:text-gray-300 font-medium">ভিডিও লেসন</p>
+        </div>
+        <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-[0_0_20px_rgba(99,102,241,0.1)] hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-shadow group">
+          <BookOpen className="w-10 h-10 text-indigo-400 mb-3 group-hover:scale-110 transition-transform" />
+          <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-1">৫০০০+</h3>
+          <p className="text-slate-600 dark:text-gray-300 font-medium">প্র্যাকটিস MCQ</p>
+        </div>
+        <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-xl border border-emerald-500/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-shadow group">
+          <Users className="w-10 h-10 text-emerald-400 mb-3 group-hover:scale-110 transition-transform" />
+          <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-1">১০০০+</h3>
+          <p className="text-slate-600 dark:text-gray-300 font-medium">সাকসেসফুল স্টুডেন্ট</p>
+        </div>
+      </motion.section>
 
       {/* Categories Grid */}
       <motion.section 
@@ -268,6 +366,7 @@ export default function Home() {
       </motion.section>
 
       <MentorSection />
+      <FAQSection />
     </motion.div>
   );
 }

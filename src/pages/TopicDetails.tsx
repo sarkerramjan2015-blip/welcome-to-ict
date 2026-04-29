@@ -5,6 +5,7 @@ import { ictSyllabus } from '../data/ict-syllabus';
 import { FileText, PlayCircle, CheckCircle, Edit3, ArrowLeft, HelpCircle, Clock, Award, LockKeyhole } from 'lucide-react';
 import { cn } from '../lib/utils';
 import TopicView from '../components/ui/TopicView';
+import ShareButton from '../components/ui/ShareButton';
 import { useLms } from '../context/LmsContext';
 import AdBanner from '../components/AdBanner';
 
@@ -288,8 +289,11 @@ export default function TopicDetails() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-emerald-50 font-semibold text-sm mb-6 border border-white/30 shadow-sm">
-              Topic Details
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <div className="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-emerald-50 font-semibold text-sm border border-white/30 shadow-sm">
+                Topic Details
+              </div>
+              <ShareButton className="!px-4 !py-1.5 !text-xs md:!text-sm" />
             </div>
             <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight leading-tight drop-shadow-lg text-balance break-words">
               {currentTopic.title}
@@ -713,7 +717,7 @@ export default function TopicDetails() {
           calculateProgress();
         }}
         className={cn(
-          "fixed bottom-6 left-6 md:bottom-10 md:left-10 z-[999] flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-sm md:text-base shadow-2xl transition-all border backdrop-blur-xl group shine-sweep",
+          "fixed bottom-5 right-5 md:bottom-8 md:right-8 z-[999] flex items-center gap-3 px-6 py-4 rounded-2xl font-black text-sm md:text-base shadow-2xl transition-all border backdrop-blur-xl group shine-sweep",
           topicCompleted
             ? "bg-emerald-500/90 text-white border-emerald-400 shadow-emerald-500/40"
             : "bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white border-white/20 shadow-slate-900/20"

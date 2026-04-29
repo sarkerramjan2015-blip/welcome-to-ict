@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronRight, Grid, List, Search, ExternalLink } from 'lucide-react';
+import { ChevronRight, Grid, List, Search, ExternalLink, Check } from 'lucide-react';
 import { ictSyllabus } from '../data/ict-syllabus';
 import { cn } from '../lib/utils';
+import ProgressTracker from '../components/ui/ProgressTracker';
 
 const chapterImages = [
   "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
@@ -19,6 +20,29 @@ export default function ChapterList() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+
+  const [completedChapters, setCompletedChapters] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('ict_completed_chapters');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('ict_completed_chapters', JSON.stringify(completedChapters));
+  }, [completedChapters]);
+
+  const toggleChapter = (chapterId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCompletedChapters(prev => 
+      prev.includes(chapterId) 
+        ? prev.filter(id => id !== chapterId)
+        : [...prev, chapterId]
+    );
+  };
 
   useEffect(() => {
     // Dynamic SEO Meta Tags
@@ -116,6 +140,15 @@ export default function ChapterList() {
         </div>
       ) : (
         <>
+          {/* Progress Tracker */}
+          <div className="mb-6">
+            <ProgressTracker 
+              current={completedChapters.length} 
+              total={ictSyllabus.length} 
+              title="Syllabus Progress" 
+            />
+          </div>
+
           {/* View Toggle */}
           <div className="flex justify-end mb-6">
             <div className="flex items-center bg-slate-900/5 dark:bg-white/5 rounded-lg p-1 border border-slate-900/10 dark:border-white/10">
@@ -200,7 +233,20 @@ export default function ChapterList() {
                     "relative z-10 rounded-[1.375rem] bg-[#071426]/95 p-5 md:p-6 flex overflow-hidden h-full",
                     viewMode === 'grid' ? "flex-col items-start" : "flex-col md:flex-row md:items-center md:justify-between gap-4"
                   )}>
-                    <Link to={`/chapters/${chapter.id}/topics`} className={cn("flex w-full min-w-0", viewMode === 'grid' ? "flex-col items-start mb-5" : "flex-col sm:flex-row items-start sm:items-center gap-5")}>
+                    <Link to={`/chapters/${chapter.id}/topics`} className={cn("flex w-full min-w-0 relative", viewMode === 'grid' ? "flex-col items-start mb-5" : "flex-col sm:flex-row items-start sm:items-center gap-5")}>
+                      <button
+                        onClick={(e) => toggleChapter(chapter.id, e)}
+                        title={completedChapters.includes(chapter.id) ? "Mark as Incomplete" : "Mark as Complete"}
+                        className={cn(
+                          "absolute z-20 w-8 h-8 rounded-full border backdrop-blur-md flex items-center justify-center transition-all duration-300 shadow-lg",
+                          viewMode === 'grid' ? "top-3 right-3" : "top-3 right-3 sm:top-auto sm:bottom-3 sm:right-3",
+                          completedChapters.includes(chapter.id)
+                            ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)]"
+                            : "bg-slate-900/60 border-white/20 text-white/30 hover:bg-white/20 hover:border-white/40 hover:text-white"
+                        )}
+                      >
+                        <Check size={16} strokeWidth={completedChapters.includes(chapter.id) ? 3 : 2} />
+                      </button>
                       <div className={cn(
                         "overflow-hidden group-hover:scale-[1.02] transition-transform border border-white/10 bg-slate-950/60",
                         viewMode === 'grid' ? "w-full h-40 rounded-2xl mb-5" : "w-full sm:w-28 h-28 rounded-2xl shrink-0"

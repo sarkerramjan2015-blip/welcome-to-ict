@@ -3,17 +3,20 @@ import { createServer as createViteServer } from "vite";
 import { PrismaClient } from "@prisma/client";
 import path from "path";
 import { fileURLToPath } from "url";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const prisma = new PrismaClient();
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || "");
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT || 3000;
 
   app.use(express.json());
 
@@ -503,12 +506,9 @@ async function startServer() {
         - "explanation" (string)
         Do not include markdown blocks or any other text, just the JSON array.`;
 
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-pro',
-          contents: prompt,
-        });
-
-        let text = response.text || "[]";
+        const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        let text = result.response.text() || "[]";
         // Clean up markdown if present
         text = text.replace(/```json/g, "").replace(/```/g, "").trim();
         generatedQuestions = JSON.parse(text);

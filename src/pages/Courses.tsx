@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { BookOpen, Video, CheckCircle, CreditCard, Clock } from 'lucide-react';
-import MockPaymentPopup from '../components/MockPaymentPopup';
+import ComingSoonToast from '../components/ComingSoonToast';
 import { useAuth } from '../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLms } from '../context/LmsContext';
@@ -11,7 +11,7 @@ export default function Courses() {
   const { enrollCourse } = useLms();
   const navigate = useNavigate();
   const location = useLocation();
-  const [showPayment, setShowPayment] = useState(false);
+  const [showComingSoon, setShowComingSoon] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<{id: string, fee: number, type: string} | null>(null);
   
   // Dummy Countdown State (5 days from now)
@@ -35,21 +35,19 @@ export default function Courses() {
       await login({ redirectTo: `${location.pathname}${location.search}${location.hash}` });
       return;
     }
+    if (user.email === 'sarkerramjan2015@gmail.com') {
+      enrollCourse(courseId, fee, type);
+      if (type === 'RECORDED') {
+        navigate('/course-player');
+      } else {
+        navigate('/live-course-dashboard');
+      }
+      return;
+    }
     setSelectedCourse({ id: courseId, fee, type });
-    setShowPayment(true);
+    setShowComingSoon(true);
   };
 
-  const handlePaymentSuccess = () => {
-    setShowPayment(false);
-    if (selectedCourse) {
-      enrollCourse(selectedCourse.id, selectedCourse.fee, selectedCourse.type);
-    }
-    if (selectedCourse?.type === 'RECORDED') {
-      navigate('/course-player');
-    } else {
-      navigate('/live-course-dashboard');
-    }
-  };
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 md:py-12 space-y-10 md:space-y-12 w-full">
       <div className="text-center">
@@ -155,14 +153,10 @@ export default function Courses() {
         </motion.div>
       </div>
 
-      {showPayment && selectedCourse && (
-        <MockPaymentPopup 
-          challengeId={selectedCourse.id} 
-          fee={selectedCourse.fee} 
-          onClose={() => setShowPayment(false)} 
-          onSuccess={handlePaymentSuccess} 
-        />
-      )}
+      <ComingSoonToast 
+        isOpen={showComingSoon} 
+        onClose={() => setShowComingSoon(false)} 
+      />
     </div>
   );
 }

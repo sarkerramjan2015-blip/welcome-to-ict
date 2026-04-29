@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useParams } from 'react-router-dom';
-import { FileText, ArrowLeft, Search, BarChart3 } from 'lucide-react';
+import { FileText, ArrowLeft, Search, BarChart3, Check } from 'lucide-react';
 import { ictSyllabus } from '../data/ict-syllabus';
 import ChapterAnalysis from '../components/ui/ChapterAnalysis';
+import ProgressTracker from '../components/ui/ProgressTracker';
 import { chapter1Analysis } from '../data/chapters/chapter1/analysis';
 import { chapter2Analysis } from '../data/chapters/chapter2/analysis';
 import { chapter3Analysis } from '../data/chapters/chapter3/analysis';
@@ -24,6 +25,29 @@ export default function TopicList() {
   const { chapterId } = useParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
+
+  const [completedTopics, setCompletedTopics] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('ict_completed_topics');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('ict_completed_topics', JSON.stringify(completedTopics));
+  }, [completedTopics]);
+
+  const toggleTopic = (topicId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCompletedTopics(prev => 
+      prev.includes(topicId) 
+        ? prev.filter(id => id !== topicId)
+        : [...prev, topicId]
+    );
+  };
   
   const chapter = ictSyllabus.find(c => c.id === chapterId);
   const analysisData = 
@@ -49,6 +73,9 @@ export default function TopicList() {
   );
   const chapterIndex = ictSyllabus.findIndex(c => c.id === chapter.id);
   const heroImage = chapterHeroImages[Math.max(chapterIndex, 0) % chapterHeroImages.length];
+
+  const chapterTopicIds = chapter.topics.map(t => t.id);
+  const completedInChapter = completedTopics.filter(id => chapterTopicIds.includes(id)).length;
 
   return (
     <div className="flex-1 flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 py-8 md:py-12 max-w-7xl mx-auto w-full relative z-20">
@@ -114,6 +141,14 @@ export default function TopicList() {
         </div>
       </div>
 
+      <div className="mb-6 relative z-20">
+        <ProgressTracker 
+          current={completedInChapter} 
+          total={chapter.topics.length} 
+          title={`${chapter.title.split(':')[0]} Progress`} 
+        />
+      </div>
+
       <div className="mb-8 md:mb-10 relative z-20">
         <div className="relative max-w-lg w-full group">
           <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
@@ -154,6 +189,19 @@ export default function TopicList() {
                       <div className="absolute top-4 left-4 z-20 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-sky-400 border border-slate-900/10 dark:border-white/10">
                         Topic {chapter.topics.findIndex(t => t.id === topic.id) + 1}
                       </div>
+                      
+                      {/* Topic Checkbox */}
+                      <button
+                        onClick={(e) => toggleTopic(topic.id, e)}
+                        title={completedTopics.includes(topic.id) ? "Mark as Incomplete" : "Mark as Complete"}
+                        className={`absolute top-3 right-3 z-30 w-8 h-8 rounded-full border backdrop-blur-md flex items-center justify-center transition-all duration-300 shadow-lg ${
+                          completedTopics.includes(topic.id)
+                            ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)]"
+                            : "bg-slate-900/60 border-white/20 text-white/30 hover:bg-white/20 hover:border-white/40 hover:text-white"
+                        }`}
+                      >
+                        <Check size={16} strokeWidth={completedTopics.includes(topic.id) ? 3 : 2} />
+                      </button>
                     </div>
                     
                     <div className="p-5 md:p-6 flex-1 flex flex-col min-w-0">

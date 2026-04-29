@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Trophy, Lock, PlayCircle, CheckCircle, Clock, BookOpen, CreditCard, Sparkles } from 'lucide-react';
-import MockPaymentPopup from '../components/MockPaymentPopup';
+import ComingSoonToast from '../components/ComingSoonToast';
 import ChallengeExam from '../components/ChallengeExam';
 import Countdown from '../components/Countdown';
+import ShareButton from '../components/ui/ShareButton';
 import { motion } from 'motion/react';
 import { useLms } from '../context/LmsContext';
 
@@ -12,7 +13,7 @@ export default function MegaChallenge() {
   const { challengeEnrollments, enrollChallenge, markChallengePaid } = useLms();
   const [challenge, setChallenge] = useState<any>(null);
   const [enrollment, setEnrollment] = useState<any>(null);
-  const [showPayment, setShowPayment] = useState(false);
+  const [showComingSoon, setShowComingSoon] = useState(false);
   const [showExam, setShowExam] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -61,7 +62,7 @@ export default function MegaChallenge() {
 
     const nextEnrollment = enrollChallenge(challenge.id, challenge.fee);
     setEnrollment(nextEnrollment);
-    if (user.isPremium && nextEnrollment) {
+    if ((user.isPremium || user.email === 'sarkerramjan2015@gmail.com') && nextEnrollment) {
       markChallengePaid(challenge.id);
       setEnrollment({
         ...nextEnrollment,
@@ -70,7 +71,23 @@ export default function MegaChallenge() {
       });
       return;
     }
-    setShowPayment(true);
+    setShowComingSoon(true);
+  };
+
+  const handlePaymentClick = () => {
+    if (user?.email === 'sarkerramjan2015@gmail.com' && challenge) {
+      const nextEnrollment = enrollment || enrollChallenge(challenge.id, challenge.fee);
+      if (nextEnrollment) {
+        markChallengePaid(challenge.id);
+        setEnrollment({
+          ...nextEnrollment,
+          paymentStatus: 'PAID',
+          updatedAt: new Date().toISOString(),
+        });
+      }
+      return;
+    }
+    setShowComingSoon(true);
   };
 
   const handlePremiumAccess = () => {
@@ -83,14 +100,6 @@ export default function MegaChallenge() {
       paymentStatus: 'PAID',
       updatedAt: new Date().toISOString(),
     });
-  };
-
-  const handlePaymentSuccess = async () => {
-    if (challenge) {
-      markChallengePaid(challenge.id);
-    }
-    setEnrollment((prev: any) => prev ? { ...prev, paymentStatus: 'PAID', updatedAt: new Date().toISOString() } : prev);
-    setShowPayment(false);
   };
 
   const isResultPublished = (updatedAt: string) => {
@@ -129,9 +138,12 @@ export default function MegaChallenge() {
           HSC ICT Monthly Quiz Exam
         </h1>
         <p className="text-xl md:text-2xl text-sky-300 font-medium mb-2">All over Bangladesh</p>
-        <p className="text-lg text-slate-600 dark:text-gray-300 max-w-2xl mx-auto">
+        <p className="text-lg text-slate-600 dark:text-gray-300 max-w-2xl mx-auto mb-6">
           Test your knowledge, compete with thousands of students, and win exciting prizes in the biggest monthly ICT quiz exam!
         </p>
+        <div className="flex justify-center">
+          <ShareButton className="!bg-slate-900/5 dark:!bg-white/10 !text-slate-900 dark:!text-white !border-slate-900/10 dark:!border-white/20" />
+        </div>
       </motion.div>
 
       <div className="grid md:grid-cols-2 gap-8">
@@ -212,13 +224,13 @@ export default function MegaChallenge() {
                 </div>
               ) : (
                 <>
-                  <div className="flex flex-col items-center gap-2 group cursor-pointer">
+                  <div className="flex flex-col items-center gap-2 group cursor-pointer" onClick={handlePaymentClick}>
                     <div className="h-12 w-20 bg-white/90 rounded-xl p-2 flex items-center justify-center border border-slate-900/10 dark:border-white/20 shadow-lg group-hover:scale-105 transition-transform">
                       <img src="https://www.logo.wine/a/logo/BKash/BKash-Icon-Logo.wine.svg" alt="bKash" className="h-full object-contain" />
                     </div>
                     <span className="text-xs text-slate-600 dark:text-gray-300 font-medium group-hover:text-pink-300 transition-colors">bKash</span>
                   </div>
-                  <div className="flex flex-col items-center gap-2 group cursor-pointer">
+                  <div className="flex flex-col items-center gap-2 group cursor-pointer" onClick={handlePaymentClick}>
                     <div className="h-12 w-20 bg-white/90 rounded-xl p-2 flex items-center justify-center border border-slate-900/10 dark:border-white/20 shadow-lg group-hover:scale-105 transition-transform">
                       <img src="https://download.logo.wine/logo/Nagad/Nagad-Logo.wine.png" alt="Nagad" className="h-full object-contain scale-125" />
                     </div>
@@ -257,7 +269,7 @@ export default function MegaChallenge() {
                 </button>
               ) : (
                 <button 
-                  onClick={() => setShowPayment(true)}
+                  onClick={handlePaymentClick}
                   className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
                 >
                   <CreditCard className="w-5 h-5" />
@@ -287,14 +299,10 @@ export default function MegaChallenge() {
         </motion.div>
       </div>
 
-      {showPayment && (
-        <MockPaymentPopup 
-          challengeId={displayChallenge.id} 
-          fee={displayChallenge.fee} 
-          onClose={() => setShowPayment(false)} 
-          onSuccess={handlePaymentSuccess} 
-        />
-      )}
+      <ComingSoonToast 
+        isOpen={showComingSoon} 
+        onClose={() => setShowComingSoon(false)} 
+      />
     </div>
   );
 }

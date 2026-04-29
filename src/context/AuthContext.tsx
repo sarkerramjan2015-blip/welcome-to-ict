@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { onAuthStateChanged, signInWithPopup, signOut, type User as FirebaseUser } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { firebaseAuth, googleProvider, isFirebaseConfigured } from '../lib/firebase';
+import { motion, AnimatePresence } from 'motion/react';
 
 export type UserRole = 'admin' | 'student';
 
@@ -125,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
 
   const clearStoredSession = useCallback(() => {
     localStorage.removeItem(USER_KEY);
@@ -221,10 +223,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       pendingLoginOptionsRef.current = options;
       await signInWithPopup(firebaseAuth, googleProvider);
-    } catch (error) {
+    } catch (error: any) {
+      pendingLoginOptionsRef.current = null;
+      if (error?.code === 'auth/popup-closed-by-user') {
+        return; // handle silently
+      }
+      
       const message = getAuthErrorMessage(error);
       setAuthError(message);
-      pendingLoginOptionsRef.current = null;
+      
+      setToastMessage('লগইন করতে সমস্যা হয়েছে, আবার চেষ্টা করুন।');
+      setTimeout(() => setToastMessage(''), 4000);
       return;
     }
   };
@@ -255,6 +264,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{ user, authReady, authError, isAuthenticated, userRole, login, loginWithGoogle, logout, updateProfile }}>
       {children}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-red-500/90 text-white px-6 py-3 rounded-2xl shadow-2xl backdrop-blur-md border border-red-400/50 flex items-center gap-3 font-medium whitespace-nowrap"
+          >
+            <span className="text-xl">⚠️</span>
+            {toastMessage}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AuthContext.Provider>
   );
 }

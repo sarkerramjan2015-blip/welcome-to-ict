@@ -433,3 +433,13 @@ td {
     display: none;
   }
 }
+
+@keyframes marquee {
+  0% { transform: translateX(100vw); }
+  100% { transform: translateX(-100%); }
+}
+
+@utility animate-marquee {
+  animation: marquee 35s linear infinite;
+  will-change: transform;
+}

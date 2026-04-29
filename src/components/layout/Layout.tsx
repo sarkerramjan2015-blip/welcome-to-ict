@@ -6,6 +6,8 @@ import Footer from './Footer';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import PremiumSubscriptionModal, { type PremiumPlan } from '../PremiumSubscriptionModal';
+import AnnouncementBar from '../ui/AnnouncementBar';
+import AIChatbot from '../ui/AIChatbot';
 
 const PREMIUM_PROMPT_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_SEO_TITLE = 'ICT Toppers | 1st Time in Bangladesh: Interactive HSC ICT Platform';
@@ -288,6 +290,9 @@ export default function Layout() {
         </AnimatePresence>
       </header>
 
+      {/* Announcement Bar */}
+      <AnnouncementBar />
+
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col relative z-10" data-protected-content="true">
         <section className="flex-1 flex flex-col" aria-label="ICT Toppers page content">
@@ -329,19 +334,24 @@ export default function Layout() {
         onUpgrade={handlePremiumUpgrade}
       />
 
-      {/* Floating Action Button for Facebook */}
-      <a 
-        href="https://www.facebook.com/ramjansarker02/" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="fixed bottom-5 right-5 md:bottom-8 md:right-8 z-50 group"
-      >
-        <div className="absolute -inset-2 rounded-full border-2 border-dotted border-sky-400 animate-spin-slow opacity-70 group-hover:opacity-100 transition-opacity duration-500"></div>
-        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-sky-400 to-blue-600 rounded-full blur opacity-70 group-hover:opacity-100 animate-spin-slow transition duration-1000"></div>
-        <div className="relative bg-blue-600/80 backdrop-blur-md border border-slate-900/10 dark:border-white/20 text-white p-3 md:p-4 rounded-full shadow-lg transition-transform group-hover:scale-110 flex items-center justify-center">
-          <Facebook className="w-5 h-5 md:w-6 md:h-6" />
-        </div>
-      </a>
+      {/* Floating Action Button for Facebook (Hidden inside topics) */}
+      {!location.pathname.startsWith('/topics/') && (
+        <a 
+          href="https://www.facebook.com/ramjansarker02/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="fixed bottom-5 right-5 md:bottom-8 md:right-8 z-50 group"
+        >
+          <div className="absolute -inset-2 rounded-full border-2 border-dotted border-sky-400 animate-spin-slow opacity-70 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-sky-400 to-blue-600 rounded-full blur opacity-70 group-hover:opacity-100 animate-spin-slow transition duration-1000"></div>
+          <div className="relative bg-blue-600/80 backdrop-blur-md border border-slate-900/10 dark:border-white/20 text-white p-3 md:p-4 rounded-full shadow-lg transition-transform group-hover:scale-110 flex items-center justify-center">
+            <Facebook className="w-5 h-5 md:w-6 md:h-6" />
+          </div>
+        </a>
+      )}
+
+      {/* Floating AI Chatbot */}
+      <AIChatbot />
 
       <Footer />
     </div>

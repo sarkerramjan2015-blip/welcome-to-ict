@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Book, Eye, ShoppingCart, Lock, CheckCircle } from 'lucide-react';
-import MockPaymentPopup from '../components/MockPaymentPopup';
+import ComingSoonToast from '../components/ComingSoonToast';
+import ShareButton from '../components/ui/ShareButton';
 import { useAuth } from '../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -9,7 +10,7 @@ export default function Suggestions() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [showPayment, setShowPayment] = useState(false);
+  const [showComingSoon, setShowComingSoon] = useState(false);
   const [showDemo, setShowDemo] = useState(false);
 
   const handleBuy = async () => {
@@ -17,22 +18,24 @@ export default function Suggestions() {
       await login({ redirectTo: `${location.pathname}${location.search}${location.hash}` });
       return;
     }
-    setShowPayment(true);
-  };
-
-  const handlePaymentSuccess = () => {
-    setShowPayment(false);
-    localStorage.setItem('hasPurchasedSuggestion', 'true');
-    navigate('/dashboard');
+    if (user.email === 'sarkerramjan2015@gmail.com') {
+      localStorage.setItem('hasPurchasedSuggestion', 'true');
+      navigate('/dashboard');
+      return;
+    }
+    setShowComingSoon(true);
   };
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-12">
       <div className="text-center">
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-4">ICT Short Suggestions</h1>
-        <p className="text-xl text-slate-600 dark:text-gray-300 max-w-2xl mx-auto">
+        <p className="text-xl text-slate-600 dark:text-gray-300 max-w-2xl mx-auto mb-6">
           Get the ultimate last-minute preparation guide to secure top marks in your board exams.
         </p>
+        <div className="flex justify-center">
+          <ShareButton className="!bg-slate-900/5 dark:!bg-white/10 !text-slate-900 dark:!text-white !border-slate-900/10 dark:!border-white/20" />
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
@@ -122,18 +125,14 @@ export default function Suggestions() {
         </motion.div>
       </div>
 
-      {showPayment && (
-        <MockPaymentPopup 
-          challengeId="hsc-suggestion" 
-          fee={150} 
-          onClose={() => setShowPayment(false)} 
-          onSuccess={handlePaymentSuccess} 
-        />
-      )}
+      <ComingSoonToast 
+        isOpen={showComingSoon} 
+        onClose={() => setShowComingSoon(false)} 
+      />
 
       {/* Demo Modal */}
       {showDemo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-slate-50 dark:bg-slate-900 border border-slate-900/10 dark:border-white/20 rounded-3xl p-8 max-w-2xl w-full relative">
             <button 
               onClick={() => setShowDemo(false)}
