@@ -211,18 +211,18 @@ export default function Home() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.32, duration: 0.45 }}
-          className="mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row"
+          className="mb-12 flex flex-row items-center justify-center gap-2 md:gap-4 px-2 md:px-0"
         >
-          <Link to="/syllabus" className="group relative inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-red-600 via-rose-500 to-pink-600 p-[2px] text-sm font-black text-white shadow-[0_0_40px_rgba(225,29,72,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(225,29,72,0.6)] sm:w-auto overflow-hidden">
+          <Link to="/syllabus" className="group relative inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-red-600 via-rose-500 to-pink-600 p-[2px] font-black text-white shadow-[0_0_40px_rgba(225,29,72,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(225,29,72,0.6)] overflow-hidden flex-1 md:flex-none">
             <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%,transparent_100%)] bg-[length:250%_250%] animate-[shimmer_2s_infinite]"></div>
-            <div className="relative flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-rose-600 px-8 py-4 rounded-[14px] w-full border border-white/10">
-              <Zap className="size-5 text-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.8)] group-hover:scale-125 transition-transform duration-300" />
-              <span className="tracking-wide text-base">Start HSC ICT</span>
-              <ArrowRight className="size-5 opacity-70 group-hover:translate-x-1.5 group-hover:opacity-100 transition-all duration-300" />
+            <div className="relative flex items-center justify-center gap-1.5 md:gap-2 bg-gradient-to-r from-red-600 to-rose-600 px-3 py-2.5 md:px-8 md:py-4 rounded-[14px] w-full border border-white/10">
+              <Zap className="size-3.5 md:size-5 text-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.8)] group-hover:scale-125 transition-transform duration-300 shrink-0" />
+              <span className="tracking-wide text-[10px] md:text-base leading-none whitespace-nowrap">Start HSC ICT</span>
             </div>
           </Link>
-          <Link to="/monthly-quiz" className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-900/10 bg-white/75 px-8 py-4 text-base font-black text-slate-900 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-red-400/30 hover:text-red-600 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:text-red-400 sm:w-auto shadow-xl hover:shadow-red-500/20">
-            Join Quiz Exam <Trophy className="size-5 text-amber-500 group-hover:scale-110 transition-transform" />
+          <Link to="/monthly-quiz" className="inline-flex items-center justify-center gap-1.5 md:gap-2 rounded-2xl border border-slate-900/10 bg-white/75 px-3 py-2.5 md:px-8 md:py-4 font-black text-slate-900 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-red-400/30 hover:text-red-600 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:text-red-400 flex-1 md:flex-none shadow-xl hover:shadow-red-500/20 leading-none">
+            <span className="tracking-wide text-[10px] md:text-base whitespace-nowrap">Join Quiz</span>
+            <Trophy className="size-3.5 md:size-5 text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
           </Link>
         </motion.div>
       </section>
@@ -232,22 +232,22 @@ export default function Home() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.5 }}
-        className="px-4 sm:px-6 md:px-16 mb-16 max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-6"
+        className="px-2 sm:px-6 md:px-16 mb-16 max-w-5xl mx-auto w-full grid grid-cols-3 gap-2 md:gap-6"
       >
-        <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-xl border border-sky-500/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-[0_0_20px_rgba(56,189,248,0.1)] hover:shadow-[0_0_30px_rgba(56,189,248,0.2)] transition-shadow group">
-          <Video className="w-10 h-10 text-sky-400 mb-3 group-hover:scale-110 transition-transform" />
-          <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-1">১০০+</h3>
-          <p className="text-slate-600 dark:text-gray-300 font-medium">ভিডিও লেসন</p>
+        <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-xl border border-sky-500/20 rounded-xl md:rounded-2xl p-2 md:p-6 flex flex-col items-center justify-center text-center shadow-[0_0_20px_rgba(56,189,248,0.1)] hover:shadow-[0_0_30px_rgba(56,189,248,0.2)] transition-shadow group">
+          <Video className="w-4 h-4 md:w-10 md:h-10 text-sky-400 mb-1 md:mb-3 group-hover:scale-110 transition-transform" />
+          <h3 className="text-xs md:text-3xl font-black text-slate-900 dark:text-white mb-0.5 md:mb-1 leading-none">১০০+</h3>
+          <p className="text-[8px] md:text-base text-slate-600 dark:text-gray-300 font-bold leading-none">ভিডিও লেসন</p>
         </div>
-        <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-xl border border-indigo-500/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-[0_0_20px_rgba(99,102,241,0.1)] hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-shadow group">
-          <BookOpen className="w-10 h-10 text-indigo-400 mb-3 group-hover:scale-110 transition-transform" />
-          <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-1">৫০০০+</h3>
-          <p className="text-slate-600 dark:text-gray-300 font-medium">প্র্যাকটিস MCQ</p>
+        <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-xl border border-indigo-500/20 rounded-xl md:rounded-2xl p-2 md:p-6 flex flex-col items-center justify-center text-center shadow-[0_0_20px_rgba(99,102,241,0.1)] hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-shadow group">
+          <BookOpen className="w-4 h-4 md:w-10 md:h-10 text-indigo-400 mb-1 md:mb-3 group-hover:scale-110 transition-transform" />
+          <h3 className="text-xs md:text-3xl font-black text-slate-900 dark:text-white mb-0.5 md:mb-1 leading-none">৫০০০+</h3>
+          <p className="text-[8px] md:text-base text-slate-600 dark:text-gray-300 font-bold leading-none">প্র্যাকটিস MCQ</p>
         </div>
-        <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-xl border border-emerald-500/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-shadow group">
-          <Users className="w-10 h-10 text-emerald-400 mb-3 group-hover:scale-110 transition-transform" />
-          <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-1">১০০০+</h3>
-          <p className="text-slate-600 dark:text-gray-300 font-medium">সাকসেসফুল স্টুডেন্ট</p>
+        <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-xl border border-emerald-500/20 rounded-xl md:rounded-2xl p-2 md:p-6 flex flex-col items-center justify-center text-center shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-shadow group">
+          <Users className="w-4 h-4 md:w-10 md:h-10 text-emerald-400 mb-1 md:mb-3 group-hover:scale-110 transition-transform" />
+          <h3 className="text-xs md:text-3xl font-black text-slate-900 dark:text-white mb-0.5 md:mb-1 leading-none">১০০০+</h3>
+          <p className="text-[8px] md:text-base text-slate-600 dark:text-gray-300 font-bold leading-none">সাকসেস স্টুডেন্ট</p>
         </div>
       </motion.section>
 
