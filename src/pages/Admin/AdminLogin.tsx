@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Lock, User, KeyRound, MessageSquare, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, KeyRound, MessageSquare, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { firebaseAuth } from '../../lib/firebase';
+import emailjs from '@emailjs/browser';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const VALID_USER_ID  = 'noman02';
+const VALID_EMAIL    = 'sarkerramjan2015@gmail.com';
 const VALID_PASSWORD = '172002@aA';
-const MOCK_OTP       = '123456';
-const WHATSAPP_NUM   = '01518657869';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function AdminLogin() {
@@ -17,34 +18,65 @@ export default function AdminLogin() {
   const [step, setStep] = useState<'credentials' | 'otp'>('credentials');
 
   // Credential fields
-  const [userId,   setUserId]   = useState('');
+  const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
-  const [showPass,  setShowPass] = useState(false);
+  const [showPass, setShowPass] = useState(false);
 
-  // OTP field
+  // OTP fields
   const [otp, setOtp] = useState('');
+  const [generatedOtp, setGeneratedOtp] = useState('');
 
   // Error / loading
   const [error,   setError]   = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState('');
 
   // ── Step 1: Validate credentials ──────────────────────────────────────────
-  function handleCredentialSubmit(e: React.FormEvent) {
+  async function handleCredentialSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
 
-    if (userId.trim() !== VALID_USER_ID || password !== VALID_PASSWORD) {
-      setError('Invalid User ID or Password. Please try again.');
+    if (email.trim() !== VALID_EMAIL || password !== VALID_PASSWORD) {
+      setError('ভুল ইমেইল বা পাসওয়ার্ড প্রদান করা হয়েছে। দয়া করে আবার চেষ্টা করুন।');
       return;
     }
 
-    // Mock: simulate sending OTP to WhatsApp
-    console.log(`Sending OTP to ${WHATSAPP_NUM}`);
+    if (!firebaseAuth) {
+      setError('Firebase Auth কনফিগার করা নেই।');
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
+    setLoadingText('OTP পাঠানো হচ্ছে, দয়া করে অপেক্ষা করুন...');
+    
+    try {
+      await signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
+
+      // Generate a random 6-digit numeric code
+      const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedOtp(newOtp);
+
+      try {
+        await emailjs.send(
+          'service_efeim7l',
+          'template_fit0rsq',
+          {
+            otp_code: newOtp,
+            email: VALID_EMAIL,
+            time: '15 minutes'
+          },
+          'fXPRXq1rMmhQ2KrLF'
+        );
+        setStep('otp');
+      } catch (emailErr) {
+        setError('ইমেইল পাঠাতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Firebase অথেনটিকেশন ব্যর্থ হয়েছে।');
+    } finally {
       setLoading(false);
-      setStep('otp');
-    }, 800);
+      setLoadingText('');
+    }
   }
 
   // ── Step 2: Validate OTP ──────────────────────────────────────────────────
@@ -52,8 +84,8 @@ export default function AdminLogin() {
     e.preventDefault();
     setError('');
 
-    if (otp.trim() !== MOCK_OTP) {
-      setError('Incorrect OTP. Please check your WhatsApp and try again.');
+    if (otp.trim() !== generatedOtp) {
+      setError('ভুল OTP প্রদান করা হয়েছে। দয়া করে আবার চেষ্টা করুন।');
       return;
     }
 
@@ -80,13 +112,13 @@ export default function AdminLogin() {
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl font-black text-center mb-2">Admin Portal</h1>
+          <h1 className="text-3xl font-black text-center mb-2">অ্যাডমিন পোর্টাল</h1>
 
           {/* Step indicator */}
           <div className="flex items-center justify-center gap-2 mb-6">
-            <StepDot active={step === 'credentials'} done={step === 'otp'} label="1" />
+            <StepDot active={step === 'credentials'} done={step === 'otp'} label="১" />
             <div className="w-8 h-px bg-slate-400/30" />
-            <StepDot active={step === 'otp'} done={false} label="2" />
+            <StepDot active={step === 'otp'} done={false} label="২" />
           </div>
 
           <AnimatePresence mode="wait">
@@ -103,19 +135,19 @@ export default function AdminLogin() {
                 className="space-y-4"
               >
                 <p className="text-slate-500 dark:text-slate-400 text-center text-sm mb-4">
-                  Enter your admin credentials to continue.
+                  অ্যাডমিন পোর্টালে প্রবেশ করতে আপনার ইমেইল ও পাসওয়ার্ড প্রদান করুন।
                 </p>
 
-                {/* User ID */}
+                {/* Email */}
                 <div className="relative">
-                  <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   <input
-                    id="admin-userid"
-                    type="text"
+                    id="admin-email"
+                    type="email"
                     autoComplete="username"
-                    placeholder="User ID"
-                    value={userId}
-                    onChange={e => setUserId(e.target.value)}
+                    placeholder="ইমেইল"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
                     required
                     className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-900/10 dark:border-white/10 bg-slate-900/5 dark:bg-white/5 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
                   />
@@ -128,7 +160,7 @@ export default function AdminLogin() {
                     id="admin-password"
                     type={showPass ? 'text' : 'password'}
                     autoComplete="current-password"
-                    placeholder="Password"
+                    placeholder="পাসওয়ার্ড"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     required
@@ -154,7 +186,14 @@ export default function AdminLogin() {
                   disabled={loading}
                   className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white px-4 py-3 font-bold shadow-sm transition-colors flex items-center justify-center gap-2"
                 >
-                  {loading ? <Spinner /> : <>Continue <ArrowRight size={16} /></>}
+                  {loading ? (
+                    <>
+                      <Spinner />
+                      <span className="ml-2 font-normal text-sm">{loadingText || 'অপেক্ষা করুন...'}</span>
+                    </>
+                  ) : (
+                    <>চালিয়ে যান <ArrowRight size={16} /></>
+                  )}
                 </button>
               </motion.form>
             )}
@@ -171,9 +210,7 @@ export default function AdminLogin() {
                 className="space-y-4"
               >
                 <p className="text-slate-500 dark:text-slate-400 text-center text-sm mb-4">
-                  An OTP has been sent to your WhatsApp&nbsp;
-                  <span className="font-semibold text-indigo-400">+880 {WHATSAPP_NUM}</span>.
-                  Enter it below.
+                  আপনার ইমেইল (<span className="font-semibold text-indigo-400">{VALID_EMAIL}</span>)-এ একটি OTP পাঠানো হয়েছে। নিচে সেটি প্রদান করুন।
                 </p>
 
                 {/* OTP input */}
@@ -184,7 +221,7 @@ export default function AdminLogin() {
                     type="text"
                     inputMode="numeric"
                     maxLength={6}
-                    placeholder="6-digit OTP"
+                    placeholder="৬-ডিজিটের OTP"
                     value={otp}
                     onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
                     required
@@ -203,16 +240,16 @@ export default function AdminLogin() {
                   disabled={loading || otp.length < 6}
                   className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white px-4 py-3 font-bold shadow-sm transition-colors flex items-center justify-center gap-2"
                 >
-                  {loading ? <Spinner /> : <><CheckCircle2 size={16} /> Verify & Login</>}
+                  {loading ? <Spinner /> : <><CheckCircle2 size={16} /> যাচাই করুন এবং লগইন করুন</>}
                 </button>
 
                 {/* Back link */}
                 <button
                   type="button"
-                  onClick={() => { setStep('credentials'); setError(''); setOtp(''); }}
+                  onClick={() => { setStep('credentials'); setError(''); setOtp(''); setGeneratedOtp(''); }}
                   className="w-full text-center text-xs text-slate-500 dark:text-slate-400 hover:text-indigo-400 transition-colors pt-1"
                 >
-                  ← Back to credentials
+                  ← লগইন পেজে ফিরে যান
                 </button>
               </motion.form>
             )}

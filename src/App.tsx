@@ -15,6 +15,7 @@ import Suggestions from './pages/Suggestions';
 import EBookReader from './pages/EBookReader';
 import TopicList from './pages/TopicList';
 import TopicDetails from './pages/TopicDetails';
+import Terms from './pages/Terms';
 import AdminLogin from './pages/Admin/AdminLogin';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import MegaChallenge from './pages/MegaChallenge';
@@ -46,6 +47,7 @@ export default function App() {
                 <Route path="syllabus" element={<ChapterList />} />
                 <Route path="chapters/:chapterId/topics" element={<TopicList />} />
                 <Route path="topics/:topicId" element={<TopicDetails />} />
+                <Route path="terms" element={<Terms />} />
                 <Route path="monthly-quiz" element={<MegaChallenge />} />
                 <Route path="dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
                 <Route path="admin" element={<AdminLogin />} />

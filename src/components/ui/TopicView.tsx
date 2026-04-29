@@ -74,27 +74,6 @@ export default function TopicView({ topic, onTakeQuiz }: TopicViewProps) {
         />
       </motion.div>
 
-      {/* Sticky Bottom Floating Bar (Apple CTA Style) */}
-      <motion.div 
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 20 }}
-        className="fixed bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none px-4"
-      >
-        <div className="pointer-events-auto flex items-center justify-between gap-3 md:gap-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-2xl px-3 py-3 md:px-6 md:py-4 rounded-full border border-white/50 dark:border-slate-700 shadow-[0_20px_40px_-15px_rgba(13,148,136,0.3)] dark:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] max-w-2xl w-full">
-          <div className="hidden sm:block pl-2">
-            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Knowledge Check</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Evaluate your understanding</p>
-          </div>
-          <button 
-            onClick={onTakeQuiz}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 text-white px-5 md:px-8 py-3 rounded-full font-bold shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 active:scale-95 text-sm md:text-base"
-          >
-            <PlayCircle size={20} />
-            <span>Take Quick Quiz</span>
-          </button>
-        </div>
-      </motion.div>
     </div>
   );
 }

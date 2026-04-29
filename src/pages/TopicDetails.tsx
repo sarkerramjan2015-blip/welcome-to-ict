@@ -91,7 +91,13 @@ export default function TopicDetails() {
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [score, setScore] = useState(0);
-  const { recordTopicVisit, isTopicCompleted, toggleTopicCompletion, saveQuizResult } = useLms();
+  
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const { recordTopicVisit, isTopicCompleted, toggleTopicCompletion, saveQuizResult, quizResults } = useLms();
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -108,6 +114,29 @@ export default function TopicDetails() {
       recordTopicVisit(currentTopic.id);
     }
   }, [currentTopic?.id, recordTopicVisit]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
 
   const handleQuizSubmit = () => {
     if (!currentTopic) return;
@@ -165,34 +194,38 @@ export default function TopicDetails() {
   const calculateProgress = () => {
     console.log('Calculating progress for:', currentTopic.id);
     const missing: string[] = [];
-    let completedCount = 1; // Video is always 100% complete as per instruction
+    let requiredCount = 2; // Notes and Video are minimum
+    let completedCount = 2; // Notes and Video are always complete when visited
 
-    // Notes: Always considered complete if we are on this page, but let's be safe
-    completedCount++; 
-
-    // MCQ
-    if (visitedTabs.has('practice')) {
-      completedCount++;
-    } else {
-      missing.push('MCQ Practice');
+    if (currentTopic.practiceMcqs && currentTopic.practiceMcqs.length > 0) {
+      requiredCount++;
+      if (visitedTabs.has('practice')) {
+        completedCount++;
+      } else {
+        missing.push('MCQ Practice (বহুনির্বাচনী)');
+      }
     }
 
-    // CQ
-    if (visitedTabs.has('cq')) {
-      completedCount++;
-    } else {
-      missing.push('CQ (সৃজনশীল)');
+    if (currentTopic.cqs && currentTopic.cqs.length > 0) {
+      requiredCount++;
+      if (visitedTabs.has('cq')) {
+        completedCount++;
+      } else {
+        missing.push('CQ (সৃজনশীল)');
+      }
     }
 
-    // Quiz
-    const hasQuizResult = quizResults.some(r => r.topicId === currentTopic.id);
-    if (quizSubmitted || hasQuizResult) {
-      completedCount++;
-    } else {
-      missing.push('MCQ Quiz');
+    if (currentTopic.quizMcqs && currentTopic.quizMcqs.length > 0) {
+      requiredCount++;
+      const hasQuizResult = quizResults && quizResults.some(r => r.topicId === currentTopic.id);
+      if (quizSubmitted || hasQuizResult) {
+        completedCount++;
+      } else {
+        missing.push('MCQ Quiz (মডেল টেস্ট)');
+      }
     }
 
-    const percent = (completedCount / 5) * 100;
+    const percent = requiredCount > 0 ? (completedCount / requiredCount) * 100 : 100;
     console.log('Progress Percentage:', percent, 'Missing items:', missing);
     setProgressInfo({ percent, missing });
 
@@ -266,7 +299,15 @@ export default function TopicDetails() {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex w-full overflow-x-auto flex-nowrap gap-3 pb-2 scrollbar-hide" role="tablist">
+      <div 
+        ref={scrollContainerRef}
+        className={cn("flex w-full overflow-x-auto flex-nowrap gap-3 pb-2 scrollbar-hide", isDragging ? "cursor-grabbing select-none" : "cursor-grab")}
+        role="tablist"
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+      >
         <AnimatePresence>
           {tabs.map((tab, idx) => {
             const Icon = tab.icon;
