@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import ReactGA from 'react-ga4';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home';
 import ChapterList from './pages/ChapterList';
@@ -28,10 +29,46 @@ import { LmsProvider } from './context/LmsContext';
 import PrivateRoute from './components/routes/PrivateRoute';
 import AdminRoute from './components/routes/AdminRoute';
 
+const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
+
+let isGaInitialized = false;
+let lastTrackedPath = '';
+
+function GoogleAnalyticsTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!GA_MEASUREMENT_ID) {
+      return;
+    }
+
+    if (!isGaInitialized) {
+      ReactGA.initialize(GA_MEASUREMENT_ID);
+      isGaInitialized = true;
+    }
+
+    const page = `${location.pathname}${location.search}`;
+
+    if (page === lastTrackedPath) {
+      return;
+    }
+
+    ReactGA.send({
+      hitType: 'pageview',
+      page,
+      title: document.title,
+    });
+    lastTrackedPath = page;
+  }, [location.pathname, location.search]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
+        <GoogleAnalyticsTracker />
         <AuthProvider>
           <LmsProvider>
             <Routes>
