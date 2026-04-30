@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /monthly-quiz
+Disallow: /dashboard
+Disallow: /course-player
+Disallow: /live-course-dashboard
+Disallow: /ebook-reader

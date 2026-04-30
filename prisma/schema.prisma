@@ -10,14 +10,14 @@ datasource db {
 model Admin {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String   // Hashed password
+  password  String // Hashed password
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Category {
   id        String    @id @default(cuid())
-  name      String    // e.g., "HSC ICT", "SSC ICT", "Job IT", "NTRCA ICT"
+  name      String // e.g., "HSC ICT", "SSC ICT", "Job IT", "NTRCA ICT"
   slug      String    @unique
   isActive  Boolean   @default(false)
   versions  Version[]
@@ -27,7 +27,7 @@ model Category {
 
 model Version {
   id         String    @id @default(cuid())
-  name       String    // e.g., "Bangla Version", "English Version"
+  name       String // e.g., "Bangla Version", "English Version"
   slug       String    @unique
   isActive   Boolean   @default(false)
   categoryId String
@@ -41,7 +41,7 @@ model Chapter {
   id        String   @id @default(cuid())
   title     String
   slug      String   @unique
-  image     String?  // Cloudinary URL
+  image     String? // Cloudinary URL
   order     Int      @default(0)
   versionId String
   version   Version  @relation(fields: [versionId], references: [id], onDelete: Cascade)
@@ -51,29 +51,29 @@ model Chapter {
 }
 
 model Topic {
-  id             String   @id @default(cuid())
+  id             String  @id @default(cuid())
   title          String
-  slug           String   @unique
-  content        String?  // Notes in HTML/Markdown
-  visualizations String   @default("[]") // JSON Array of Cloudinary image/video URLs
-  order          Int      @default(0)
+  slug           String  @unique
+  content        String? // Notes in HTML/Markdown
+  visualizations String  @default("[]") // JSON Array of Cloudinary image/video URLs
+  order          Int     @default(0)
   chapterId      String
-  chapter        Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  chapter        Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
   mcqs           MCQ[]
   cqs            CQ[]
   shortQuestions ShortQuestion[]
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model MCQ {
   id            String   @id @default(cuid())
-  question      String   
+  question      String
   options       String   @default("[]") // JSON Array of 4 options
-  correctAnswer String   // The exact string of the correct option
-  explanation   String?  
+  correctAnswer String // The exact string of the correct option
+  explanation   String?
   topicId       String
   topic         Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
   createdAt     DateTime @default(now())
@@ -82,11 +82,11 @@ model MCQ {
 
 model CQ {
   id        String   @id @default(cuid())
-  stem      String   // উদ্দীপক (The scenario/context)
-  qA        String   // জ্ঞানমূলক (Knowledge)
-  qB        String   // অনুধাবন (Comprehension)
-  qC        String   // প্রয়োগ (Application)
-  qD        String   // উচ্চতর দক্ষতা (Higher Order Thinking)
+  stem      String // উদ্দীপক (The scenario/context)
+  qA        String // জ্ঞানমূলক (Knowledge)
+  qB        String // অনুধাবন (Comprehension)
+  qC        String // প্রয়োগ (Application)
+  qD        String // উচ্চতর দক্ষতা (Higher Order Thinking)
   topicId   String
   topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
@@ -94,21 +94,21 @@ model CQ {
 }
 
 model ShortQuestion {
-  id        String       @id @default(cuid())
-  type      String       // "KNOWLEDGE" | "COMPREHENSION"
-  question  String       
-  answer    String       
+  id        String   @id @default(cuid())
+  type      String // "KNOWLEDGE" | "COMPREHENSION"
+  question  String
+  answer    String
   topicId   String
-  topic     Topic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model User {
   id           String       @id @default(cuid())
   name         String?
   email        String       @unique
-  password     String?      // Optional for Google Auth
+  password     String? // Optional for Google Auth
   profileImage String?
   bio          String?
   phone        String?
@@ -133,15 +133,21 @@ model Task {
 }
 
 model Challenge {
-  id          String              @id @default(cuid())
-  month       String              // e.g., "April"
-  year        Int                 // e.g., 2026
-  fee         Float               @default(20.0)
-  status      String              @default("DRAFT") // "DRAFT", "APPROVED", "LIVE"
-  questions   ChallengeQuestion[]
-  enrollments Enrollment[]
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  id              String              @id @default(cuid())
+  title           String              @default("HSC ICT Monthly Quiz Exam")
+  month           String // e.g., "April"
+  year            Int // e.g., 2026
+  fee             Float               @default(20.0)
+  startsAt        DateTime?
+  endsAt          DateTime?
+  syllabus        String              @default("[]") // JSON Array of syllabus bullet points
+  totalMarks      Int                 @default(30)
+  durationMinutes Int                 @default(30)
+  status          String              @default("DRAFT") // "DRAFT", "APPROVED", "LIVE"
+  questions       ChallengeQuestion[]
+  enrollments     Enrollment[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 }
 
 model ChallengeQuestion {
@@ -163,7 +169,7 @@ model Enrollment {
   challengeId   String
   challenge     Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
   paymentStatus String    @default("PENDING") // "PENDING", "PAID"
-  score         Int?      // Null until exam is taken
+  score         Int? // Null until exam is taken
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

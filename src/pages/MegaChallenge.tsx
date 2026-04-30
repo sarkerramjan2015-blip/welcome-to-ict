@@ -8,10 +8,39 @@ import ShareButton from '../components/ui/ShareButton';
 import { motion } from 'motion/react';
 import { useLms } from '../context/LmsContext';
 
+interface UpcomingChallenge {
+  id: string;
+  title: string;
+  month: string;
+  year: number;
+  fee: number;
+  startsAt: string | null;
+  endsAt: string | null;
+  syllabus: string[];
+  totalMarks: number;
+  durationMinutes: number;
+  status: string;
+}
+
+const formatSchedule = (date: string | null) => {
+  if (!date) return 'Schedule pending';
+
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Dhaka',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(new Date(date));
+};
+
 export default function MegaChallenge() {
   const { user, login } = useAuth();
   const { challengeEnrollments, enrollChallenge, markChallengePaid } = useLms();
-  const [challenge, setChallenge] = useState<any>(null);
+  const [challenge, setChallenge] = useState<UpcomingChallenge | null>(null);
+  const [upcomingChallenges, setUpcomingChallenges] = useState<UpcomingChallenge[]>([]);
   const [enrollment, setEnrollment] = useState<any>(null);
   const [showComingSoon, setShowComingSoon] = useState(false);
   const [showExam, setShowExam] = useState(false);
@@ -28,23 +57,37 @@ export default function MegaChallenge() {
   }, [user, challenge, challengeEnrollments]);
 
   const fetchChallenge = async () => {
-    const fallbackChallenge = {
-      id: 'monthly-hsc-ict',
-      month: new Date().toLocaleString('default', { month: 'long' }),
-      year: new Date().getFullYear(),
-      fee: 20
-    };
     try {
-      const storedChallenge = localStorage.getItem('lms:activeChallenge');
-      setChallenge(storedChallenge ? JSON.parse(storedChallenge) : fallbackChallenge);
+      const response = await fetch('/api/challenges/upcoming');
+      if (!response.ok) throw new Error('Failed to load upcoming challenges');
+
+      const challenges = await response.json() as UpcomingChallenge[];
+      setUpcomingChallenges(challenges);
+      setChallenge(challenges[0] || null);
     } catch {
-      setChallenge(fallbackChallenge);
+      setUpcomingChallenges([]);
+      setChallenge(null);
     } finally {
       setLoading(false);
     }
   };
 
   const checkEnrollment = async () => {
+    if (!user || !challenge) return;
+    try {
+      const response = await fetch('/api/dashboard?userId=' + user.id);
+      if (response.ok) {
+        const enrollments = await response.json();
+        const serverEnrollment = enrollments.find((e) => e.challengeId === challenge.id);
+        if (serverEnrollment) {
+          setEnrollment(serverEnrollment);
+          if (serverEnrollment.paymentStatus === 'PAID') {
+            markChallengePaid(challenge.id);
+          }
+          return;
+        }
+      }
+    } catch (err) {}
     const currentEnrollment = challengeEnrollments.find(e => e.challengeId === challenge.id);
     setEnrollment(currentEnrollment || null);
   };
@@ -74,20 +117,30 @@ export default function MegaChallenge() {
     setShowComingSoon(true);
   };
 
-  const handlePaymentClick = () => {
-    if (user?.email === 'sarkerramjan2015@gmail.com' && challenge) {
+  const handlePaymentClick = async () => {
+    if (!user || !challenge) return;
+    if (user.email === 'sarkerramjan2015@gmail.com') {
       const nextEnrollment = enrollment || enrollChallenge(challenge.id, challenge.fee);
       if (nextEnrollment) {
         markChallengePaid(challenge.id);
-        setEnrollment({
-          ...nextEnrollment,
-          paymentStatus: 'PAID',
-          updatedAt: new Date().toISOString(),
-        });
+        setEnrollment({ ...nextEnrollment, paymentStatus: 'PAID', updatedAt: new Date().toISOString() });
       }
       return;
     }
-    setShowComingSoon(true);
+    try {
+      const response = await fetch(`/api/challenges/${challenge.id}/pay/bkash/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id })
+      });
+      if (!response.ok) throw new Error('Payment creation failed');
+      const data = await response.json();
+      if (data.bkashURL) window.location.href = data.bkashURL;
+      else throw new Error('No bKash URL returned');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to initiate bKash payment. Please try again.');
+    }
   };
 
   const handlePremiumAccess = () => {
@@ -111,11 +164,18 @@ export default function MegaChallenge() {
 
   if (loading) return <div className="p-8 text-center text-slate-900 dark:text-white">Loading...</div>;
 
-  const displayChallenge = challenge || {
+  const displayChallenge: UpcomingChallenge = challenge || {
     id: 'upcoming',
+    title: 'Upcoming Quiz',
     month: new Date().toLocaleString('default', { month: 'long' }),
     year: new Date().getFullYear(),
-    fee: 20
+    fee: 20,
+    startsAt: null,
+    endsAt: null,
+    syllabus: [],
+    totalMarks: 30,
+    durationMinutes: 30,
+    status: 'DRAFT',
   };
 
   if (showExam) {
@@ -146,6 +206,53 @@ export default function MegaChallenge() {
         </div>
       </motion.div>
 
+      <motion.section
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-slate-900/10 dark:border-white/20 shadow-xl shadow-black/10"
+      >
+        <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-sky-400">Upcoming Quiz Schedule</p>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white">Select a live registration slot</h2>
+          </div>
+          <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Exam starts at 9:00 PM BDT | Entry fee Tk 20</p>
+        </div>
+
+        {upcomingChallenges.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-900/20 dark:border-white/20 p-6 text-center text-slate-600 dark:text-slate-300">
+            No upcoming quiz is published yet.
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-3">
+            {upcomingChallenges.map((item) => {
+              const isSelected = item.id === displayChallenge.id;
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setChallenge(item)}
+                  className={`text-left rounded-2xl border p-5 transition-all ${
+                    isSelected
+                      ? 'border-sky-400 bg-sky-400/10 shadow-lg shadow-sky-500/10'
+                      : 'border-slate-900/10 bg-slate-900/5 hover:border-sky-400/50 dark:border-white/10 dark:bg-white/5'
+                  }`}
+                >
+                  <p className="text-sm font-black uppercase tracking-[0.14em] text-sky-400">{formatSchedule(item.startsAt)}</p>
+                  <h3 className="mt-3 text-xl font-black text-slate-900 dark:text-white">{item.title}</h3>
+                  <div className="mt-4 space-y-2">
+                    {item.syllabus.map((topic) => (
+                      <p key={topic} className="text-sm font-medium text-slate-600 dark:text-slate-300">- {topic}</p>
+                    ))}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </motion.section>
+
       <div className="grid md:grid-cols-2 gap-8">
         {/* Countdown & Syllabus */}
         <div className="space-y-8">
@@ -159,7 +266,7 @@ export default function MegaChallenge() {
               <Clock className="text-sky-400" /> Exam Starts In
             </h3>
             <div className="flex justify-center">
-              <Countdown />
+              <Countdown targetDate={displayChallenge.startsAt} />
             </div>
           </motion.div>
 
@@ -172,9 +279,18 @@ export default function MegaChallenge() {
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
               <BookOpen className="text-indigo-400" /> Exam Syllabus
             </h3>
-            <div className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-slate-900/10 dark:border-white/10 rounded-2xl p-6 text-center shadow-inner">
-              <p className="text-2xl font-bold text-slate-900 dark:text-white drop-shadow-md">অধ্যায় ১ ও ২ সম্পূর্ণ</p>
-              <p className="text-indigo-200 mt-2 font-medium">Information & Communication Technology</p>
+            <div className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-slate-900/10 dark:border-white/10 rounded-2xl p-6 shadow-inner">
+              <p className="text-2xl font-bold text-slate-900 dark:text-white drop-shadow-md">{displayChallenge.title}</p>
+              <p className="text-indigo-200 mt-2 font-medium">{formatSchedule(displayChallenge.startsAt)}</p>
+              <div className="mt-5 space-y-2 text-left">
+                {displayChallenge.syllabus.length > 0 ? (
+                  displayChallenge.syllabus.map((topic) => (
+                    <p key={topic} className="text-sm font-semibold text-slate-700 dark:text-slate-200">- {topic}</p>
+                  ))
+                ) : (
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Syllabus will be published soon.</p>
+                )}
+              </div>
             </div>
           </motion.div>
         </div>
@@ -202,12 +318,16 @@ export default function MegaChallenge() {
               <div className="flex justify-between items-center mb-4">
                 <span className="text-slate-600 dark:text-gray-300 font-medium">Entry Fee</span>
                 <span className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-400">
-                  {user?.isPremium ? 'Free' : `৳ ${displayChallenge.fee}`}
+                  {user?.isPremium ? 'Free' : `Tk ${displayChallenge.fee}`}
                 </span>
               </div>
               <div className="flex justify-between items-center mb-4">
                 <span className="text-slate-600 dark:text-gray-300 font-medium">Total Marks</span>
-                <span className="text-xl font-bold text-slate-900 dark:text-white">30</span>
+                <span className="text-xl font-bold text-slate-900 dark:text-white">{displayChallenge.totalMarks}</span>
+              </div>
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-slate-600 dark:text-gray-300 font-medium">Duration</span>
+                <span className="text-xl font-bold text-slate-900 dark:text-white">{displayChallenge.durationMinutes} min</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-600 dark:text-gray-300 font-medium">Format</span>
@@ -256,7 +376,7 @@ export default function MegaChallenge() {
                 className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-5 h-5" />
-                {user?.isPremium ? 'Activate Free Premium Exam' : `Join the Exam for ৳${displayChallenge.fee}`}
+                {user?.isPremium ? 'Activate Free Premium Exam' : `Join the Exam for Tk ${displayChallenge.fee}`}
               </button>
             ) : enrollment.paymentStatus === 'PENDING' ? (
               user?.isPremium ? (
@@ -273,7 +393,7 @@ export default function MegaChallenge() {
                   className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
                 >
                   <CreditCard className="w-5 h-5" />
-                  Pay ৳{displayChallenge.fee} & Join
+                  Pay Tk {displayChallenge.fee} & Join
                 </button>
               )
             ) : enrollment.score !== null ? (

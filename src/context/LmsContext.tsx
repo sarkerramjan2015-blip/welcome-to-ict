@@ -91,7 +91,7 @@ interface LmsContextType {
   deleteTask: (taskId: string) => void;
   enrollChallenge: (challengeId: string, fee?: number) => ChallengeEnrollment | null;
   markChallengePaid: (challengeId: string) => void;
-  completeChallengeExam: (challengeId: string, score: number, total: number) => void;
+  completeChallengeExam: (challengeId: string, answers: Record<string, string>, total: number) => Promise<number>;
   enrollCourse: (courseId: string, fee: number, courseType: string) => void;
 }
 
@@ -302,25 +302,41 @@ export function LmsProvider({ children }: { children: React.ReactNode }) {
     });
   }, [persistForUser, userId]);
 
-  const completeChallengeExam = useCallback((challengeId: string, score: number, total: number) => {
-    if (!userId) return;
+  const completeChallengeExam = useCallback(async (challengeId: string, answers: Record<string, string>, total: number) => {
+    if (!userId) return 0;
     const now = new Date().toISOString();
-    setChallengeEnrollments(prev => {
-      const next = prev.map(enrollment =>
-        enrollment.challengeId === challengeId
-          ? { ...enrollment, score, paymentStatus: 'PAID' as const, updatedAt: now }
-          : enrollment
-      );
-      persistForUser('challengeEnrollments', next);
-      return next;
-    });
-    saveQuizResult({
-      topicId: challengeId,
-      topicTitle: 'HSC ICT Monthly Quiz Exam',
-      mode: 'mega',
-      score,
-      total,
-    });
+    
+    try {
+      const response = await fetch(`/api/challenges/${challengeId}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, answers })
+      });
+      const data = await response.json();
+      const secureScore = data.score || 0;
+
+      setChallengeEnrollments(prev => {
+        const next = prev.map(enrollment =>
+          enrollment.challengeId === challengeId
+            ? { ...enrollment, score: secureScore, paymentStatus: 'PAID' as const, updatedAt: now }
+            : enrollment
+        );
+        persistForUser('challengeEnrollments', next);
+        return next;
+      });
+      saveQuizResult({
+        topicId: challengeId,
+        topicTitle: 'HSC ICT Monthly Quiz Exam',
+        mode: 'mega',
+        score: secureScore,
+        total,
+      });
+
+      return secureScore;
+    } catch (err) {
+      console.error("Failed to submit exam to server securely", err);
+      return 0;
+    }
   }, [persistForUser, saveQuizResult, userId]);
 
   const enrollCourse = useCallback((courseId: string, fee: number, courseType: string) => {

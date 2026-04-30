@@ -1,20 +1,33 @@
 import React, { useState, useEffect } from 'react';
 
-export default function Countdown() {
-  const [timeLeft, setTimeLeft] = useState({ days: 5, hours: 12, minutes: 30, seconds: 0 });
+interface CountdownProps {
+  targetDate?: string | null;
+}
+
+const calculateTimeLeft = (targetDate?: string | null) => {
+  if (!targetDate) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  }
+
+  const difference = Math.max(new Date(targetDate).getTime() - Date.now(), 0);
+
+  return {
+    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+    minutes: Math.floor((difference / (1000 * 60)) % 60),
+    seconds: Math.floor((difference / 1000) % 60),
+  };
+};
+
+export default function Countdown({ targetDate }: CountdownProps) {
+  const [timeLeft, setTimeLeft] = useState(() => calculateTimeLeft(targetDate));
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
-        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        if (prev.hours > 0) return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        if (prev.days > 0) return { ...prev, days: prev.days - 1, hours: 23, minutes: 59, seconds: 59 };
-        return prev;
-      });
+      setTimeLeft(calculateTimeLeft(targetDate));
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [targetDate]);
 
   return (
     <div className="flex gap-3 justify-center md:justify-start">

@@ -109,6 +109,7 @@ body,
 }
 
 body {
+  font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   background: #f8fafc;

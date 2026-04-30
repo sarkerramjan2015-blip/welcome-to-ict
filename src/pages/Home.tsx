@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import Countdown from '../components/Countdown';
 import { BookOpen, BriefcaseBusiness, CreditCard, GraduationCap, NotebookTabs, Rocket, Timer, Trophy, Video, Users, Star, User, ChevronDown, Zap, ArrowRight } from 'lucide-react';
 import bioImage from '@/src/asset/bio_image.png';
@@ -176,6 +177,14 @@ export default function Home() {
       transition={{ duration: 0.5 }}
       className="flex-1 flex flex-col"
     >
+      <Helmet>
+        <title>ICT Toppers | Interactive HSC ICT Platform in Bangladesh</title>
+        <meta name="description" content="Practice HSC ICT MCQ, board questions, chapter-wise lessons, smart suggestions, and monthly exams from home with ICT Toppers." />
+        <meta property="og:title" content="ICT Toppers | Interactive HSC ICT Platform in Bangladesh" />
+        <meta property="og:description" content="Practice HSC ICT MCQ, board questions, chapter-wise lessons, smart suggestions, and monthly exams from home with ICT Toppers." />
+        <link rel="canonical" href="https://icttoppers.com/" />
+      </Helmet>
+
       <section className="px-4 sm:px-6 md:px-16 mt-8 md:mt-12 text-center">
         <motion.h1 
           initial={{ opacity: 0, scale: 0.9 }}

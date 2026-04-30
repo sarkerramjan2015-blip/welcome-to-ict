@@ -4,6 +4,59 @@ const prisma = new PrismaClient();
 
 async function main() {
   console.log('Seeding database...');
+
+  const upcomingChallenges = [
+    {
+      id: 'quiz-2026-05-15-number-systems',
+      title: 'Number Systems',
+      month: 'May',
+      year: 2026,
+      fee: 20,
+      startsAt: new Date('2026-05-15T21:00:00+06:00'),
+      endsAt: new Date('2026-05-15T21:30:00+06:00'),
+      totalMarks: 30,
+      durationMinutes: 30,
+      status: 'LIVE',
+      syllabus: [
+        'History of Number Systems',
+        'Number System Conversions',
+        'Binary & Number System Addition',
+      ],
+    },
+    {
+      id: 'quiz-2026-05-30-digital-codes',
+      title: 'Digital Codes',
+      month: 'May',
+      year: 2026,
+      fee: 20,
+      startsAt: new Date('2026-05-30T21:00:00+06:00'),
+      endsAt: new Date('2026-05-30T21:30:00+06:00'),
+      totalMarks: 30,
+      durationMinutes: 30,
+      status: 'LIVE',
+      syllabus: [
+        "1's and 2's Complement",
+        'Computer Codes: BCD, ASCII, EBCDIC, Unicode, etc.',
+      ],
+    },
+    {
+      id: 'quiz-2026-06-15-digital-logic',
+      title: 'Digital Logic',
+      month: 'June',
+      year: 2026,
+      fee: 20,
+      startsAt: new Date('2026-06-15T21:00:00+06:00'),
+      endsAt: new Date('2026-06-15T21:30:00+06:00'),
+      totalMarks: 30,
+      durationMinutes: 30,
+      status: 'LIVE',
+      syllabus: [
+        'Boolean Algebra',
+        'Truth Table',
+        'Basic Logic Gates',
+      ],
+    },
+  ];
   
   try {
     // Upsert Category
@@ -40,6 +93,39 @@ async function main() {
         versionId: banglaVersion.id,
       },
     });
+
+    await Promise.all(
+      upcomingChallenges.map((challenge) =>
+        prisma.challenge.upsert({
+          where: { id: challenge.id },
+          update: {
+            title: challenge.title,
+            month: challenge.month,
+            year: challenge.year,
+            fee: challenge.fee,
+            startsAt: challenge.startsAt,
+            endsAt: challenge.endsAt,
+            totalMarks: challenge.totalMarks,
+            durationMinutes: challenge.durationMinutes,
+            status: challenge.status,
+            syllabus: JSON.stringify(challenge.syllabus),
+          },
+          create: {
+            id: challenge.id,
+            title: challenge.title,
+            month: challenge.month,
+            year: challenge.year,
+            fee: challenge.fee,
+            startsAt: challenge.startsAt,
+            endsAt: challenge.endsAt,
+            totalMarks: challenge.totalMarks,
+            durationMinutes: challenge.durationMinutes,
+            status: challenge.status,
+            syllabus: JSON.stringify(challenge.syllabus),
+          },
+        })
+      )
+    );
 
     console.log('Seeding completed successfully.');
   } catch (error) {

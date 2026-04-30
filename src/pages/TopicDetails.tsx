@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import { Helmet } from 'react-helmet-async';
 import { ictSyllabus } from '../data/ict-syllabus';
 import { FileText, PlayCircle, CheckCircle, Edit3, ArrowLeft, HelpCircle, Clock, Award, LockKeyhole } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -258,6 +259,13 @@ export default function TopicDetails() {
 
   return (
     <div className="flex-1 flex flex-col px-4 sm:px-5 md:px-8 py-6 md:py-12 max-w-6xl mx-auto w-full relative z-20 min-w-0">
+      <Helmet>
+        <title>{currentTopic.title} | ICT Toppers</title>
+        <meta name="description" content={`Study ${currentTopic.title} for HSC ICT. Get interactive notes, MCQ quizzes, and video lessons on ICT Toppers.`} />
+        <meta property="og:title" content={`${currentTopic.title} | ICT Toppers`} />
+        <meta property="og:description" content={`Study ${currentTopic.title} for HSC ICT. Get interactive notes, MCQ quizzes, and video lessons on ICT Toppers.`} />
+        <link rel="canonical" href={`https://icttoppers.com/topics/${currentTopic.id}`} />
+      </Helmet>
       
       {/* Navigation Breadcrumb */}
       <motion.div 
