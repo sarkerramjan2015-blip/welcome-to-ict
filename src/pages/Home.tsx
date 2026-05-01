@@ -182,32 +182,73 @@ export default function Home() {
         <meta name="description" content="Practice HSC ICT MCQ, board questions, chapter-wise lessons, smart suggestions, and monthly exams from home with ICT Toppers." />
         <meta property="og:title" content="ICT Toppers | Interactive HSC ICT Platform in Bangladesh" />
         <meta property="og:description" content="Practice HSC ICT MCQ, board questions, chapter-wise lessons, smart suggestions, and monthly exams from home with ICT Toppers." />
+        <meta property="og:image" content="https://icttoppers.com/logo.jpeg" />
+        <meta property="og:image:secure_url" content="https://icttoppers.com/logo.jpeg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="ICT Toppers Logo" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://icttoppers.com/logo.jpeg" />
         <link rel="canonical" href="https://icttoppers.com/" />
       </Helmet>
 
       <section className="px-4 sm:px-6 md:px-16 mt-8 md:mt-12 text-center">
-        <motion.h1 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, type: "spring" }}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 break-words"
-        >
-          <span className="text-slate-900 dark:text-white block">ICT Toppers</span>
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 break-words">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-2 sm:mb-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5, rotate: -20 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ duration: 0.8, type: "spring", bounce: 0.5 }}
+              className="relative flex items-center justify-center overflow-hidden rounded-[1.2rem] sm:rounded-[1.5rem] p-[3px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-slate-900/5 dark:ring-white/10"
+            >
+              <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,#38bdf8_360deg)] animate-[spin_3s_linear_infinite]"></div>
+              <div className="absolute inset-0 bg-[conic-gradient(from_180deg,transparent_0_300deg,#f43f5e_360deg)] animate-[spin_3s_linear_infinite]"></div>
+              
+              <div className="relative rounded-[1.1rem] sm:rounded-[1.35rem] bg-gradient-to-br from-white to-slate-50/95 p-1.5 sm:p-2 md:p-2.5 backdrop-blur-xl dark:from-slate-800 dark:to-slate-900/95 overflow-hidden flex items-center justify-center">
+                <motion.div
+                  animate={{ 
+                    y: [-4, 4, -4],
+                    boxShadow: [
+                      "0px 0px 0px 0px rgba(56, 189, 248, 0)",
+                      "0px 10px 20px -5px rgba(56, 189, 248, 0.4)",
+                      "0px 0px 0px 0px rgba(56, 189, 248, 0)"
+                    ]
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute inset-0 rounded-[1.1rem] sm:rounded-[1.35rem]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-tr from-sky-400/20 via-transparent to-pink-400/20 opacity-50 mix-blend-overlay"></div>
+                <img 
+                  src="/logo.jpeg" 
+                  alt="ICT Toppers Logo" 
+                  className="relative z-10 h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 rounded-xl sm:rounded-[1.1rem] object-cover shadow-sm"
+                />
+              </div>
+            </motion.div>
+            <motion.span 
+              initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
+              className="text-slate-900 dark:text-white block bg-clip-text"
+            >
+              ICT Toppers
+            </motion.span>
+          </div>
           <div className="h-24 sm:h-28 md:h-24 lg:h-32 flex items-center justify-center mt-2 px-2 overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.span
                 key={phraseIndex}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -30 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-red-600 inline-block w-full max-w-full"
+                initial={{ opacity: 0, y: 50, filter: "blur(8px)", scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
+                exit={{ opacity: 0, y: -50, filter: "blur(8px)", scale: 1.05 }}
+                transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-red-600 inline-block w-full max-w-full drop-shadow-sm"
               >
                 {phrases[phraseIndex]}
               </motion.span>
             </AnimatePresence>
           </div>
-        </motion.h1>
+        </h1>
         <motion.p 
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}

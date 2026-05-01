@@ -465,7 +465,14 @@ export default function BoardQuestionDetails() {
         <meta property="og:description" content={metaDescription} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content="https://icttoppers.com/logo.jpeg" />
+        <meta property="og:image:secure_url" content="https://icttoppers.com/logo.jpeg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={pageTitle} />
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://icttoppers.com/logo.jpeg" />
+        <meta name="twitter:image:alt" content={pageTitle} />
         <link rel="canonical" href={canonicalUrl} />
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(learningResourceSchema)}</script>
