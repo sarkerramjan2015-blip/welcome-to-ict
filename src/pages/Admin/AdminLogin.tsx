@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Lock, Mail, KeyRound, MessageSquare, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Mail, KeyRound, MessageSquare, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { firebaseAuth } from '../../lib/firebase';
@@ -106,10 +106,25 @@ export default function AdminLogin() {
       >
         <div className="bg-slate-900/5 dark:bg-white/5 backdrop-blur-xl border border-slate-900/10 dark:border-white/10 rounded-3xl p-10 shadow-2xl shadow-black/20">
 
-          {/* Icon */}
-          <div className="w-16 h-16 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Lock size={32} />
-          </div>
+          {/* Brand logo */}
+          <motion.div
+            className="relative mx-auto mb-6 h-28 w-28 overflow-hidden rounded-2xl border border-white/40 bg-white p-2 shadow-2xl shadow-blue-500/25"
+            animate={{ y: [0, -8, 0], rotate: [0, -1.5, 1.5, 0], scale: [1, 1.03, 1] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <img
+              src="/ict_toppers_logo.jpeg"
+              alt="ICT Toppers"
+              className="h-full w-full rounded-xl object-contain"
+            />
+            <motion.span
+              aria-hidden="true"
+              className="absolute inset-y-0 -left-12 w-12 rotate-12 bg-white/70 blur-sm"
+              animate={{ x: [0, 180] }}
+              transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 1.15, ease: 'easeInOut' }}
+            />
+            <span className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/70" />
+          </motion.div>
 
           {/* Title */}
           <h1 className="text-3xl font-black text-center mb-2">অ্যাডমিন পোর্টাল</h1>
