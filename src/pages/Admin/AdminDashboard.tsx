@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Activity,
   BookOpen,
+  CalendarDays,
   CheckCircle,
   Database,
   FileText,
@@ -35,7 +36,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useLms } from '../../context/LmsContext';
 import { firebaseDb } from '../../lib/firebase';
 
-type ActionType = 'chapter' | 'topic' | 'mcq' | 'cq' | 'course' | 'suggestion';
+type ActionType = 'chapter' | 'topic' | 'mcq' | 'cq' | 'course' | 'suggestion' | 'challenge';
 type Notice = { type: 'success' | 'error'; text: string } | null;
 
 interface FormState {
@@ -97,6 +98,17 @@ interface FormState {
     description: string;
     highlights: string;
     demoContent: string;
+  };
+  challenge: {
+    title: string;
+    challengeId: string;
+    startsAt: string;
+    endsAt: string;
+    fee: string;
+    totalMarks: string;
+    durationMinutes: string;
+    status: string;
+    syllabus: string;
   };
 }
 
@@ -166,6 +178,14 @@ const actionConfig: Record<ActionType, {
     icon: Lightbulb,
     accentClass: 'text-violet-400 bg-violet-500/15',
   },
+  challenge: {
+    label: 'Quiz Routine',
+    title: 'Publish Quiz Routine',
+    description: 'Create a public monthly quiz schedule in Firestore.',
+    collectionName: 'megaChallenges',
+    icon: CalendarDays,
+    accentClass: 'text-cyan-400 bg-cyan-500/15',
+  },
 };
 
 const makeInitialForms = (): FormState => ({
@@ -228,6 +248,17 @@ const makeInitialForms = (): FormState => ({
     highlights: '',
     demoContent: '',
   },
+  challenge: {
+    title: 'HSC ICT Monthly Quiz Exam',
+    challengeId: '',
+    startsAt: '',
+    endsAt: '',
+    fee: '20',
+    totalMarks: '30',
+    durationMinutes: '30',
+    status: 'LIVE',
+    syllabus: '',
+  },
 });
 
 const slugify = (value: string) =>
@@ -248,6 +279,14 @@ const parseList = (value: string) =>
 const toNumber = (value: string, fallback = 0) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const toIsoDate = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return date.toISOString();
 };
 
 const getCurrentChallengeId = () => {
@@ -400,6 +439,42 @@ const buildFirestorePayload = (action: ActionType, forms: FormState) => {
     };
   }
 
+  if (action === 'challenge') {
+    const form = forms.challenge;
+    const title = form.title.trim();
+    const startsAt = toIsoDate(form.startsAt);
+    const durationMinutes = Math.max(1, toNumber(form.durationMinutes, 30));
+
+    if (!title) throw new Error('Quiz title is required.');
+    if (!startsAt) throw new Error('Start date and time is required.');
+
+    const startsAtDate = new Date(startsAt);
+    const endsAt = form.endsAt.trim()
+      ? toIsoDate(form.endsAt)
+      : new Date(startsAtDate.getTime() + durationMinutes * 60 * 1000).toISOString();
+
+    if (!endsAt) throw new Error('End date and time is invalid.');
+
+    const generatedId = `quiz-${startsAtDate.toISOString().slice(0, 10)}-${slugify(title) || 'monthly-quiz'}`;
+    const challengeId = form.challengeId.trim() || generatedId;
+
+    return {
+      id: challengeId,
+      title,
+      month: startsAtDate.toLocaleString('en-US', { month: 'long', timeZone: 'Asia/Dhaka' }),
+      year: Number(startsAtDate.toLocaleString('en-US', { year: 'numeric', timeZone: 'Asia/Dhaka' })),
+      fee: toNumber(form.fee, 20),
+      startsAt,
+      endsAt,
+      totalMarks: Math.max(1, toNumber(form.totalMarks, 30)),
+      durationMinutes,
+      status: form.status,
+      syllabus: parseList(form.syllabus),
+      source: 'admin-dashboard',
+      ...nowFields,
+    };
+  }
+
   const form = forms.suggestion;
   if (!form.title.trim()) throw new Error('Suggestion title is required.');
 
@@ -505,7 +580,26 @@ export default function AdminDashboard() {
     try {
       const payload = buildFirestorePayload(submittedAction, forms);
       const collectionName = actionConfig[submittedAction].collectionName;
-      const saved = await addDoc(collection(firebaseDb, collectionName), payload);
+      let savedId = '';
+
+      if (submittedAction === 'challenge') {
+        savedId = String((payload as { id: string }).id);
+        await setDoc(doc(firebaseDb, collectionName, savedId), payload, { merge: true });
+        if ((payload as { status?: string }).status === 'LIVE') {
+          await setDoc(
+            doc(firebaseDb, collectionName, 'current'),
+            {
+              currentChallengeId: savedId,
+              updatedAt: serverTimestamp(),
+            },
+            { merge: true }
+          );
+        }
+      } else {
+        const saved = await addDoc(collection(firebaseDb, collectionName), payload);
+        savedId = saved.id;
+      }
+
       const resetForms = makeInitialForms();
 
       setForms(prev => ({
@@ -515,7 +609,7 @@ export default function AdminDashboard() {
       setActiveAction(null);
       setNotice({
         type: 'success',
-        text: `${actionConfig[submittedAction].label} saved to Firestore/${collectionName} with ID ${saved.id}.`,
+        text: `${actionConfig[submittedAction].label} saved to Firestore/${collectionName} with ID ${savedId}.`,
       });
     } catch (error: any) {
       setNotice({
@@ -716,6 +810,27 @@ export default function AdminDashboard() {
       );
     }
 
+    if (action === 'challenge') {
+      const form = forms.challenge;
+      return (
+        <>
+          <TextInput label="Quiz Title" value={form.title} onChange={value => updateForm(action, 'title', value)} placeholder="HSC ICT Monthly Quiz Exam" required />
+          <TextInput label="Routine ID (optional)" value={form.challengeId} onChange={value => updateForm(action, 'challengeId', value)} placeholder="quiz-2026-05-15-number-systems" />
+          <div className="grid gap-4 md:grid-cols-2">
+            <TextInput label="Starts At" type="datetime-local" value={form.startsAt} onChange={value => updateForm(action, 'startsAt', value)} required />
+            <TextInput label="Ends At (optional)" type="datetime-local" value={form.endsAt} onChange={value => updateForm(action, 'endsAt', value)} />
+          </div>
+          <div className="grid gap-4 md:grid-cols-4">
+            <TextInput label="Fee" type="number" value={form.fee} onChange={value => updateForm(action, 'fee', value)} required />
+            <TextInput label="Total Marks" type="number" value={form.totalMarks} onChange={value => updateForm(action, 'totalMarks', value)} required />
+            <TextInput label="Duration (minutes)" type="number" value={form.durationMinutes} onChange={value => updateForm(action, 'durationMinutes', value)} required />
+            <SelectInput label="Status" value={form.status} onChange={value => updateForm(action, 'status', value)} options={['LIVE', 'DRAFT']} />
+          </div>
+          <TextAreaInput label="Syllabus / Topics" value={form.syllabus} onChange={value => updateForm(action, 'syllabus', value)} placeholder="One topic per line." rows={6} />
+        </>
+      );
+    }
+
     const form = forms.suggestion;
     return (
       <>
@@ -791,7 +906,7 @@ export default function AdminDashboard() {
       </div>
 
       <h2 className="text-xl font-bold mb-6">Quick Actions</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 mb-12">
         {(Object.keys(actionConfig) as ActionType[]).map((action) => {
           const config = actionConfig[action];
           const Icon = config.icon;
@@ -819,7 +934,7 @@ export default function AdminDashboard() {
         </div>
         <h3 className="text-2xl font-black text-slate-900 dark:text-white">Current Month Question Set</h3>
         <p className="text-slate-600 dark:text-gray-300 my-4 max-w-2xl mx-auto">
-          Pick 30 random MCQs from the Firestore mcqs collection and publish them to megaChallenges/{getCurrentChallengeId()}.
+          Pick 30 random MCQs from the Firestore mcqs collection and publish them to megaChallenges/{getCurrentChallengeId()}. Use the Quiz Routine action above to publish the public exam date.
         </p>
         <button
           onClick={generateChallenge}

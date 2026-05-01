@@ -15,14 +15,16 @@ const DEFAULT_SEO_TITLE = 'ICT Toppers | 1st Time in Bangladesh: Interactive HSC
 const getPremiumPromptKey = (userId: string) => `ict-toppers:premium-prompt:${userId}`;
 
 // Dynamic SEO Component
-function SEO({ title }: { title?: string }) {
+function SEO({ title, disabled = false }: { title?: string; disabled?: boolean }) {
   useEffect(() => {
+    if (disabled) return;
+
     if (title) {
       document.title = `${title} | ICT Toppers`;
     } else {
       document.title = DEFAULT_SEO_TITLE;
     }
-  }, [title]);
+  }, [disabled, title]);
   return null;
 }
 
@@ -33,6 +35,7 @@ export default function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [securityToastVisible, setSecurityToastVisible] = useState(false);
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
+  const isBoardQuestionPage = location.pathname === '/board-questions' || location.pathname.startsWith('/board-questions/');
   
   // Determine title based on route
   let pageTitle = "";
@@ -42,6 +45,7 @@ export default function Layout() {
   if (location.pathname.includes("admin")) pageTitle = "Admin Portal";
   if (location.pathname.includes("monthly-quiz")) pageTitle = "Join the biggest HSC ICT Quiz in Bangladesh";
   if (location.pathname.includes("dashboard")) pageTitle = "Student Dashboard";
+  if (isBoardQuestionPage) pageTitle = "HSC ICT Board Question PDF";
 
   // Anti-theft script (Phase 8)
   useEffect(() => {
@@ -118,7 +122,7 @@ export default function Layout() {
   }, [location.pathname, location.hash]);
 
   useEffect(() => {
-    if (!authReady || !user || user.role === 'admin' || user.isPremium) {
+    if (isBoardQuestionPage || !authReady || !user || user.role === 'admin' || user.isPremium) {
       setPremiumModalOpen(false);
       return;
     }
@@ -131,7 +135,7 @@ export default function Layout() {
       localStorage.setItem(promptKey, String(Date.now()));
       setPremiumModalOpen(true);
     }
-  }, [authReady, user?.id, user?.isPremium, user?.role]);
+  }, [authReady, isBoardQuestionPage, user?.id, user?.isPremium, user?.role]);
 
   const handlePremiumUpgrade = async (plan: PremiumPlan) => {
     await updateProfile({
@@ -151,14 +155,15 @@ export default function Layout() {
     { to: '/#mentor-section', label: 'Mentor' },
     { to: '/courses', label: 'Courses' },
     { to: '/suggestions', label: 'ICT Short Suggestion' },
+    { to: '/board-questions', label: 'Board Questions' },
     { to: '/syllabus', label: 'HSC ICT' },
     { to: '/monthly-quiz', label: 'Quiz Exam', live: true },
   ];
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#020617] text-slate-900 dark:text-slate-50 relative overflow-x-hidden flex flex-col font-sans select-none">
-      <SEO title={pageTitle} />
-      <div className="premium-mesh-bg" aria-hidden="true"></div>
+      <SEO title={pageTitle} disabled={isBoardQuestionPage} />
+      {!isBoardQuestionPage && <div className="premium-mesh-bg" aria-hidden="true"></div>}
 
       {/* Header */}
       <header className="px-4 sm:px-6 md:px-10 lg:px-16 py-3 md:py-5 flex items-center justify-between gap-3 border-b border-slate-900/10 dark:border-white/10 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
@@ -291,7 +296,7 @@ export default function Layout() {
       </header>
 
       {/* Announcement Bar */}
-      <AnnouncementBar />
+      {!isBoardQuestionPage && <AnnouncementBar />}
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col relative z-10" data-protected-content="true">
@@ -328,14 +333,16 @@ export default function Layout() {
         )}
       </AnimatePresence>
 
-      <PremiumSubscriptionModal
-        open={premiumModalOpen}
-        onClose={() => setPremiumModalOpen(false)}
-        onUpgrade={handlePremiumUpgrade}
-      />
+      {!isBoardQuestionPage && (
+        <PremiumSubscriptionModal
+          open={premiumModalOpen}
+          onClose={() => setPremiumModalOpen(false)}
+          onUpgrade={handlePremiumUpgrade}
+        />
+      )}
 
       {/* Floating Action Button for Facebook (Hidden inside topics) */}
-      {!location.pathname.startsWith('/topics/') && (
+      {!location.pathname.startsWith('/topics/') && !isBoardQuestionPage && (
         <a 
           href="https://www.facebook.com/ramjansarker02/" 
           target="_blank" 
@@ -351,7 +358,7 @@ export default function Layout() {
       )}
 
       {/* Floating AI Chatbot */}
-      <AIChatbot />
+      {!isBoardQuestionPage && <AIChatbot />}
 
       <Footer />
     </div>

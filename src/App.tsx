@@ -13,6 +13,8 @@ import ChapterList from './pages/ChapterList';
 import Courses from './pages/Courses';
 import CoursePlayer from './pages/CoursePlayer';
 import LiveCourseDashboard from './pages/LiveCourseDashboard';
+import BoardQuestionsIndex from './pages/BoardQuestionsIndex';
+import BoardQuestionDetails from './pages/BoardQuestionDetails';
 import Suggestions from './pages/Suggestions';
 import EBookReader from './pages/EBookReader';
 import TopicList from './pages/TopicList';
@@ -118,6 +120,8 @@ export default function App() {
                 <Route path="course-player" element={<PrivateRoute><CoursePlayer /></PrivateRoute>} />
                 <Route path="live-course-dashboard" element={<PrivateRoute><LiveCourseDashboard /></PrivateRoute>} />
                 <Route path="suggestions" element={<Suggestions />} />
+                <Route path="board-questions" element={<BoardQuestionsIndex />} />
+                <Route path="board-questions/:boardYearSlug/:chapterSlug" element={<BoardQuestionDetails />} />
                 <Route path="ebook-reader" element={<PrivateRoute><EBookReader /></PrivateRoute>} />
                 <Route path="syllabus" element={<ChapterList />} />
                 <Route path="chapters/:chapterId/topics" element={<TopicList />} />
