@@ -1,5 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 
 /** Strip accidental literal quote characters that Vercel can inject into env values. */
 function sanitizeEnv(value: string | undefined): string {
@@ -29,6 +30,7 @@ export const firebaseApp = isFirebaseConfigured
   : null;
 
 export const firebaseAuth: Auth | null = firebaseApp ? getAuth(firebaseApp) : null;
+export const firebaseDb: Firestore | null = firebaseApp ? getFirestore(firebaseApp) : null;
 
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({

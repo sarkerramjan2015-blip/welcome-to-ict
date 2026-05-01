@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv";
 import { createPayment, executePayment } from "./src/services/bkash";
+import paymentActionHandler from "./api/paymentAction";
 
 dotenv.config();
 
@@ -17,7 +18,7 @@ const ai = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || "");
 
 async function startServer() {
   const app = express();
-  const PORT = process.env.PORT || 3000;
+  const PORT = Number(process.env.PORT || 3000);
 
   app.use(express.json());
 
@@ -28,6 +29,8 @@ async function startServer() {
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
   });
+
+  app.all("/api/paymentAction", paymentActionHandler);
 
   // Get all Categories
   app.get("/api/categories", async (req, res) => {

@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { BookOpen, Video, CheckCircle, CreditCard, Clock } from 'lucide-react';
-import ComingSoonToast from '../components/ComingSoonToast';
+import { BookOpen, Video, CheckCircle, CreditCard, Clock, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLms } from '../context/LmsContext';
+import { createCoursePayment } from '../actions/paymentAction';
 
 export default function Courses() {
   const { user, login } = useAuth();
   const { enrollCourse } = useLms();
   const navigate = useNavigate();
   const location = useLocation();
-  const [showComingSoon, setShowComingSoon] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<{id: string, fee: number, type: string} | null>(null);
+  const [paymentLoadingCourseId, setPaymentLoadingCourseId] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState('');
   
   // Dummy Countdown State (5 days from now)
   const [timeLeft, setTimeLeft] = useState({ days: 5, hours: 12, minutes: 30, seconds: 0 });
@@ -30,11 +30,14 @@ export default function Courses() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleJoin = async (courseId: string, fee: number, type: string) => {
+  const handleBuy = async (courseId: string, fee: number, type: string) => {
+    setPaymentError('');
+
     if (!user) {
       await login({ redirectTo: `${location.pathname}${location.search}${location.hash}` });
       return;
     }
+
     if (user.email === 'sarkerramjan2015@gmail.com') {
       enrollCourse(courseId, fee, type);
       if (type === 'RECORDED') {
@@ -44,8 +47,21 @@ export default function Courses() {
       }
       return;
     }
-    setSelectedCourse({ id: courseId, fee, type });
-    setShowComingSoon(true);
+
+    setPaymentLoadingCourseId(courseId);
+    try {
+      const payment = await createCoursePayment({
+        userId: user.id,
+        fullName: user.name || 'ICT Toppers Student',
+        email: user.email,
+        courseId,
+      });
+      window.location.href = payment.paymentUrl;
+    } catch (error: any) {
+      console.error('UddoktaPay checkout error:', error);
+      setPaymentError(error?.message || 'Failed to create payment link. Please try again.');
+      setPaymentLoadingCourseId(null);
+    }
   };
 
   return (
@@ -56,6 +72,12 @@ export default function Courses() {
           Master HSC ICT with our comprehensive recorded and live courses.
         </p>
       </div>
+
+      {paymentError && (
+        <div className="rounded-2xl border border-rose-400/30 bg-rose-400/10 px-5 py-4 text-sm font-semibold text-rose-300">
+          {paymentError}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-5 md:gap-8">
         {/* Course 1: Recorded */}
@@ -93,11 +115,12 @@ export default function Courses() {
           </div>
 
           <button 
-            onClick={() => handleJoin('recorded-1', 500, 'RECORDED')}
-            className="w-full py-4 px-4 bg-slate-900/5 dark:bg-white/10 hover:bg-slate-900/20 dark:hover:bg-white/20 text-slate-900 dark:text-white rounded-xl font-bold text-base md:text-lg transition-colors flex items-center justify-center gap-2"
+            onClick={() => handleBuy('recorded-1', 500, 'RECORDED')}
+            disabled={paymentLoadingCourseId === 'recorded-1'}
+            className="w-full py-4 px-4 bg-slate-900/5 dark:bg-white/10 hover:bg-slate-900/20 dark:hover:bg-white/20 text-slate-900 dark:text-white rounded-xl font-bold text-base md:text-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
           >
-            <CreditCard className="w-5 h-5" />
-            Join Now (bKash / Nagad)
+            {paymentLoadingCourseId === 'recorded-1' ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
+            {paymentLoadingCourseId === 'recorded-1' ? 'Opening Checkout...' : 'Enroll Now (bKash / Nagad)'}
           </button>
         </motion.div>
 
@@ -144,19 +167,15 @@ export default function Courses() {
           </div>
 
           <button 
-            onClick={() => handleJoin('live-1', 1500, 'LIVE')}
-            className="w-full py-4 px-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-xl font-bold text-base md:text-lg transition-all shadow-xl shadow-pink-500/25 flex items-center justify-center gap-2"
+            onClick={() => handleBuy('live-1', 1500, 'LIVE')}
+            disabled={paymentLoadingCourseId === 'live-1'}
+            className="w-full py-4 px-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-xl font-bold text-base md:text-lg transition-all shadow-xl shadow-pink-500/25 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
           >
-            <CreditCard className="w-5 h-5" />
-            Join Now (bKash / Nagad)
+            {paymentLoadingCourseId === 'live-1' ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
+            {paymentLoadingCourseId === 'live-1' ? 'Opening Checkout...' : 'Enroll Now (bKash / Nagad)'}
           </button>
         </motion.div>
       </div>
-
-      <ComingSoonToast 
-        isOpen={showComingSoon} 
-        onClose={() => setShowComingSoon(false)} 
-      />
     </div>
   );
 }

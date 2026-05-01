@@ -706,7 +706,6 @@ export default function TopicDetails() {
       <AnimatePresence>
         {showProgressToast && (
           <ProgressToast 
-            key="progress-toast"
             info={progressInfo} 
             isCompleted={topicCompleted} 
             onClose={() => setShowProgressToast(false)} 
