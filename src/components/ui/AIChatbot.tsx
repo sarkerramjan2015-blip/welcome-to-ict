@@ -36,39 +36,70 @@ export default function AIChatbot() {
     setIsLoading(true);
 
     try {
-      let apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error("API Key not found in environment variables");
-      }
+      const openAiKey = import.meta.env.VITE_OPENAI_API_KEY;
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "https://api.openai.com/v1";
       
-      // Sanitize key (remove literal quotes if present from .env)
-      apiKey = apiKey.replace(/['"]/g, '').trim();
+      let modelText = "";
 
-      // Convert our messages to Gemini format
-      const contents = newMessages.map(msg => ({
-        role: msg.role,
-        parts: [{ text: msg.text }]
-      }));
-
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: SYSTEM_PROMPT }]
+      if (openAiKey) {
+        // Use OpenAI / AgentRouter
+        const response = await fetch(`${apiBaseUrl}/chat/completions`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openAiKey.replace(/['"]/g, '').trim()}`
           },
-          contents
-        })
-      });
+          body: JSON.stringify({
+            model: "gpt-4o",
+            messages: [
+              { role: "system", content: SYSTEM_PROMPT },
+              ...newMessages.map(msg => ({
+                role: msg.role === 'user' ? 'user' : 'assistant',
+                content: msg.text
+              }))
+            ],
+            temperature: 0.7
+          })
+        });
 
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error("Gemini API Error Response:", errText);
-        throw new Error(`API response error: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`OpenAI API response error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        modelText = data.choices?.[0]?.message?.content || "দুঃখিত, কোনো উত্তর পাওয়া যায়নি।";
+      } else {
+        // Use Gemini Fallback
+        let geminiKey = import.meta.env.VITE_GEMINI_API_KEY;
+        if (!geminiKey) {
+          throw new Error("AI API Key not found in environment variables");
+        }
+        
+        geminiKey = geminiKey.replace(/['"]/g, '').trim();
+
+        const contents = newMessages.map(msg => ({
+          role: msg.role,
+          parts: [{ text: msg.text }]
+        }));
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [{ text: SYSTEM_PROMPT }]
+            },
+            contents
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Gemini API response error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        modelText = data.candidates?.[0]?.content?.parts?.[0]?.text || "দুঃখিত, কোনো উত্তর পাওয়া যায়নি।";
       }
-
-      const data = await response.json();
-      const modelText = data.candidates?.[0]?.content?.parts?.[0]?.text || "দুঃখিত, কোনো উত্তর পাওয়া যায়নি।";
       
       setMessages([...newMessages, { role: 'model', text: modelText }]);
     } catch (error) {
