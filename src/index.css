@@ -444,3 +444,21 @@ td {
   animation: marquee 35s linear infinite;
   will-change: transform;
 }
+
+@keyframes board-question-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.board-question-marquee {
+  animation: board-question-marquee 28s linear infinite;
+  will-change: transform;
+}
+
+.board-question-marquee:hover {
+  animation-play-state: paused;
+}
