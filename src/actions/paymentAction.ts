@@ -5,20 +5,53 @@ export interface CreateCoursePaymentInput {
   courseId: string;
 }
 
-export interface CreateCoursePaymentResult {
+export interface CreateSuggestionPaymentInput {
+  userId: string;
+  fullName: string;
+  email: string;
+}
+
+export interface CreateChallengePaymentInput {
+  userId: string;
+  fullName: string;
+  email: string;
+  challengeId: string;
+  challengeTitle: string;
+  amount: number;
+  challengeMonth?: string;
+  challengeYear?: number;
+}
+
+export interface CreatePaymentResult {
   success: true;
   paymentUrl: string;
-  course: {
+  item: {
+    id: string;
+    title: string;
+    itemType: 'COURSE' | 'SUGGESTION' | 'CHALLENGE';
+    fee: number;
+    courseType?: 'RECORDED' | 'LIVE';
+  };
+  course?: {
     title: string;
     type: 'RECORDED' | 'LIVE';
     fee: number;
   };
 }
 
-export interface VerifyCoursePaymentResult {
+export type CreateCoursePaymentResult = CreatePaymentResult;
+
+export interface VerifyPaymentResult {
   success: true;
   enrolled: boolean;
   message?: string;
+  item?: {
+    id: string;
+    title: string;
+    itemType: 'COURSE' | 'SUGGESTION' | 'CHALLENGE';
+    fee: number;
+    courseType?: 'RECORDED' | 'LIVE';
+  };
   payment: {
     invoice_id?: string;
     status?: string;
@@ -32,7 +65,28 @@ export interface VerifyCoursePaymentResult {
     amount: number;
     status: 'enrolled';
   };
+  purchase?: {
+    itemId: string;
+    itemTitle: string;
+    itemType: 'SUGGESTION';
+    amount: number;
+    status: 'active';
+  };
+  challengeEnrollment?: {
+    challengeId: string;
+    challengeTitle?: string;
+    challenge: {
+      month: string;
+      year: number;
+      fee: number;
+    };
+    amount: number;
+    paymentStatus: 'PAID';
+    score: null;
+  };
 }
+
+export type VerifyCoursePaymentResult = VerifyPaymentResult;
 
 const postPaymentAction = async <T,>(body: Record<string, unknown>): Promise<T> => {
   const response = await fetch('/api/paymentAction', {
@@ -51,13 +105,29 @@ const postPaymentAction = async <T,>(body: Record<string, unknown>): Promise<T> 
 };
 
 export const createCoursePayment = (input: CreateCoursePaymentInput) =>
-  postPaymentAction<CreateCoursePaymentResult>({
+  postPaymentAction<CreatePaymentResult>({
     action: 'createPayment',
+    itemType: 'COURSE',
+    ...input,
+  });
+
+export const createSuggestionPayment = (input: CreateSuggestionPaymentInput) =>
+  postPaymentAction<CreatePaymentResult>({
+    action: 'createPayment',
+    itemType: 'SUGGESTION',
+    itemId: 'hsc-ict-master-suggestion',
+    ...input,
+  });
+
+export const createChallengePayment = (input: CreateChallengePaymentInput) =>
+  postPaymentAction<CreatePaymentResult>({
+    action: 'createPayment',
+    itemType: 'CHALLENGE',
     ...input,
   });
 
 export const verifyCoursePayment = (invoiceId: string) =>
-  postPaymentAction<VerifyCoursePaymentResult>({
+  postPaymentAction<VerifyPaymentResult>({
     action: 'verifyPayment',
     invoiceId,
   });

@@ -1,29 +1,46 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Book, Eye, ShoppingCart, Lock, CheckCircle } from 'lucide-react';
-import ComingSoonToast from '../components/ComingSoonToast';
+import { Book, Eye, ShoppingCart, Lock, CheckCircle, Loader2 } from 'lucide-react';
 import ShareButton from '../components/ui/ShareButton';
 import { useAuth } from '../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { createSuggestionPayment } from '../actions/paymentAction';
 
 export default function Suggestions() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [showComingSoon, setShowComingSoon] = useState(false);
   const [showDemo, setShowDemo] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
 
   const handleBuy = async () => {
+    setPaymentError('');
+
     if (!user) {
       await login({ redirectTo: `${location.pathname}${location.search}${location.hash}` });
       return;
     }
+
     if (user.email === 'sarkerramjan2015@gmail.com') {
       localStorage.setItem('hasPurchasedSuggestion', 'true');
       navigate('/dashboard');
       return;
     }
-    setShowComingSoon(true);
+
+    setPaymentLoading(true);
+    try {
+      const payment = await createSuggestionPayment({
+        userId: user.id,
+        fullName: user.name || 'ICT Toppers Student',
+        email: user.email,
+      });
+      window.location.href = payment.paymentUrl;
+    } catch (error: any) {
+      console.error('UddoktaPay suggestion checkout error:', error);
+      setPaymentError(error?.message || 'Failed to create payment link. Please try again.');
+      setPaymentLoading(false);
+    }
   };
 
   return (
@@ -37,6 +54,12 @@ export default function Suggestions() {
           <ShareButton className="!bg-slate-900/5 dark:!bg-white/10 !text-slate-900 dark:!text-white !border-slate-900/10 dark:!border-white/20" />
         </div>
       </div>
+
+      {paymentError && (
+        <div className="rounded-2xl border border-rose-400/30 bg-rose-400/10 px-5 py-4 text-sm font-semibold text-rose-300">
+          {paymentError}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* HSC ICT Suggestion */}
@@ -89,10 +112,11 @@ export default function Suggestions() {
             </button>
             <button 
               onClick={handleBuy}
-              className="py-4 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-400 hover:to-orange-400 text-white rounded-xl font-bold text-lg transition-all shadow-xl shadow-red-500/25 flex items-center justify-center gap-2"
+              disabled={paymentLoading}
+              className="py-4 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-400 hover:to-orange-400 text-white rounded-xl font-bold text-lg transition-all shadow-xl shadow-red-500/25 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
             >
-              <ShoppingCart className="w-5 h-5" />
-              Buy Now
+              {paymentLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShoppingCart className="w-5 h-5" />}
+              {paymentLoading ? 'Opening Checkout...' : 'Buy Now'}
             </button>
           </div>
         </motion.div>
@@ -125,11 +149,6 @@ export default function Suggestions() {
         </motion.div>
       </div>
 
-      <ComingSoonToast 
-        isOpen={showComingSoon} 
-        onClose={() => setShowComingSoon(false)} 
-      />
-
       {/* Demo Modal */}
       {showDemo && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -153,9 +172,10 @@ export default function Suggestions() {
             </div>
             <button 
               onClick={() => { setShowDemo(false); handleBuy(); }}
-              className="w-full mt-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-colors"
+              disabled={paymentLoading}
+              className="w-full mt-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-colors disabled:opacity-60 disabled:cursor-wait"
             >
-              Buy Full E-Book for ৳150
+              {paymentLoading ? 'Opening Checkout...' : 'Buy Full E-Book for ৳150'}
             </button>
           </div>
         </div>

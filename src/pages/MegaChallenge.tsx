@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Trophy, Lock, PlayCircle, CheckCircle, Clock, BookOpen, CreditCard, Sparkles } from 'lucide-react';
-import ComingSoonToast from '../components/ComingSoonToast';
+import { Trophy, Lock, PlayCircle, CheckCircle, Clock, BookOpen, CreditCard, Sparkles, Loader2 } from 'lucide-react';
 import ChallengeExam from '../components/ChallengeExam';
 import Countdown from '../components/Countdown';
 import ShareButton from '../components/ui/ShareButton';
 import { motion } from 'motion/react';
 import { useLms } from '../context/LmsContext';
+import { createChallengePayment } from '../actions/paymentAction';
 
 interface UpcomingChallenge {
   id: string;
@@ -36,25 +36,40 @@ const formatSchedule = (date: string | null) => {
   }).format(new Date(date));
 };
 
+const getFallbackChallenge = (): UpcomingChallenge => ({
+  id: 'monthly-quiz',
+  title: 'HSC ICT Monthly Quiz Exam',
+  month: new Date().toLocaleString('default', { month: 'long' }),
+  year: new Date().getFullYear(),
+  fee: 20,
+  startsAt: null,
+  endsAt: null,
+  syllabus: [],
+  totalMarks: 30,
+  durationMinutes: 30,
+  status: 'PUBLISHED',
+});
+
 export default function MegaChallenge() {
   const { user, login } = useAuth();
   const { challengeEnrollments, enrollChallenge, markChallengePaid } = useLms();
   const [challenge, setChallenge] = useState<UpcomingChallenge | null>(null);
   const [upcomingChallenges, setUpcomingChallenges] = useState<UpcomingChallenge[]>([]);
   const [enrollment, setEnrollment] = useState<any>(null);
-  const [showComingSoon, setShowComingSoon] = useState(false);
   const [showExam, setShowExam] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
 
   useEffect(() => {
     fetchChallenge();
   }, []);
 
   useEffect(() => {
-    if (user && challenge) {
+    if (user && !loading) {
       checkEnrollment();
     }
-  }, [user, challenge, challengeEnrollments]);
+  }, [user, challenge, challengeEnrollments, loading]);
 
   const fetchChallenge = async () => {
     try {
@@ -73,23 +88,63 @@ export default function MegaChallenge() {
   };
 
   const checkEnrollment = async () => {
-    if (!user || !challenge) return;
+    if (!user) return;
+    const selectedChallenge = challenge || getFallbackChallenge();
+    const currentEnrollment = challengeEnrollments.find(e => e.challengeId === selectedChallenge.id);
+
     try {
       const response = await fetch('/api/dashboard?userId=' + user.id);
       if (response.ok) {
         const enrollments = await response.json();
-        const serverEnrollment = enrollments.find((e) => e.challengeId === challenge.id);
+        const serverEnrollment = enrollments.find((e) => e.challengeId === selectedChallenge.id);
         if (serverEnrollment) {
-          setEnrollment(serverEnrollment);
-          if (serverEnrollment.paymentStatus === 'PAID') {
-            markChallengePaid(challenge.id);
+          const nextEnrollment = currentEnrollment?.paymentStatus === 'PAID' ? currentEnrollment : serverEnrollment;
+          setEnrollment(nextEnrollment);
+          if (nextEnrollment.paymentStatus === 'PAID') {
+            markChallengePaid(selectedChallenge.id);
           }
           return;
         }
       }
     } catch (err) {}
-    const currentEnrollment = challengeEnrollments.find(e => e.challengeId === challenge.id);
     setEnrollment(currentEnrollment || null);
+  };
+
+  const startChallengeCheckout = async (selectedChallenge: UpcomingChallenge) => {
+    if (!user) return;
+
+    setPaymentError('');
+    const nextEnrollment = enrollment || enrollChallenge(selectedChallenge.id, selectedChallenge.fee);
+    if (nextEnrollment) {
+      setEnrollment(nextEnrollment);
+    }
+
+    if (user.email === 'sarkerramjan2015@gmail.com') {
+      if (nextEnrollment) {
+        markChallengePaid(selectedChallenge.id);
+        setEnrollment({ ...nextEnrollment, paymentStatus: 'PAID', updatedAt: new Date().toISOString() });
+      }
+      return;
+    }
+
+    setPaymentLoading(true);
+    try {
+      const payment = await createChallengePayment({
+        userId: user.id,
+        fullName: user.name || 'ICT Toppers Student',
+        email: user.email,
+        challengeId: selectedChallenge.id,
+        challengeTitle: selectedChallenge.title || 'HSC ICT Monthly Quiz Exam',
+        amount: selectedChallenge.fee || 20,
+        challengeMonth: selectedChallenge.month,
+        challengeYear: selectedChallenge.year,
+      });
+      window.location.href = payment.paymentUrl;
+    } catch (error: any) {
+      console.error('UddoktaPay challenge checkout error:', error);
+      setPaymentError(error?.message || 'Failed to create payment link. Please try again.');
+      setPaymentLoading(false);
+    }
   };
 
   const handleJoin = async () => {
@@ -97,57 +152,39 @@ export default function MegaChallenge() {
       await login({ redirectTo: '/monthly-quiz' });
       return;
     }
-    
-    if (!challenge) {
-      alert("Registration hasn't officially started yet. Please check back later!");
-      return;
-    }
 
-    const nextEnrollment = enrollChallenge(challenge.id, challenge.fee);
-    setEnrollment(nextEnrollment);
-    if ((user.isPremium || user.email === 'sarkerramjan2015@gmail.com') && nextEnrollment) {
-      markChallengePaid(challenge.id);
-      setEnrollment({
-        ...nextEnrollment,
-        paymentStatus: 'PAID',
-        updatedAt: new Date().toISOString(),
-      });
-      return;
-    }
-    setShowComingSoon(true);
-  };
-
-  const handlePaymentClick = async () => {
-    if (!user || !challenge) return;
-    if (user.email === 'sarkerramjan2015@gmail.com') {
-      const nextEnrollment = enrollment || enrollChallenge(challenge.id, challenge.fee);
+    const selectedChallenge = challenge || getFallbackChallenge();
+    if (user.isPremium || user.email === 'sarkerramjan2015@gmail.com') {
+      const nextEnrollment = enrollment || enrollChallenge(selectedChallenge.id, selectedChallenge.fee);
       if (nextEnrollment) {
-        markChallengePaid(challenge.id);
-        setEnrollment({ ...nextEnrollment, paymentStatus: 'PAID', updatedAt: new Date().toISOString() });
+        markChallengePaid(selectedChallenge.id);
+        setEnrollment({
+          ...nextEnrollment,
+          paymentStatus: 'PAID',
+          updatedAt: new Date().toISOString(),
+        });
       }
       return;
     }
-    try {
-      const response = await fetch(`/api/challenges/${challenge.id}/pay/bkash/create`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id })
-      });
-      if (!response.ok) throw new Error('Payment creation failed');
-      const data = await response.json();
-      if (data.bkashURL) window.location.href = data.bkashURL;
-      else throw new Error('No bKash URL returned');
-    } catch (err) {
-      console.error(err);
-      alert('Failed to initiate bKash payment. Please try again.');
+
+    await startChallengeCheckout(selectedChallenge);
+  };
+
+  const handlePaymentClick = async () => {
+    if (!user) {
+      await login({ redirectTo: '/monthly-quiz' });
+      return;
     }
+
+    await startChallengeCheckout(challenge || getFallbackChallenge());
   };
 
   const handlePremiumAccess = () => {
-    if (!user?.isPremium || !challenge) return;
-    const nextEnrollment = enrollment || enrollChallenge(challenge.id, challenge.fee);
+    if (!user?.isPremium) return;
+    const selectedChallenge = challenge || getFallbackChallenge();
+    const nextEnrollment = enrollment || enrollChallenge(selectedChallenge.id, selectedChallenge.fee);
     if (!nextEnrollment) return;
-    markChallengePaid(challenge.id);
+    markChallengePaid(selectedChallenge.id);
     setEnrollment({
       ...nextEnrollment,
       paymentStatus: 'PAID',
@@ -164,19 +201,7 @@ export default function MegaChallenge() {
 
   if (loading) return <div className="p-8 text-center text-slate-900 dark:text-white">Loading...</div>;
 
-  const displayChallenge: UpcomingChallenge = challenge || {
-    id: 'upcoming',
-    title: 'Upcoming Quiz',
-    month: new Date().toLocaleString('default', { month: 'long' }),
-    year: new Date().getFullYear(),
-    fee: 20,
-    startsAt: null,
-    endsAt: null,
-    syllabus: [],
-    totalMarks: 30,
-    durationMinutes: 30,
-    status: 'DRAFT',
-  };
+  const displayChallenge: UpcomingChallenge = challenge || getFallbackChallenge();
 
   if (showExam) {
     return <ChallengeExam challengeId={displayChallenge.id} onComplete={() => { setShowExam(false); checkEnrollment(); }} />;
@@ -205,6 +230,12 @@ export default function MegaChallenge() {
           <ShareButton className="!bg-slate-900/5 dark:!bg-white/10 !text-slate-900 dark:!text-white !border-slate-900/10 dark:!border-white/20" />
         </div>
       </motion.div>
+
+      {paymentError && (
+        <div className="rounded-2xl border border-rose-400/30 bg-rose-400/10 px-5 py-4 text-sm font-semibold text-rose-300">
+          {paymentError}
+        </div>
+      )}
 
       <motion.section
         initial={{ opacity: 0, y: 16 }}
@@ -344,18 +375,28 @@ export default function MegaChallenge() {
                 </div>
               ) : (
                 <>
-                  <div className="flex flex-col items-center gap-2 group cursor-pointer" onClick={handlePaymentClick}>
+                  <button
+                    type="button"
+                    disabled={paymentLoading}
+                    className="flex flex-col items-center gap-2 group disabled:cursor-wait disabled:opacity-60"
+                    onClick={handlePaymentClick}
+                  >
                     <div className="h-12 w-20 bg-white/90 rounded-xl p-2 flex items-center justify-center border border-slate-900/10 dark:border-white/20 shadow-lg group-hover:scale-105 transition-transform">
                       <img src="https://www.logo.wine/a/logo/BKash/BKash-Icon-Logo.wine.svg" alt="bKash" className="h-full object-contain" />
                     </div>
                     <span className="text-xs text-slate-600 dark:text-gray-300 font-medium group-hover:text-pink-300 transition-colors">bKash</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-2 group cursor-pointer" onClick={handlePaymentClick}>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={paymentLoading}
+                    className="flex flex-col items-center gap-2 group disabled:cursor-wait disabled:opacity-60"
+                    onClick={handlePaymentClick}
+                  >
                     <div className="h-12 w-20 bg-white/90 rounded-xl p-2 flex items-center justify-center border border-slate-900/10 dark:border-white/20 shadow-lg group-hover:scale-105 transition-transform">
                       <img src="https://download.logo.wine/logo/Nagad/Nagad-Logo.wine.png" alt="Nagad" className="h-full object-contain scale-125" />
                     </div>
                     <span className="text-xs text-slate-600 dark:text-gray-300 font-medium group-hover:text-orange-300 transition-colors">Nagad</span>
-                  </div>
+                  </button>
                 </>
               )}
             </div>
@@ -373,10 +414,11 @@ export default function MegaChallenge() {
             ) : !enrollment ? (
               <button 
                 onClick={handleJoin}
-                className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                disabled={paymentLoading}
+                className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
               >
-                <Sparkles className="w-5 h-5" />
-                {user?.isPremium ? 'Activate Free Premium Exam' : `Join the Exam for Tk ${displayChallenge.fee}`}
+                {paymentLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                {paymentLoading ? 'Opening Checkout...' : user?.isPremium ? 'Activate Free Premium Exam' : `Join the Exam for Tk ${displayChallenge.fee}`}
               </button>
             ) : enrollment.paymentStatus === 'PENDING' ? (
               user?.isPremium ? (
@@ -390,10 +432,11 @@ export default function MegaChallenge() {
               ) : (
                 <button 
                   onClick={handlePaymentClick}
-                  className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+                  disabled={paymentLoading}
+                  className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
                 >
-                  <CreditCard className="w-5 h-5" />
-                  Pay Tk {displayChallenge.fee} & Join
+                  {paymentLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
+                  {paymentLoading ? 'Opening Checkout...' : `Pay Tk ${displayChallenge.fee} & Join`}
                 </button>
               )
             ) : enrollment.score !== null ? (
@@ -419,10 +462,6 @@ export default function MegaChallenge() {
         </motion.div>
       </div>
 
-      <ComingSoonToast 
-        isOpen={showComingSoon} 
-        onClose={() => setShowComingSoon(false)} 
-      />
     </div>
   );
 }

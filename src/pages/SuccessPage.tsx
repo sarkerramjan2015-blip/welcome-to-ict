@@ -9,7 +9,7 @@ import { useLms } from '../context/LmsContext';
 export default function SuccessPage() {
   const [searchParams] = useSearchParams();
   const { user, authReady } = useAuth();
-  const { enrollCourse } = useLms();
+  const { enrollCourse, enrollChallenge, markChallengePaid } = useLms();
   const [status, setStatus] = useState<'loading' | 'success' | 'pending' | 'error'>('loading');
   const [message, setMessage] = useState('Verifying your payment with UddoktaPay...');
   const [result, setResult] = useState<VerifyCoursePaymentResult | null>(null);
@@ -50,8 +50,27 @@ export default function SuccessPage() {
           );
         }
 
+        if (verified.purchase?.itemType === 'SUGGESTION') {
+          localStorage.setItem('hasPurchasedSuggestion', 'true');
+        }
+
+        if (verified.challengeEnrollment && user) {
+          enrollChallenge(
+            verified.challengeEnrollment.challengeId,
+            Number(verified.challengeEnrollment.amount || verified.challengeEnrollment.challenge.fee || 20)
+          );
+          markChallengePaid(verified.challengeEnrollment.challengeId);
+        }
+
         setStatus('success');
-        setMessage('Payment verified. Your course enrollment is active.');
+        const itemType = verified.item?.itemType || verified.purchase?.itemType || (verified.challengeEnrollment ? 'CHALLENGE' : 'COURSE');
+        setMessage(
+          itemType === 'COURSE'
+            ? 'Payment verified. Your course enrollment is active.'
+            : itemType === 'CHALLENGE'
+              ? 'Payment verified. Your exam registration is active.'
+              : 'Payment verified. Your e-book access is active.'
+        );
       } catch (error: any) {
         console.error('Payment verification failed:', error);
         setStatus('error');
@@ -60,12 +79,30 @@ export default function SuccessPage() {
     };
 
     void verify();
-  }, [authReady, enrollCourse, invoiceId, user]);
+  }, [authReady, enrollChallenge, enrollCourse, invoiceId, markChallengePaid, user]);
 
   const isSuccess = status === 'success';
   const isPending = status === 'pending';
   const isError = status === 'error';
-  const courseTitle = result?.enrollment?.courseTitle || result?.payment?.metadata?.courseTitle || 'ICT Course';
+  const metadata = result?.payment?.metadata || {};
+  const itemType = result?.item?.itemType || result?.purchase?.itemType || (result?.challengeEnrollment ? 'CHALLENGE' : 'COURSE');
+  const itemTitle =
+    result?.item?.title ||
+    result?.enrollment?.courseTitle ||
+    result?.purchase?.itemTitle ||
+    result?.challengeEnrollment?.challengeTitle ||
+    metadata.itemTitle ||
+    metadata.courseTitle ||
+    metadata.challengeTitle ||
+    'ICT Toppers Purchase';
+  const itemLabel = itemType === 'COURSE' ? 'Course' : itemType === 'CHALLENGE' ? 'Exam' : 'Item';
+  const successTitle = itemType === 'COURSE'
+    ? 'Enrollment Confirmed'
+    : itemType === 'CHALLENGE'
+      ? 'Exam Access Confirmed'
+      : 'Purchase Confirmed';
+  const secondaryLink = itemType === 'CHALLENGE' ? '/monthly-quiz' : itemType === 'SUGGESTION' ? '/suggestions' : '/courses';
+  const secondaryText = itemType === 'CHALLENGE' ? 'Back to Quiz' : itemType === 'SUGGESTION' ? 'Back to Suggestions' : 'Back to Courses';
 
   return (
     <div className="flex-1 flex items-center justify-center px-5 py-12">
@@ -91,7 +128,7 @@ export default function SuccessPage() {
 
         <p className="mb-3 text-xs font-black uppercase tracking-[0.24em] text-sky-400">UddoktaPay Checkout</p>
         <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white">
-          {isSuccess ? 'Enrollment Confirmed' : isPending ? 'Payment Pending' : isError ? 'Verification Failed' : 'Verifying Payment'}
+          {isSuccess ? successTitle : isPending ? 'Payment Pending' : isError ? 'Verification Failed' : 'Verifying Payment'}
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-base font-medium leading-7 text-slate-600 dark:text-slate-300">
           {message}
@@ -101,7 +138,7 @@ export default function SuccessPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Detail label="Invoice ID" value={invoiceId || 'Unavailable'} />
             <Detail label="Payment Status" value={result?.payment?.status || (status === 'loading' ? 'Checking' : 'Unknown')} />
-            <Detail label="Course" value={courseTitle} />
+            <Detail label={itemLabel} value={itemTitle} />
             <Detail label="Amount" value={result?.payment?.amount ? `Tk ${result.payment.amount}` : 'Checking'} />
           </div>
         </div>
@@ -114,10 +151,10 @@ export default function SuccessPage() {
             Go to Dashboard <ArrowRight size={18} />
           </Link>
           <Link
-            to="/courses"
+            to={secondaryLink}
             className="inline-flex items-center justify-center rounded-2xl border border-slate-900/10 bg-slate-900/5 px-6 py-3 font-black text-slate-700 transition-colors hover:bg-slate-900/10 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
           >
-            Back to Courses
+            {secondaryText}
           </Link>
         </div>
       </motion.div>

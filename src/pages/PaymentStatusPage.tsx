@@ -25,8 +25,8 @@ export default function PaymentStatusPage({ type }: { type: 'cancel' | 'fail' })
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-base font-medium leading-7 text-slate-600 dark:text-slate-300">
           {isCancel
-            ? 'Your checkout was canceled before payment was completed. No enrollment was created.'
-            : 'The payment could not be completed or verified. Please try again from the courses page.'}
+            ? 'Your checkout was canceled before payment was completed. No access was created.'
+            : 'The payment could not be completed or verified. Please try again from the page where you started.'}
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">

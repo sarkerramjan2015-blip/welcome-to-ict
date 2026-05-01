@@ -1,24 +1,43 @@
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 
-type CourseId = 'recorded-1' | 'live-1';
+type PaymentItemType = 'COURSE' | 'SUGGESTION' | 'CHALLENGE';
+type CourseType = 'RECORDED' | 'LIVE';
 
-interface CourseConfig {
+interface PaymentItemConfig {
+  id: string;
   title: string;
-  type: 'RECORDED' | 'LIVE';
+  itemType: PaymentItemType;
   fee: number;
+  courseType?: CourseType;
+  challengeMonth?: string;
+  challengeYear?: number;
 }
 
-const COURSE_CATALOG: Record<CourseId, CourseConfig> = {
+const CHECKOUT_ENDPOINT = '/api/checkout-v2';
+const VERIFY_ENDPOINT = '/api/verify-payment';
+const SUGGESTION_ITEM_ID = 'hsc-ict-master-suggestion';
+
+const PAYMENT_CATALOG: Record<string, PaymentItemConfig> = {
   'recorded-1': {
+    id: 'recorded-1',
     title: 'ICT Full Course Recorded',
-    type: 'RECORDED',
+    itemType: 'COURSE',
+    courseType: 'RECORDED',
     fee: 500,
   },
   'live-1': {
+    id: 'live-1',
     title: 'HSC ICT Live Course',
-    type: 'LIVE',
+    itemType: 'COURSE',
+    courseType: 'LIVE',
     fee: 1500,
+  },
+  [SUGGESTION_ITEM_ID]: {
+    id: SUGGESTION_ITEM_ID,
+    title: 'HSC ICT Master Suggestion',
+    itemType: 'SUGGESTION',
+    fee: 150,
   },
 };
 
@@ -43,19 +62,60 @@ const parseBody = (body: unknown) => {
   return body as Record<string, any>;
 };
 
+const parseMetadata = (metadata: unknown) => {
+  if (!metadata) return {};
+  if (typeof metadata === 'string') {
+    try {
+      return JSON.parse(metadata);
+    } catch {
+      return {};
+    }
+  }
+  return metadata as Record<string, any>;
+};
+
+const toPositiveAmount = (value: unknown, fallback: number) => {
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount > 0 ? Math.round(amount) : fallback;
+};
+
 const buildPaymentUrls = (configuredUrl: string) => {
   const cleanedUrl = cleanBaseUrl(configuredUrl);
 
-  if (cleanedUrl.endsWith('/api/checkout-v2')) {
-    return {
-      checkoutUrl: cleanedUrl,
-      verifyUrl: cleanedUrl.replace(/\/api\/checkout-v2$/, '/api/verify-payment'),
+  try {
+    const url = new URL(cleanedUrl);
+    const normalizedPath = url.pathname.replace(/\/+$/, '');
+    const hasCheckoutPath = normalizedPath.endsWith(CHECKOUT_ENDPOINT);
+    const basePath = hasCheckoutPath
+      ? normalizedPath.slice(0, -CHECKOUT_ENDPOINT.length)
+      : normalizedPath === '/'
+        ? ''
+        : normalizedPath;
+
+    const withEndpoint = (endpoint: string) => {
+      const nextUrl = new URL(url.toString());
+      nextUrl.pathname = `${basePath}${endpoint}`.replace(/\/{2,}/g, '/');
+      nextUrl.search = '';
+      nextUrl.hash = '';
+      return nextUrl.toString();
     };
+
+    return {
+      checkoutUrl: withEndpoint(CHECKOUT_ENDPOINT),
+      verifyUrl: withEndpoint(VERIFY_ENDPOINT),
+    };
+  } catch {
+    if (cleanedUrl.endsWith(CHECKOUT_ENDPOINT)) {
+      return {
+        checkoutUrl: cleanedUrl,
+        verifyUrl: cleanedUrl.replace(new RegExp(`${CHECKOUT_ENDPOINT}$`), VERIFY_ENDPOINT),
+      };
+    }
   }
 
   return {
-    checkoutUrl: `${cleanedUrl}/api/checkout-v2`,
-    verifyUrl: `${cleanedUrl}/api/verify-payment`,
+    checkoutUrl: `${cleanedUrl}${CHECKOUT_ENDPOINT}`,
+    verifyUrl: `${cleanedUrl}${VERIFY_ENDPOINT}`,
   };
 };
 
@@ -71,6 +131,38 @@ const getUddoktaPayConfig = () => {
     ...buildPaymentUrls(apiUrl),
     apiKey,
   };
+};
+
+const resolvePaymentItem = (body: Record<string, any>): PaymentItemConfig => {
+  const catalogItemId = String(body.courseId || body.itemId || body.productId || '').trim();
+  const catalogItem = catalogItemId ? PAYMENT_CATALOG[catalogItemId] : null;
+  if (catalogItem) return catalogItem;
+
+  const requestedType = String(body.itemType || body.type || '').trim().toUpperCase();
+  if (requestedType === 'SUGGESTION') {
+    return PAYMENT_CATALOG[SUGGESTION_ITEM_ID];
+  }
+
+  if (requestedType === 'CHALLENGE' || body.challengeId) {
+    const challengeId = String(body.challengeId || body.itemId || '').trim();
+    if (!challengeId) {
+      throw new Error('Missing challenge information.');
+    }
+
+    const currentYear = new Date().getFullYear();
+    const challengeYear = Number(body.challengeYear);
+
+    return {
+      id: challengeId,
+      title: String(body.challengeTitle || body.title || 'HSC ICT Monthly Quiz Exam').trim(),
+      itemType: 'CHALLENGE',
+      fee: toPositiveAmount(body.amount || body.fee, 20),
+      challengeMonth: String(body.challengeMonth || '').trim() || undefined,
+      challengeYear: Number.isFinite(challengeYear) ? challengeYear : currentYear,
+    };
+  }
+
+  throw new Error('Invalid payment item selected.');
 };
 
 const getFirebaseServiceAccount = () => {
@@ -107,12 +199,7 @@ const getAdminDb = () => {
 
 const createPayment = async (body: Record<string, any>, origin?: string) => {
   const { checkoutUrl, apiKey } = getUddoktaPayConfig();
-  const courseId = String(body.courseId || '') as CourseId;
-  const course = COURSE_CATALOG[courseId];
-
-  if (!course) {
-    throw new Error('Invalid course selected.');
-  }
+  const item = resolvePaymentItem(body);
 
   const userId = String(body.userId || '').trim();
   const email = String(body.email || '').trim();
@@ -126,16 +213,32 @@ const createPayment = async (body: Record<string, any>, origin?: string) => {
   const payload = {
     full_name: fullName,
     email,
-    amount: String(course.fee),
+    amount: String(item.fee),
     metadata: {
       userId,
       user_id: userId,
       email,
-      courseId,
-      course_id: courseId,
-      courseTitle: course.title,
-      courseType: course.type,
-      amount: course.fee,
+      itemId: item.id,
+      item_id: item.id,
+      itemType: item.itemType,
+      itemTitle: item.title,
+      amount: item.fee,
+      ...(item.itemType === 'COURSE' ? {
+        courseId: item.id,
+        course_id: item.id,
+        courseTitle: item.title,
+        courseType: item.courseType,
+      } : {}),
+      ...(item.itemType === 'SUGGESTION' ? {
+        productId: item.id,
+        suggestionId: item.id,
+      } : {}),
+      ...(item.itemType === 'CHALLENGE' ? {
+        challengeId: item.id,
+        challengeTitle: item.title,
+        challengeMonth: item.challengeMonth,
+        challengeYear: item.challengeYear,
+      } : {}),
     },
     redirect_url: `${appUrl}/payment/success`,
     return_type: 'GET',
@@ -160,7 +263,14 @@ const createPayment = async (body: Record<string, any>, origin?: string) => {
 
   return {
     paymentUrl: data.payment_url,
-    course,
+    item,
+    course: item.itemType === 'COURSE'
+      ? {
+          title: item.title,
+          type: item.courseType,
+          fee: item.fee,
+        }
+      : undefined,
   };
 };
 
@@ -184,43 +294,183 @@ const verifyAndEnroll = async (body: Record<string, any>) => {
 
   const payment = await response.json().catch(() => ({}));
 
-  if (!response.ok || payment.status === 'ERROR') {
+  const paymentStatus = String(payment.status || '').toUpperCase();
+
+  if (!response.ok || paymentStatus === 'ERROR') {
     throw new Error(String(payment.message || 'Unable to verify UddoktaPay payment.'));
   }
 
-  const metadata = payment.metadata || {};
+  const metadata = parseMetadata(payment.metadata);
   const userId = String(metadata.userId || metadata.user_id || '').trim();
   const courseId = String(metadata.courseId || metadata.course_id || '').trim();
-  const course = COURSE_CATALOG[courseId as CourseId];
+  const itemId = String(
+    metadata.itemId ||
+    metadata.item_id ||
+    courseId ||
+    metadata.productId ||
+    metadata.suggestionId ||
+    metadata.challengeId ||
+    ''
+  ).trim();
+  const inferredItemType = courseId
+    ? 'COURSE'
+    : metadata.challengeId
+      ? 'CHALLENGE'
+      : (metadata.productId || metadata.suggestionId)
+        ? 'SUGGESTION'
+        : '';
+  const itemType = String(metadata.itemType || inferredItemType).toUpperCase() as PaymentItemType;
+  const itemTitle = String(
+    metadata.itemTitle ||
+    metadata.courseTitle ||
+    metadata.challengeTitle ||
+    'ICT Toppers Purchase'
+  ).trim();
+  const catalogItem = itemId ? PAYMENT_CATALOG[itemId] : null;
+  const item: PaymentItemConfig | null = catalogItem || (
+    itemType === 'SUGGESTION'
+      ? {
+          id: itemId || SUGGESTION_ITEM_ID,
+          title: itemTitle || PAYMENT_CATALOG[SUGGESTION_ITEM_ID].title,
+          itemType: 'SUGGESTION',
+          fee: toPositiveAmount(metadata.amount || payment.amount, PAYMENT_CATALOG[SUGGESTION_ITEM_ID].fee),
+        }
+      : itemType === 'CHALLENGE' && itemId
+        ? {
+            id: itemId,
+            title: itemTitle || 'HSC ICT Monthly Quiz Exam',
+            itemType: 'CHALLENGE',
+            fee: toPositiveAmount(metadata.amount || payment.amount, 20),
+            challengeMonth: String(metadata.challengeMonth || '').trim() || undefined,
+            challengeYear: Number.isFinite(Number(metadata.challengeYear)) ? Number(metadata.challengeYear) : new Date().getFullYear(),
+          }
+        : null
+  );
 
-  if (payment.status !== 'COMPLETED') {
+  if (paymentStatus !== 'COMPLETED') {
     return {
       enrolled: false,
       payment,
-      message: `Payment status is ${payment.status || 'UNKNOWN'}. Enrollment is pending until payment is completed.`,
+      message: `Payment status is ${payment.status || 'UNKNOWN'}. Access will remain pending until payment is completed.`,
     };
   }
 
-  if (!userId || !course) {
-    throw new Error('Verified payment is missing course or student metadata.');
+  if (!userId || !item) {
+    throw new Error('Verified payment is missing purchase or student metadata.');
   }
 
   const db = getAdminDb();
-  const enrollment = {
-    userId,
-    email: String(payment.email || metadata.email || '').trim(),
-    courseId,
-    courseTitle: course.title,
-    courseType: course.type,
-    amount: Number(payment.amount || course.fee),
-    chargedAmount: Number(payment.charged_amount || payment.amount || course.fee),
-    paymentStatus: 'PAID',
-    status: 'enrolled',
+  const paidAmount = Number(payment.amount || metadata.amount || item.fee);
+  const chargedAmount = Number(payment.charged_amount || payment.amount || metadata.amount || item.fee);
+  const email = String(payment.email || metadata.email || '').trim();
+  const invoice = String(payment.invoice_id || invoiceId);
+  const paymentDetails = {
     provider: 'uddoktapay',
-    invoiceId: payment.invoice_id || invoiceId,
+    invoiceId: invoice,
     transactionId: payment.transaction_id || null,
     paymentMethod: payment.payment_method || null,
     senderNumber: payment.sender_number || null,
+  };
+
+  if (item.itemType === 'COURSE') {
+    const enrollment = {
+      userId,
+      email,
+      courseId: item.id,
+      courseTitle: item.title,
+      courseType: item.courseType,
+      amount: paidAmount,
+      chargedAmount,
+      paymentStatus: 'PAID',
+      status: 'enrolled',
+      ...paymentDetails,
+      enrolledAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+
+    const batch = db.batch();
+    batch.set(db.collection('students').doc(userId), {
+      userId,
+      email: enrollment.email,
+      status: 'enrolled',
+      enrolledCourses: FieldValue.arrayUnion(item.id),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    batch.set(db.collection('students').doc(userId).collection('enrollments').doc(item.id), enrollment, { merge: true });
+    batch.set(db.collection('courseEnrollments').doc(invoice), enrollment, { merge: true });
+    await batch.commit();
+
+    return {
+      enrolled: true,
+      payment,
+      item,
+      enrollment: {
+        courseId: item.id,
+        courseTitle: item.title,
+        courseType: item.courseType,
+        amount: paidAmount,
+        status: 'enrolled',
+      },
+    };
+  }
+
+  if (item.itemType === 'SUGGESTION') {
+    const purchase = {
+      userId,
+      email,
+      itemId: item.id,
+      itemTitle: item.title,
+      itemType: item.itemType,
+      amount: paidAmount,
+      chargedAmount,
+      paymentStatus: 'PAID',
+      status: 'active',
+      ...paymentDetails,
+      purchasedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+
+    const batch = db.batch();
+    batch.set(db.collection('students').doc(userId), {
+      userId,
+      email,
+      hasPurchasedSuggestion: true,
+      purchasedSuggestions: FieldValue.arrayUnion(item.id),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    batch.set(db.collection('students').doc(userId).collection('purchases').doc(item.id), purchase, { merge: true });
+    batch.set(db.collection('productPurchases').doc(invoice), purchase, { merge: true });
+    await batch.commit();
+
+    return {
+      enrolled: true,
+      payment,
+      item,
+      purchase: {
+        itemId: item.id,
+        itemTitle: item.title,
+        itemType: item.itemType,
+        amount: paidAmount,
+        status: 'active',
+      },
+    };
+  }
+
+  const challengeEnrollment = {
+    userId,
+    email,
+    challengeId: item.id,
+    challengeTitle: item.title,
+    challenge: {
+      month: item.challengeMonth || String(metadata.challengeMonth || new Date().toLocaleString('default', { month: 'long' })),
+      year: item.challengeYear || Number(metadata.challengeYear) || new Date().getFullYear(),
+      fee: item.fee,
+    },
+    amount: paidAmount,
+    chargedAmount,
+    paymentStatus: 'PAID',
+    score: null,
+    ...paymentDetails,
     enrolledAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
   };
@@ -228,19 +478,26 @@ const verifyAndEnroll = async (body: Record<string, any>) => {
   const batch = db.batch();
   batch.set(db.collection('students').doc(userId), {
     userId,
-    email: enrollment.email,
-    status: 'enrolled',
-    enrolledCourses: FieldValue.arrayUnion(courseId),
+    email: challengeEnrollment.email,
+    enrolledChallenges: FieldValue.arrayUnion(item.id),
     updatedAt: FieldValue.serverTimestamp(),
   }, { merge: true });
-  batch.set(db.collection('students').doc(userId).collection('enrollments').doc(courseId), enrollment, { merge: true });
-  batch.set(db.collection('courseEnrollments').doc(String(enrollment.invoiceId)), enrollment, { merge: true });
+  batch.set(db.collection('students').doc(userId).collection('challengeEnrollments').doc(item.id), challengeEnrollment, { merge: true });
+  batch.set(db.collection('challengeEnrollments').doc(invoice), challengeEnrollment, { merge: true });
   await batch.commit();
 
   return {
     enrolled: true,
     payment,
-    enrollment,
+    item,
+    challengeEnrollment: {
+      challengeId: item.id,
+      challengeTitle: item.title,
+      challenge: challengeEnrollment.challenge,
+      amount: paidAmount,
+      paymentStatus: 'PAID',
+      score: null,
+    },
   };
 };
 
