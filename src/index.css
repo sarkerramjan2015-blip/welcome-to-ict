@@ -101,6 +101,28 @@
   }
 }
 
+@keyframes logo-dot-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes logo-soft-sweep {
+  0%,
+  22% {
+    transform: translateX(-140%) rotate(18deg);
+    opacity: 0;
+  }
+  34% {
+    opacity: 0.85;
+  }
+  54%,
+  100% {
+    transform: translateX(140%) rotate(18deg);
+    opacity: 0;
+  }
+}
+
 html,
 body,
 #root {
@@ -211,6 +233,63 @@ td {
   animation: premium-aurora-drift 34s ease-in-out infinite;
 }
 
+.logo-dotted-shine {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  --logo-dot-color: rgba(244, 63, 94, 0.9);
+  --logo-glow-ring: linear-gradient(90deg, rgba(244, 63, 94, 0.82), rgba(56, 189, 248, 0.7), rgba(245, 158, 11, 0.72), rgba(244, 63, 94, 0.82));
+}
+
+.logo-dotted-shine::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  z-index: 0;
+  border-radius: inherit;
+  border: 2px dotted var(--logo-dot-color);
+  box-shadow:
+    0 0 16px rgba(244, 63, 94, 0.24),
+    inset 0 0 12px rgba(56, 189, 248, 0.12);
+  animation: logo-dot-orbit 8s linear infinite;
+  opacity: 0.82;
+}
+
+.logo-dotted-shine > * {
+  position: relative;
+  z-index: 1;
+}
+
+.logo-dotted-shine::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: var(--logo-glow-ring);
+  filter: blur(9px);
+  opacity: 0.46;
+  animation: logo-dot-orbit 8s linear infinite reverse;
+}
+
+.logo-shine-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.logo-shine-sweep::after {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  z-index: 3;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.78) 50%, transparent 62%);
+  mix-blend-mode: screen;
+  animation: logo-soft-sweep 3.8s ease-in-out infinite;
+}
+
 .dark .premium-mesh-bg {
   background:
     linear-gradient(120deg, rgba(14, 165, 233, 0.18), transparent 28%, rgba(139, 92, 246, 0.14) 55%, transparent 76%),
@@ -283,6 +362,30 @@ td {
   background:
     linear-gradient(145deg, rgba(10, 23, 42, 0.98), rgba(3, 10, 24, 0.98)),
     #071426;
+}
+
+.premium-glow-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.premium-glow-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: -1;
+  background: conic-gradient(
+    from var(--moving-border-angle),
+    transparent 0deg,
+    transparent 280deg,
+    rgba(99, 102, 241, 0.4) 300deg,
+    rgba(56, 189, 248, 1) 360deg
+  );
+  animation: moving-border-spin 4s linear infinite;
 }
 
 .topic-visual-scan::after {

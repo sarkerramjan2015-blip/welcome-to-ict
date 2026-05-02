@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { BookOpen, Video, CheckCircle, CreditCard, Clock, Loader2 } from 'lucide-react';
+import { BookOpen, Video, CheckCircle, CreditCard, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLms } from '../context/LmsContext';
-import { createCoursePayment } from '../actions/paymentAction';
 
 export default function Courses() {
   const { user, login } = useAuth();
   const { enrollCourse } = useLms();
   const navigate = useNavigate();
   const location = useLocation();
-  const [paymentLoadingCourseId, setPaymentLoadingCourseId] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState('');
   
   // Dummy Countdown State (5 days from now)
@@ -48,20 +46,7 @@ export default function Courses() {
       return;
     }
 
-    setPaymentLoadingCourseId(courseId);
-    try {
-      const payment = await createCoursePayment({
-        userId: user.id,
-        fullName: user.name || 'ICT Toppers Student',
-        email: user.email,
-        courseId,
-      });
-      window.location.href = payment.paymentUrl;
-    } catch (error: any) {
-      console.error('UddoktaPay checkout error:', error);
-      setPaymentError(error?.message || 'Failed to create payment link. Please try again.');
-      setPaymentLoadingCourseId(null);
-    }
+    setPaymentError('Course payment method is under construction. Quiz Exam and ICT Short Suggestion payment are active now.');
   };
 
   return (
@@ -78,6 +63,10 @@ export default function Courses() {
           {paymentError}
         </div>
       )}
+
+      <div className="rounded-3xl border border-amber-400/25 bg-amber-400/10 px-5 py-4 text-sm font-bold text-amber-700 shadow-inner dark:text-amber-200">
+        Course payments are under construction for now. Quiz Exam and ICT Short Suggestion checkout remain active.
+      </div>
 
       <div className="grid md:grid-cols-2 gap-5 md:gap-8">
         {/* Course 1: Recorded */}
@@ -116,11 +105,10 @@ export default function Courses() {
 
           <button 
             onClick={() => handleBuy('recorded-1', 500, 'RECORDED')}
-            disabled={paymentLoadingCourseId === 'recorded-1'}
-            className="w-full py-4 px-4 bg-slate-900/5 dark:bg-white/10 hover:bg-slate-900/20 dark:hover:bg-white/20 text-slate-900 dark:text-white rounded-xl font-bold text-base md:text-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
+            className="w-full py-4 px-4 bg-slate-900/5 dark:bg-white/10 hover:bg-slate-900/20 dark:hover:bg-white/20 text-slate-900 dark:text-white rounded-xl font-bold text-base md:text-lg transition-colors flex items-center justify-center gap-2"
           >
-            {paymentLoadingCourseId === 'recorded-1' ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
-            {paymentLoadingCourseId === 'recorded-1' ? 'Opening Checkout...' : 'Enroll Now (bKash / Nagad)'}
+            <CreditCard className="w-5 h-5" />
+            Payment Method Under Construction
           </button>
         </motion.div>
 
@@ -168,11 +156,10 @@ export default function Courses() {
 
           <button 
             onClick={() => handleBuy('live-1', 1500, 'LIVE')}
-            disabled={paymentLoadingCourseId === 'live-1'}
-            className="w-full py-4 px-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-xl font-bold text-base md:text-lg transition-all shadow-xl shadow-pink-500/25 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
+            className="w-full py-4 px-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-xl font-bold text-base md:text-lg transition-all shadow-xl shadow-pink-500/25 flex items-center justify-center gap-2"
           >
-            {paymentLoadingCourseId === 'live-1' ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
-            {paymentLoadingCourseId === 'live-1' ? 'Opening Checkout...' : 'Enroll Now (bKash / Nagad)'}
+            <CreditCard className="w-5 h-5" />
+            Payment Method Under Construction
           </button>
         </motion.div>
       </div>

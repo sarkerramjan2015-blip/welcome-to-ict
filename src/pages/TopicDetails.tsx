@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Helmet } from 'react-helmet-async';
 import { ictSyllabus } from '../data/ict-syllabus';
@@ -11,6 +11,13 @@ import { useLms } from '../context/LmsContext';
 import AdBanner from '../components/AdBanner';
 
 type Tab = 'notes' | 'video' | 'short_qs' | 'practice' | 'cq' | 'quiz';
+
+const tabsFromHash: Tab[] = ['notes', 'video', 'short_qs', 'practice', 'cq', 'quiz'];
+
+const getTabFromHash = (hash: string): Tab | null => {
+  const tab = hash.replace('#', '') as Tab;
+  return tabsFromHash.includes(tab) ? tab : null;
+};
 
 const QuestionText = ({ text }: { text: string }) => {
   const match = text.match(/^(.*?)(?:\s*\[([^\]]+)\])?$/);
@@ -58,6 +65,7 @@ function ComingSoonVideoPlaceholder() {
 
 export default function TopicDetails() {
   const { topicId } = useParams();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<Tab>('notes');
   const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(new Set(['notes']));
   const [showProgressToast, setShowProgressToast] = useState(false);
@@ -70,6 +78,16 @@ export default function TopicDetails() {
       return next;
     });
   }, [activeTab]);
+
+  useEffect(() => {
+    const hashTab = getTabFromHash(location.hash);
+    if (hashTab) {
+      setActiveTab(hashTab);
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+  }, [location.hash, topicId]);
 
   // Find the topic from our static syllabus data
   let currentTopic = null;
@@ -471,6 +489,11 @@ export default function TopicDetails() {
                       <div key={idx} className="bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-4 md:p-8 shadow-sm min-w-0">
                         <h3 className="text-base md:text-xl font-bold mb-5 md:mb-6 text-slate-800 dark:text-slate-100 leading-relaxed block break-words">
                           <span className="text-slate-400 mr-2">{idx + 1}.</span> <QuestionText text={mcq.q} />
+                          {mcq.boardQuestions && mcq.boardQuestions.map((board, bIdx) => (
+                            <span key={bIdx} className="inline-block ml-0 sm:ml-3 mt-2 sm:mt-0 px-3 py-1 bg-gradient-to-r from-amber-200 to-orange-200 dark:from-amber-900/50 dark:to-orange-900/40 text-amber-800 dark:text-amber-300 text-[0.75rem] sm:text-xs font-black rounded-lg border border-amber-300/50 dark:border-amber-700/50 shadow-sm tracking-wider align-middle mb-1 uppercase max-w-full break-words">
+                              {board}
+                            </span>
+                          ))}
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                           {mcq.options.map((opt, oIdx) => {
@@ -609,6 +632,12 @@ export default function TopicDetails() {
                         <div key={idx} className="bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-4 md:p-8 shadow-sm min-w-0">
                           <h4 className="text-base md:text-lg font-bold mb-6 text-slate-800 dark:text-slate-200 leading-relaxed block break-words">
                             <span className="text-slate-400 mr-2">{idx + 1}.</span> <QuestionText text={mcq.q} />
+                            {/* @ts-ignore */}
+                            {mcq.boardQuestions && mcq.boardQuestions.map((board, bIdx) => (
+                              <span key={bIdx} className="inline-block ml-0 sm:ml-3 mt-2 sm:mt-0 px-3 py-1 bg-gradient-to-r from-amber-200 to-orange-200 dark:from-amber-900/50 dark:to-orange-900/40 text-amber-800 dark:text-amber-300 text-[0.75rem] sm:text-xs font-black rounded-lg border border-amber-300/50 dark:border-amber-700/50 shadow-sm tracking-wider align-middle mb-1 uppercase max-w-full break-words">
+                                {board}
+                              </span>
+                            ))}
                           </h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {mcq.options.map((opt, oIdx) => {
@@ -662,6 +691,12 @@ export default function TopicDetails() {
                       <div key={idx} className="bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-4 md:p-8 shadow-sm min-w-0">
                         <h3 className="text-base md:text-xl font-bold mb-6 text-slate-800 dark:text-slate-100 leading-relaxed block break-words">
                           <span className="text-slate-400 mr-2">{idx + 1}.</span> <QuestionText text={mcq.q} />
+                          {/* @ts-ignore */}
+                          {mcq.boardQuestions && mcq.boardQuestions.map((board, bIdx) => (
+                            <span key={bIdx} className="inline-block ml-0 sm:ml-3 mt-2 sm:mt-0 px-3 py-1 bg-gradient-to-r from-amber-200 to-orange-200 dark:from-amber-900/50 dark:to-orange-900/40 text-amber-800 dark:text-amber-300 text-[0.75rem] sm:text-xs font-black rounded-lg border border-amber-300/50 dark:border-amber-700/50 shadow-sm tracking-wider align-middle mb-1 uppercase max-w-full break-words">
+                              {board}
+                            </span>
+                          ))}
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {mcq.options.map((opt, oIdx) => {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { fetchUpcomingChallenge, UpcomingChallenge } from '../lib/quiz-utils';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import Countdown from '../components/Countdown';
@@ -153,6 +154,105 @@ function FAQSection() {
   );
 }
 
+function StudentQuickStartSection() {
+  const quickStarts = [
+    {
+      title: '15 min MCQ warm-up',
+      text: 'Start with a small MCQ set and check weak topics quickly.',
+      to: '/mcq-practice',
+      icon: Zap,
+      tone: 'from-sky-500/18 to-cyan-500/10 text-sky-500',
+      cta: 'Start Practice',
+    },
+    {
+      title: 'Chapter-wise study',
+      text: 'Read the exact HSC ICT chapter you need before practice.',
+      to: '/syllabus',
+      icon: BookOpen,
+      tone: 'from-indigo-500/18 to-violet-500/10 text-indigo-500',
+      cta: 'Browse Chapters',
+    },
+    {
+      title: 'Board question check',
+      text: 'See real board patterns before final revision.',
+      to: '/board-questions',
+      icon: NotebookTabs,
+      tone: 'from-emerald-500/18 to-teal-500/10 text-emerald-500',
+      cta: 'View Questions',
+    },
+  ];
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.18 }}
+      transition={{ duration: 0.55 }}
+      className="px-4 sm:px-6 md:px-16 mb-20 w-full"
+    >
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-8 text-center">
+          <p className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-sky-500">Student Fast Start</p>
+          <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white">আজ কোথা থেকে শুরু করবে?</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-sm md:text-base font-semibold leading-7 text-slate-600 dark:text-slate-300">
+            First-time student hole ekhanei best path: small practice, chapter revision, then board pattern.
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {quickStarts.map(item => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="group rounded-3xl border border-slate-900/10 bg-white/72 p-5 shadow-xl shadow-slate-950/5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/35 hover:shadow-2xl hover:shadow-sky-500/10 dark:border-white/10 dark:bg-white/7"
+              >
+                <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${item.tone}`}>
+                  <Icon className="h-7 w-7" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">{item.title}</h3>
+                <p className="mt-2 min-h-14 text-sm font-semibold leading-7 text-slate-600 dark:text-slate-300">{item.text}</p>
+                <div className="mt-5 inline-flex items-center gap-2 text-sm font-black text-sky-600 dark:text-sky-300">
+                  {item.cta}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <Link
+            to="/suggestions"
+            className="rounded-3xl border border-rose-400/20 bg-gradient-to-br from-rose-500/12 to-orange-500/10 p-5 text-left shadow-xl shadow-rose-500/5 transition hover:-translate-y-1 dark:border-rose-300/15"
+          >
+            <div className="flex items-center gap-3">
+              <Star className="h-6 w-6 text-amber-500" />
+              <div>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">Final prep suggestion</h3>
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Short suggestion diye last revision faster koro.</p>
+              </div>
+            </div>
+          </Link>
+          <Link
+            to="/monthly-quiz"
+            className="rounded-3xl border border-purple-400/20 bg-gradient-to-br from-purple-500/12 to-sky-500/10 p-5 text-left shadow-xl shadow-purple-500/5 transition hover:-translate-y-1 dark:border-purple-300/15"
+          >
+            <div className="flex items-center gap-3">
+              <Trophy className="h-6 w-6 text-purple-500" />
+              <div>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">Monthly quiz exam</h3>
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">9 PM BDT routine, MCQ exam, result tracking.</p>
+              </div>
+            </div>
+          </Link>
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
 export default function Home() {
   const phrases = [
     "ঘরে বসেই ICT Mastery",
@@ -162,11 +262,14 @@ export default function Home() {
   ];
 
   const [phraseIndex, setPhraseIndex] = useState(0);
+  const [upcomingChallenge, setUpcomingChallenge] = useState<UpcomingChallenge | null>(null);
 
   React.useEffect(() => {
+    fetchUpcomingChallenge().then(setUpcomingChallenge);
+    
     const interval = setInterval(() => {
       setPhraseIndex((prev) => (prev + 1) % phrases.length);
-    }, 3000);
+    }, 3400);
     return () => clearInterval(interval);
   }, []);
 
@@ -193,56 +296,53 @@ export default function Home() {
       </Helmet>
 
       <section className="px-4 sm:px-6 md:px-16 mt-8 md:mt-12 text-center">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 break-words">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-2 sm:mb-4">
+        <h1 className="text-[2.05rem] sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 break-words">
+          <div className="flex flex-row items-center justify-center gap-2.5 sm:gap-5 mb-2 sm:mb-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.5, rotate: -20 }}
+              initial={{ opacity: 0, scale: 0.72, rotate: -8 }}
               animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ duration: 0.8, type: "spring", bounce: 0.5 }}
-              className="relative flex items-center justify-center overflow-hidden rounded-[1.2rem] sm:rounded-[1.5rem] p-[3px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-slate-900/5 dark:ring-white/10"
+              transition={{ duration: 0.65, type: "spring", stiffness: 240, damping: 22 }}
+              className="logo-dotted-shine relative flex shrink-0 items-center justify-center rounded-full p-[2px] shadow-[0_8px_26px_rgb(0,0,0,0.12)] ring-1 ring-slate-900/5 dark:ring-white/10"
             >
-              <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,#38bdf8_360deg)] animate-[spin_3s_linear_infinite]"></div>
-              <div className="absolute inset-0 bg-[conic-gradient(from_180deg,transparent_0_300deg,#f43f5e_360deg)] animate-[spin_3s_linear_infinite]"></div>
-              
-              <div className="relative rounded-[1.1rem] sm:rounded-[1.35rem] bg-gradient-to-br from-white to-slate-50/95 p-1.5 sm:p-2 md:p-2.5 backdrop-blur-xl dark:from-slate-800 dark:to-slate-900/95 overflow-hidden flex items-center justify-center">
+              <div className="logo-shine-sweep relative overflow-hidden rounded-full bg-gradient-to-br from-white to-slate-50/95 p-1.5 sm:p-2 md:p-2.5 backdrop-blur-xl dark:from-slate-800 dark:to-slate-900/95 flex items-center justify-center">
                 <motion.div
                   animate={{ 
-                    y: [-4, 4, -4],
+                    y: [-2, 2, -2],
                     boxShadow: [
                       "0px 0px 0px 0px rgba(56, 189, 248, 0)",
-                      "0px 10px 20px -5px rgba(56, 189, 248, 0.4)",
+                      "0px 8px 18px -6px rgba(56, 189, 248, 0.32)",
                       "0px 0px 0px 0px rgba(56, 189, 248, 0)"
                     ]
                   }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-0 rounded-[1.1rem] sm:rounded-[1.35rem]"
+                  transition={{ duration: 4.6, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute inset-0 rounded-full"
                 />
                 <div className="absolute inset-0 bg-gradient-to-tr from-sky-400/20 via-transparent to-pink-400/20 opacity-50 mix-blend-overlay"></div>
                 <img 
                   src="/logo.jpeg" 
                   alt="ICT Toppers Logo" 
-                  className="relative z-10 h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 rounded-xl sm:rounded-[1.1rem] object-cover shadow-sm"
+                  className="relative z-10 h-10 w-10 rounded-full object-cover shadow-sm sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-[4.5rem] lg:w-[4.5rem]"
                 />
               </div>
             </motion.div>
             <motion.span 
-              initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+              initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
-              className="text-slate-900 dark:text-white block bg-clip-text"
+              transition={{ duration: 0.72, ease: [0.16, 1, 0.3, 1] }}
+              className="block whitespace-nowrap bg-clip-text text-slate-900 dark:text-white"
             >
               ICT Toppers
             </motion.span>
           </div>
-          <div className="h-24 sm:h-28 md:h-24 lg:h-32 flex items-center justify-center mt-2 px-2 overflow-hidden">
+          <div className="min-h-[4.8rem] sm:min-h-[5.6rem] md:min-h-[6.4rem] lg:min-h-[7.2rem] flex items-center justify-center mt-2 px-0 overflow-visible">
             <AnimatePresence mode="wait">
               <motion.span
                 key={phraseIndex}
-                initial={{ opacity: 0, y: 50, filter: "blur(8px)", scale: 0.95 }}
+                initial={{ opacity: 0, y: 16, filter: "blur(5px)", scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
-                exit={{ opacity: 0, y: -50, filter: "blur(8px)", scale: 1.05 }}
-                transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-red-600 inline-block w-full max-w-full drop-shadow-sm"
+                exit={{ opacity: 0, y: -14, filter: "blur(5px)", scale: 0.99 }}
+                transition={{ duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
+                className="inline-block w-full max-w-full whitespace-nowrap bg-gradient-to-r from-red-500 via-rose-500 to-red-600 bg-clip-text px-1 text-center text-[clamp(0.95rem,4.45vw,1.55rem)] leading-[1.18] text-transparent drop-shadow-sm sm:text-[clamp(1.8rem,4.7vw,4.5rem)]"
               >
                 {phrases[phraseIndex]}
               </motion.span>
@@ -396,8 +496,19 @@ export default function Home() {
               <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 mb-6 font-medium leading-8">Join the biggest HSC ICT Quiz in Bangladesh. Test your skills, compete with thousands, and win exciting prizes!</p>
               
               <div className="mb-6">
-                <Countdown />
+                {upcomingChallenge && <Countdown targetDate={upcomingChallenge.startsAt} />}
               </div>
+
+              {upcomingChallenge && upcomingChallenge.syllabus.length > 0 && (
+                <div className="mb-6 text-left border-l-2 border-indigo-400 pl-4">
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Syllabus:</p>
+                  <div className="flex flex-col gap-1">
+                    {upcomingChallenge.syllabus.map((topic, i) => (
+                      <p key={i} className="text-xs font-semibold text-slate-600 dark:text-slate-400">- {topic}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
                 <span className="inline-flex items-center gap-2 bg-slate-900/5 dark:bg-white/10 px-4 py-2 rounded-full text-sm font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><Trophy className="w-4 h-4 text-amber-400" /> 30 Marks</span>
@@ -416,7 +527,7 @@ export default function Home() {
       </motion.section>
 
       <MentorSection />
-      <FAQSection />
+      <StudentQuickStartSection />
     </motion.div>
   );
 }

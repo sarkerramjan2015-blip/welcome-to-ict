@@ -12,10 +12,13 @@ export interface ShortQuestion {
 }
 
 export interface PracticeMCQ {
+  id?: string;
   q: string;
   options: string[];
   correct: string;
   explanation: string;
+  boardQuestions?: string[];
+  difficulty?: string;
 }
 
 export interface QuizMCQ {

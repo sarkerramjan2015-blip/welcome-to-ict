@@ -16,10 +16,12 @@ import LiveCourseDashboard from './pages/LiveCourseDashboard';
 import BoardQuestionsIndex from './pages/BoardQuestionsIndex';
 import BoardQuestionDetails from './pages/BoardQuestionDetails';
 import Suggestions from './pages/Suggestions';
+import MCQPractice from './pages/MCQPractice';
 import EBookReader from './pages/EBookReader';
 import TopicList from './pages/TopicList';
 import TopicDetails from './pages/TopicDetails';
 import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 import AdminLogin from './pages/Admin/AdminLogin';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import MegaChallenge from './pages/MegaChallenge';
@@ -120,6 +122,7 @@ export default function App() {
                 <Route path="course-player" element={<PrivateRoute><CoursePlayer /></PrivateRoute>} />
                 <Route path="live-course-dashboard" element={<PrivateRoute><LiveCourseDashboard /></PrivateRoute>} />
                 <Route path="suggestions" element={<Suggestions />} />
+                <Route path="mcq-practice" element={<MCQPractice />} />
                 <Route path="board-questions" element={<BoardQuestionsIndex />} />
                 <Route path="board-questions/:boardYearSlug/:chapterSlug" element={<BoardQuestionDetails />} />
                 <Route path="ebook-reader" element={<PrivateRoute><EBookReader /></PrivateRoute>} />
@@ -127,6 +130,7 @@ export default function App() {
                 <Route path="chapters/:chapterId/topics" element={<TopicList />} />
                 <Route path="topics/:topicId" element={<TopicDetails />} />
                 <Route path="terms" element={<Terms />} />
+                <Route path="privacy" element={<Privacy />} />
                 <Route path="monthly-quiz" element={<MegaChallenge />} />
                 <Route path="payment/success" element={<SuccessPage />} />
                 <Route path="payment/cancel" element={<PaymentStatusPage type="cancel" />} />

@@ -26,6 +26,7 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   getDocs,
   onSnapshot,
   serverTimestamp,
@@ -642,8 +643,14 @@ export default function AdminDashboard() {
         throw new Error(`At least 30 valid MCQs are required in Firestore/mcqs. Found ${mcqs.length}.`);
       }
 
-      const selectedQuestions = shuffle(mcqs).slice(0, 30);
-      const challengeId = getCurrentChallengeId();
+      const currentRef = doc(firebaseDb, 'megaChallenges', 'current');
+      const currentSnap = await getDoc(currentRef);
+      let challengeId = getCurrentChallengeId();
+      
+      if (currentSnap.exists() && currentSnap.data().currentChallengeId) {
+        challengeId = currentSnap.data().currentChallengeId;
+      }
+      
       const now = new Date();
       const month = now.toLocaleString('default', { month: 'long' });
       const year = now.getFullYear();

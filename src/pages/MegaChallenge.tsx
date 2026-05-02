@@ -10,19 +10,12 @@ import { useLms } from '../context/LmsContext';
 import { createChallengePayment } from '../actions/paymentAction';
 import { firebaseDb } from '../lib/firebase';
 
-interface UpcomingChallenge {
-  id: string;
-  title: string;
-  month: string;
-  year: number;
-  fee: number;
-  startsAt: string | null;
-  endsAt: string | null;
-  syllabus: string[];
-  totalMarks: number;
-  durationMinutes: number;
-  status: string;
-}
+import { 
+  UpcomingChallenge, 
+  getFallbackChallenge, 
+  fetchApiChallenges, 
+  fetchFirestoreChallenges 
+} from '../lib/quiz-utils';
 
 const formatSchedule = (date: string | null) => {
   if (!date) return 'Schedule pending';
@@ -36,106 +29,6 @@ const formatSchedule = (date: string | null) => {
     minute: '2-digit',
     hour12: true,
   }).format(new Date(date));
-};
-
-const getFallbackChallenge = (): UpcomingChallenge => ({
-  id: 'monthly-quiz',
-  title: 'HSC ICT Monthly Quiz Exam',
-  month: new Date().toLocaleString('default', { month: 'long' }),
-  year: new Date().getFullYear(),
-  fee: 20,
-  startsAt: null,
-  endsAt: null,
-  syllabus: [],
-  totalMarks: 30,
-  durationMinutes: 30,
-  status: 'PUBLISHED',
-});
-
-const parseScheduleDate = (value: unknown): string | null => {
-  if (!value) return null;
-
-  if (typeof value === 'object' && value !== null && 'toDate' in value && typeof (value as { toDate?: unknown }).toDate === 'function') {
-    const date = (value as { toDate: () => Date }).toDate();
-    return Number.isNaN(date.getTime()) ? null : date.toISOString();
-  }
-
-  const date = value instanceof Date ? value : new Date(String(value));
-  return Number.isNaN(date.getTime()) ? null : date.toISOString();
-};
-
-const parseSyllabus = (value: unknown): string[] => {
-  if (Array.isArray(value)) {
-    return value.map(item => String(item).trim()).filter(Boolean);
-  }
-
-  if (typeof value === 'string') {
-    try {
-      const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) {
-        return parsed.map(item => String(item).trim()).filter(Boolean);
-      }
-    } catch {}
-
-    return value.split(/\r?\n|,/).map(item => item.trim()).filter(Boolean);
-  }
-
-  return [];
-};
-
-const normalizeChallenge = (id: string, data: Record<string, any>): UpcomingChallenge | null => {
-  const startsAt = parseScheduleDate(data.startsAt);
-  if (!startsAt || new Date(startsAt).getTime() < Date.now()) {
-    return null;
-  }
-
-  const status = String(data.status || 'LIVE').toUpperCase();
-  if (!['LIVE', 'PUBLISHED', 'APPROVED'].includes(status)) {
-    return null;
-  }
-
-  return {
-    id,
-    title: String(data.title || 'HSC ICT Monthly Quiz Exam').trim(),
-    month: String(data.month || new Date(startsAt).toLocaleString('en-US', { month: 'long', timeZone: 'Asia/Dhaka' })),
-    year: Number(data.year || new Date(startsAt).getFullYear()),
-    fee: Number(data.fee ?? 20),
-    startsAt,
-    endsAt: parseScheduleDate(data.endsAt),
-    syllabus: parseSyllabus(data.syllabus),
-    totalMarks: Number(data.totalMarks || data.questionCount || 30),
-    durationMinutes: Number(data.durationMinutes || 30),
-    status,
-  };
-};
-
-const fetchApiChallenges = async (): Promise<UpcomingChallenge[]> => {
-  try {
-    const response = await fetch('/api/challenges/upcoming');
-    if (!response.ok) return [];
-
-    const challenges = await response.json() as UpcomingChallenge[];
-    return challenges
-      .map(item => normalizeChallenge(item.id, item))
-      .filter((item): item is UpcomingChallenge => Boolean(item));
-  } catch {
-    return [];
-  }
-};
-
-const fetchFirestoreChallenges = async (): Promise<UpcomingChallenge[]> => {
-  if (!firebaseDb) return [];
-
-  try {
-    const snapshot = await getDocs(collection(firebaseDb, 'megaChallenges'));
-    return snapshot.docs
-      .filter(item => item.id !== 'current')
-      .map(item => normalizeChallenge(item.id, item.data()))
-      .filter((item): item is UpcomingChallenge => Boolean(item));
-  } catch (error) {
-    console.error('Failed to load Firestore quiz routines:', error);
-    return [];
-  }
 };
 
 const mergeChallenges = (items: UpcomingChallenge[]) => {
@@ -332,50 +225,93 @@ export default function MegaChallenge() {
         </div>
       )}
 
-      <motion.section
+            <motion.section
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
-        className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-slate-900/10 dark:border-white/20 shadow-xl shadow-black/10"
+        className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-slate-900/10 dark:border-white/20 shadow-xl shadow-black/10 relative overflow-hidden"
       >
-        <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-500 opacity-50" />
+        <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.18em] text-sky-400">Upcoming Quiz Schedule</p>
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white">Select a live registration slot</h2>
+            <p className="text-sm font-black uppercase tracking-[0.2em] bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-400 mb-2">Upcoming Quiz Schedule</p>
+            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Select a live registration slot</h2>
           </div>
-          <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Exam starts at 9:00 PM BDT | Entry fee Tk 20</p>
+          <div className="flex items-center gap-2 bg-slate-900/5 dark:bg-white/5 py-2 px-4 rounded-full border border-slate-900/10 dark:border-white/10 shadow-inner">
+            <Clock className="w-4 h-4 text-sky-400" />
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Exam starts at 9:00 PM BDT</p>
+          </div>
         </div>
 
         {upcomingChallenges.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-900/20 dark:border-white/20 p-6 text-center text-slate-600 dark:text-slate-300">
-            No upcoming quiz is published yet.
+          <div className="rounded-2xl border border-dashed border-slate-900/20 dark:border-white/20 p-8 text-center bg-slate-900/5 dark:bg-white/5">
+            <p className="text-lg font-medium text-slate-600 dark:text-slate-400">No upcoming quiz is published yet.</p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-3">
+          <motion.div 
+            className="grid gap-5 md:grid-cols-3"
+            variants={{
+              hidden: { opacity: 0 },
+              show: {
+                opacity: 1,
+                transition: { staggerChildren: 0.1 }
+              }
+            }}
+            initial="hidden"
+            animate="show"
+          >
             {upcomingChallenges.map((item) => {
               const isSelected = item.id === displayChallenge.id;
 
               return (
-                <button
+                <motion.button
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    show: { opacity: 1, y: 0 }
+                  }}
+                  whileHover={{ scale: 1.02, y: -4 }}
+                  whileTap={{ scale: 0.98 }}
                   key={item.id}
                   onClick={() => setChallenge(item)}
-                  className={`text-left rounded-2xl border p-5 transition-all ${
+                  className={`group text-left rounded-3xl border p-6 transition-all duration-300 relative overflow-hidden ${
                     isSelected
-                      ? 'border-sky-400 bg-sky-400/10 shadow-lg shadow-sky-500/10'
-                      : 'border-slate-900/10 bg-slate-900/5 hover:border-sky-400/50 dark:border-white/10 dark:bg-white/5'
+                      ? 'border-indigo-500/50 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 shadow-2xl shadow-indigo-500/20'
+                      : 'border-slate-900/10 bg-slate-900/5 hover:border-indigo-400/30 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
                   }`}
                 >
-                  <p className="text-sm font-black uppercase tracking-[0.14em] text-sky-400">{formatSchedule(item.startsAt)}</p>
-                  <h3 className="mt-3 text-xl font-black text-slate-900 dark:text-white">{item.title}</h3>
-                  <div className="mt-4 space-y-2">
-                    {item.syllabus.map((topic) => (
-                      <p key={topic} className="text-sm font-medium text-slate-600 dark:text-slate-300">- {topic}</p>
-                    ))}
+                  {isSelected && (
+                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
+                  )}
+                  {isSelected && (
+                    <motion.div 
+                      layoutId="active-indicator"
+                      className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400"
+                    />
+                  )}
+                  
+                  <div className="relative z-10 flex flex-col h-full">
+                    <p className={`text-xs font-black uppercase tracking-[0.18em] mb-3 transition-colors ${isSelected ? 'text-indigo-400 drop-shadow-sm' : 'text-sky-500 dark:text-sky-400 group-hover:text-indigo-400'}`}>
+                      {formatSchedule(item.startsAt)}
+                    </p>
+                    <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-tight mb-5">
+                      {item.title}
+                    </h3>
+                    
+                    <div className="space-y-2 mt-auto">
+                      {item.syllabus.map((topic, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <div className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${isSelected ? 'bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.8)]' : 'bg-slate-400 dark:bg-slate-500 group-hover:bg-indigo-300'}`} />
+                          <p className={`text-sm font-medium leading-relaxed ${isSelected ? 'text-slate-800 dark:text-slate-200' : 'text-slate-600 dark:text-slate-400'}`}>
+                            {topic}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </button>
+                </motion.button>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </motion.section>
 

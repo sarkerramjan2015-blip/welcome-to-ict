@@ -38,14 +38,17 @@ function PaymentMark({ type }: { type: 'bkash' | 'nagad' }) {
   );
 }
 
-export default function PremiumSubscriptionModal({ open, onClose, onUpgrade }: PremiumSubscriptionModalProps) {
+export default function PremiumSubscriptionModal({ open, onClose }: PremiumSubscriptionModalProps) {
   const [selectedPlan, setSelectedPlan] = useState<PremiumPlan>('yearly');
   const [loading, setLoading] = useState(false);
+  const [notice, setNotice] = useState('');
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = () => {
     setLoading(true);
-    await onUpgrade(selectedPlan);
-    setLoading(false);
+    window.setTimeout(() => {
+      setNotice(`${selectedPlan === 'yearly' ? 'Yearly' : 'Monthly'} premium payment method is under construction. Quiz Exam and ICT Short Suggestion payments are active now.`);
+      setLoading(false);
+    }, 250);
   };
 
   return (
@@ -153,11 +156,16 @@ export default function PremiumSubscriptionModal({ open, onClose, onUpgrade }: P
                   disabled={loading}
                   className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-4 text-sm font-black text-white shadow-2xl shadow-red-950/35 transition hover:-translate-y-0.5 hover:bg-red-500 disabled:opacity-60"
                 >
-                  {loading ? 'Activating Premium...' : 'Activate Premium'}
+                  {loading ? 'Checking...' : 'Payment Method Under Construction'}
                   <Zap className="size-4" />
                 </button>
+                {notice && (
+                  <div className="mt-3 rounded-2xl border border-amber-300/20 bg-amber-400/10 px-4 py-3 text-center text-xs font-bold text-amber-100">
+                    {notice}
+                  </div>
+                )}
                 <p className="mt-3 text-center text-xs font-medium text-slate-500">
-                  Mock checkout for preview. Payment gateway can be connected later.
+                  Premium checkout will be connected later.
                 </p>
               </div>
             </div>
