@@ -64,6 +64,7 @@ const mainNavLinks: NavItem[] = [
   { to: '/board-questions', label: 'Board Questions', icon: FileQuestion },
   { to: '/suggestions', label: 'Suggestions', icon: Lightbulb },
   { to: '/monthly-quiz', label: 'Quiz Exam', icon: Trophy, badge: 'LIVE' },
+  { to: '/admin', label: 'Admin', icon: LogIn },
 ];
 
 const getPageTitle = (pathname: string, isBoardQuestionPage: boolean) => {

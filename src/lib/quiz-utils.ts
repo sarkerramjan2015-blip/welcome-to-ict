@@ -22,25 +22,9 @@ export const fallbackSyllabus = [
 ];
 
 export const getNextFallbackQuizStart = () => {
-  const now = new Date();
-  const bdtOffset = 6 * 60 * 60 * 1000;
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const currentBdt = new Date(utc + bdtOffset);
-  
-  const nextQuizBdt = new Date(currentBdt);
-  nextQuizBdt.setHours(21, 0, 0, 0);
-  
-  const day = currentBdt.getDay();
-  const daysUntilFriday = (5 - day + 7) % 7;
-  
-  if (daysUntilFriday === 0 && currentBdt.getTime() > nextQuizBdt.getTime() + 30 * 60 * 1000) {
-    nextQuizBdt.setDate(nextQuizBdt.getDate() + 7);
-  } else {
-    nextQuizBdt.setDate(nextQuizBdt.getDate() + daysUntilFriday);
-  }
-  
-  const nextQuizUtc = new Date(nextQuizBdt.getTime() - bdtOffset);
-  return nextQuizUtc.toISOString();
+  // Set fixed date for 15 May 2026 at 9:00 PM BDT (15:00:00 UTC)
+  const fixedDateBdt = new Date('2026-05-15T21:00:00+06:00');
+  return fixedDateBdt.toISOString();
 };
 
 export const parseScheduleDate = (value: unknown): string | null => {
