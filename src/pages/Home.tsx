@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import Countdown from '../components/Countdown';
 import { BookOpen, BriefcaseBusiness, CreditCard, GraduationCap, NotebookTabs, Rocket, Timer, Trophy, Video, Users, Star, User, ChevronDown, Zap, ArrowRight } from 'lucide-react';
 import bioImage from '@/src/asset/bio_image-mentor.webp';
+import { motion, AnimatePresence } from 'motion/react';
 
 function useDeferredSections() {
   const [ready, setReady] = useState(false);
@@ -342,9 +343,19 @@ export default function Home() {
       </Helmet>
 
       <section className="px-4 sm:px-6 md:px-16 mt-8 md:mt-12 text-center">
-        <h1 className="text-[2.05rem] sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 break-words">
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="text-[2.05rem] sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 break-words"
+        >
           <div className="flex flex-row items-center justify-center gap-2.5 sm:gap-5 mb-2 sm:mb-4">
-            <div className="logo-dotted-shine relative flex shrink-0 items-center justify-center rounded-full p-[2px] shadow-[0_8px_26px_rgb(0,0,0,0.12)] ring-1 ring-slate-900/5 dark:ring-white/10">
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0, rotate: -15 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              transition={{ duration: 0.9, type: "spring", bounce: 0.5 }}
+              className="logo-dotted-shine relative flex shrink-0 items-center justify-center rounded-full p-[2px] shadow-[0_8px_26px_rgb(0,0,0,0.12)] ring-1 ring-slate-900/5 dark:ring-white/10"
+            >
               <div className="logo-shine-sweep relative overflow-hidden rounded-full bg-gradient-to-br from-white to-slate-50/95 p-1.5 sm:p-2 md:p-2.5 backdrop-blur-xl dark:from-slate-800 dark:to-slate-900/95 flex items-center justify-center">
                 <div className="absolute inset-0 bg-gradient-to-tr from-sky-400/20 via-transparent to-pink-400/20 opacity-50 mix-blend-overlay"></div>
                 <img 
@@ -360,21 +371,35 @@ export default function Home() {
                   className="relative z-10 h-10 w-10 rounded-full object-cover shadow-sm sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-[4.5rem] lg:w-[4.5rem]"
                 />
               </div>
-            </div>
+            </motion.div>
             <span className="block whitespace-nowrap bg-clip-text text-slate-900 dark:text-white">
               ICT Toppers
             </span>
           </div>
-          <div className="min-h-[4.8rem] sm:min-h-[5.6rem] md:min-h-[6.4rem] lg:min-h-[7.2rem] flex items-center justify-center mt-2 px-0 overflow-visible">
-            <span className="inline-block w-full max-w-full whitespace-nowrap bg-gradient-to-r from-red-500 via-rose-500 to-red-600 bg-clip-text px-1 text-center text-[clamp(0.95rem,4.45vw,1.55rem)] leading-[1.18] text-transparent drop-shadow-sm sm:text-[clamp(1.8rem,4.7vw,4.5rem)]">
-              {phrases[phraseIndex]}
-            </span>
+          <div className="min-h-[4.8rem] sm:min-h-[5.6rem] md:min-h-[6.4rem] lg:min-h-[7.2rem] flex items-center justify-center mt-2 px-0 overflow-visible relative">
+            <AnimatePresence mode="popLayout">
+              <motion.span 
+                key={phraseIndex}
+                initial={{ opacity: 0, y: 30, filter: 'blur(8px)', scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
+                exit={{ opacity: 0, y: -30, filter: 'blur(8px)', scale: 1.05 }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute inline-block w-full max-w-full whitespace-nowrap bg-gradient-to-r from-red-500 via-rose-500 to-red-600 bg-clip-text px-1 text-center text-[clamp(0.95rem,4.45vw,1.55rem)] leading-[1.18] text-transparent drop-shadow-sm sm:text-[clamp(1.8rem,4.7vw,4.5rem)]"
+              >
+                {phrases[phraseIndex]}
+              </motion.span>
+            </AnimatePresence>
           </div>
-        </h1>
+        </motion.h1>
         <p className="text-base md:text-[1.15rem] text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 md:mb-12 leading-relaxed md:leading-[1.8] font-medium px-2">
           ICT কি কঠিন লাগে? আর নয় দুশ্চিন্তা! বাংলাদেশের প্রথম <span className="text-sky-500 dark:text-sky-400 font-bold">ইন্টারঅ্যাকটিভ লার্নিং প্ল্যাটফর্মে</span> জটিল সব অধ্যায় বুঝে নাও একদম পানির মতো <span className="text-amber-600 dark:text-amber-400 font-bold">সহজ ভাষায়</span>। স্মার্ট নোট, আনলিমিটেড কুইজ আর মেন্টর সাপোর্ট—সবকিছু এখন <span className="text-sky-500 dark:text-sky-400 font-bold">এক জায়গায়</span>। বাসা থেকেই কনফিউশন কমাও, কনফিডেন্স বাড়াও এবং বোর্ড পরীক্ষার জন্য নিজেকে <span className="text-amber-600 dark:text-amber-400 font-bold">১০০% প্রস্তুত</span> করো।
         </p>
-        <div className="mb-12 flex flex-row items-center justify-center gap-2 md:gap-4 px-2 md:px-0">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.35, ease: "easeOut" }}
+          className="mb-12 flex flex-row items-center justify-center gap-2 md:gap-4 px-2 md:px-0"
+        >
           <Link to="/syllabus" className="group relative inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-red-600 via-rose-500 to-pink-600 p-[2px] font-black text-white shadow-[0_0_40px_rgba(225,29,72,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(225,29,72,0.6)] overflow-hidden flex-1 md:flex-none">
             <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%,transparent_100%)] bg-[length:250%_250%] animate-[shimmer_2s_infinite]"></div>
             <div className="relative flex items-center justify-center gap-1.5 md:gap-2 bg-gradient-to-r from-red-600 to-rose-600 px-3 py-2.5 md:px-8 md:py-4 rounded-[14px] w-full border border-white/10">
@@ -386,7 +411,7 @@ export default function Home() {
             <span className="tracking-wide text-[10px] md:text-base whitespace-nowrap">Join Quiz</span>
             <Trophy className="size-3.5 md:size-5 text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
           </Link>
-        </div>
+        </motion.div>
       </section>
 
       {/* Stats Counter Section */}

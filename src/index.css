@@ -493,28 +493,6 @@ td {
   }
 }
 
-@media (max-width: 768px) {
-  .premium-mesh-bg {
-    background-position: center;
-  }
-
-  .premium-mesh-bg::after {
-    display: none;
-  }
-
-  .animate-spin-slow,
-  .logo-dotted-shine::before,
-  .logo-dotted-shine::after,
-  .logo-shine-sweep::after,
-  .moving-light-card::before,
-  .premium-glow-card::before,
-  .mentor-cinema-card::before,
-  .mentor-cinema-aura,
-  .mentor-wa-button,
-  .topic-visual-scan::after {
-    animation: none !important;
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   *,

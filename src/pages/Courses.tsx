@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { BookOpen, Video, CheckCircle, CreditCard, Clock } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { BookOpen, Video, CheckCircle, CreditCard, Clock, Info, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useLms } from '../context/LmsContext';
@@ -11,6 +11,7 @@ export default function Courses() {
   const navigate = useNavigate();
   const location = useLocation();
   const [paymentError, setPaymentError] = useState('');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   
   // Dummy Countdown State (5 days from now)
   const [timeLeft, setTimeLeft] = useState({ days: 5, hours: 12, minutes: 30, seconds: 0 });
@@ -46,7 +47,7 @@ export default function Courses() {
       return;
     }
 
-    setPaymentError('Course payment method is under construction. Quiz Exam and ICT Short Suggestion payment are active now.');
+    setShowPaymentModal(true);
   };
 
   return (
@@ -108,7 +109,7 @@ export default function Courses() {
             className="w-full py-4 px-4 bg-slate-900/5 dark:bg-white/10 hover:bg-slate-900/20 dark:hover:bg-white/20 text-slate-900 dark:text-white rounded-xl font-bold text-base md:text-lg transition-colors flex items-center justify-center gap-2"
           >
             <CreditCard className="w-5 h-5" />
-            Payment Method Under Construction
+            Buy Course
           </button>
         </motion.div>
 
@@ -159,10 +160,53 @@ export default function Courses() {
             className="w-full py-4 px-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-xl font-bold text-base md:text-lg transition-all shadow-xl shadow-pink-500/25 flex items-center justify-center gap-2"
           >
             <CreditCard className="w-5 h-5" />
-            Payment Method Under Construction
+            Buy Course
           </button>
         </motion.div>
       </div>
+
+      <AnimatePresence>
+        {showPaymentModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowPaymentModal(false)}
+              className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-[#0f172a] p-6 shadow-2xl border border-sky-500/20"
+            >
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="absolute right-4 top-4 text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sky-500/20 text-sky-400">
+                  <Info className="h-8 w-8" />
+                </div>
+                <h3 className="mb-2 text-2xl font-bold text-amber-500">দুঃখিত!</h3>
+                <p className="mb-6 text-base font-medium leading-relaxed text-slate-300">
+                  পেমেন্ট সিস্টেমটি বর্তমানে ডেভেলপমেন্ট মোডে আছে। শীঘ্রই এই ফিচারটি চালু করা হবে। আমাদের সাথেই থাকুন!
+                </p>
+                <button
+                  onClick={() => setShowPaymentModal(false)}
+                  className="w-full rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 px-6 py-3 font-bold text-white shadow-lg shadow-sky-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  ঠিক আছে
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
