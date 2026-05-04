@@ -13,7 +13,7 @@ const getFirebaseServiceAccount = () => {
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
   if (!projectId || !clientEmail || !privateKey) {
-    throw new Error('Missing Firebase Admin credentials.');
+    return null;
   }
 
   return {
@@ -24,9 +24,14 @@ const getFirebaseServiceAccount = () => {
 };
 
 const getAdminDb = () => {
+  const serviceAccount = getFirebaseServiceAccount();
+  if (!serviceAccount) {
+    return null;
+  }
+
   if (!getApps().length) {
     initializeApp({
-      credential: cert(getFirebaseServiceAccount()),
+      credential: cert(serviceAccount),
     });
   }
 
@@ -97,7 +102,12 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const snapshot = await getAdminDb().collection('megaChallenges').get();
+    const adminDb = getAdminDb();
+    if (!adminDb) {
+      return res.status(200).json([]);
+    }
+
+    const snapshot = await adminDb.collection('megaChallenges').get();
     const challenges = snapshot.docs
       .filter(item => item.id !== 'current')
       .map(item => normalizeChallenge(item.id, item.data()))
@@ -106,7 +116,9 @@ export default async function handler(req: any, res: any) {
 
     return res.status(200).json(challenges);
   } catch (error) {
-    console.error('Failed to fetch upcoming quiz routines:', error);
-    return res.status(500).json({ error: 'Failed to fetch upcoming challenges' });
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Failed to fetch upcoming quiz routines:', error);
+    }
+    return res.status(200).json([]);
   }
 }

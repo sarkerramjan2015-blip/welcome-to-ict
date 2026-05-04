@@ -1,8 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { onAuthStateChanged, signInWithPopup, signOut, type User as FirebaseUser } from 'firebase/auth';
+import type { User as FirebaseUser } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { firebaseAuth, googleProvider, isFirebaseConfigured } from '../lib/firebase';
-import { motion, AnimatePresence } from 'motion/react';
+import { getFirebaseAuth, getGoogleProvider, isFirebaseConfigured } from '../lib/firebase';
 
 export type UserRole = 'admin' | 'student';
 
@@ -52,6 +51,15 @@ const getStoredUsers = (): User[] => {
     return users.map(normalizeUser);
   } catch {
     return [];
+  }
+};
+
+const getStoredSession = (): User | null => {
+  try {
+    const rawUser = localStorage.getItem(USER_KEY);
+    return rawUser ? normalizeUser(JSON.parse(rawUser) as Partial<User>) : null;
+  } catch {
+    return null;
   }
 };
 
@@ -120,6 +128,18 @@ const getAuthErrorMessage = (error: unknown) => {
 const getUserHomePath = (nextUser: User) =>
   nextUser.role === 'admin' ? '/admin/dashboard' : '/dashboard';
 
+const runAfterFirstPaint = (callback: () => void) => {
+  const idleCallback = window.requestIdleCallback;
+
+  if (idleCallback) {
+    const id = idleCallback(callback, { timeout: 2500 });
+    return () => window.cancelIdleCallback?.(id);
+  }
+
+  const timeout = window.setTimeout(callback, 1200);
+  return () => window.clearTimeout(timeout);
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const pendingLoginOptionsRef = useRef<LoginOptions | null>(null);
@@ -149,80 +169,101 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+    let cancelled = false;
     const isManualAdmin = localStorage.getItem('isAdmin') === 'true';
+    const manualAdminUser: User = {
+      id: 'admin-manual',
+      name: 'Super Admin',
+      email: 'admin@ict.com',
+      role: 'admin',
+      isPremium: true,
+    };
 
-    if (!firebaseAuth) {
-      if (isManualAdmin) {
-        setUser({
-          id: 'admin-manual',
-          name: 'Super Admin',
-          email: 'admin@ict.com',
-          role: 'admin',
-          isPremium: true,
-        });
-      } else {
-        clearStoredSession();
-        setUser(null);
-      }
-      setAuthReady(true);
-      return undefined;
+    if (isManualAdmin) {
+      setUser(manualAdminUser);
+    } else {
+      setUser(getStoredSession());
     }
 
-    return onAuthStateChanged(
-      firebaseAuth,
-      firebaseUser => {
-        if (firebaseUser) {
-          const nextUser = buildFirebaseUser(firebaseUser);
-          persistSession(nextUser);
-          const options = pendingLoginOptionsRef.current;
-          if (options) {
-            pendingLoginOptionsRef.current = null;
-            navigate(options.redirectTo || getUserHomePath(nextUser), { replace: options.replace ?? true });
+    setAuthReady(true);
+
+    const cancelIdle = runAfterFirstPaint(() => {
+      if (!isFirebaseConfigured) {
+        return;
+      }
+
+      void (async () => {
+        const [{ onAuthStateChanged }, auth] = await Promise.all([
+          import('firebase/auth'),
+          getFirebaseAuth(),
+        ]);
+
+        if (cancelled || !auth) return;
+
+        unsubscribe = onAuthStateChanged(
+          auth,
+          firebaseUser => {
+            if (firebaseUser) {
+              const nextUser = buildFirebaseUser(firebaseUser);
+              persistSession(nextUser);
+              const options = pendingLoginOptionsRef.current;
+              if (options) {
+                pendingLoginOptionsRef.current = null;
+                navigate(options.redirectTo || getUserHomePath(nextUser), { replace: options.replace ?? true });
+              }
+            } else if (isManualAdmin) {
+              setUser(manualAdminUser);
+            } else {
+              setUser(null);
+              clearStoredSession();
+            }
+          },
+          error => {
+            if (isManualAdmin) {
+              setUser(manualAdminUser);
+            } else {
+              setAuthError(getAuthErrorMessage(error));
+            }
           }
-        } else if (isManualAdmin) {
-          // Keep manual admin session even if Firebase auth is signed out
-          setUser({
-            id: 'admin-manual',
-            name: 'Super Admin',
-            email: 'admin@ict.com',
-            role: 'admin',
-            isPremium: true,
-          });
-        } else {
-          setUser(null);
-          clearStoredSession();
-        }
-        setAuthReady(true);
-      },
-      error => {
-        if (isManualAdmin) {
-          setUser({
-            id: 'admin-manual',
-            name: 'Super Admin',
-            email: 'admin@ict.com',
-            role: 'admin',
-            isPremium: true,
-          });
-        } else {
+        );
+      })().catch(error => {
+        if (!cancelled) {
           setAuthError(getAuthErrorMessage(error));
         }
-        setAuthReady(true);
-      }
-    );
-  }, [clearStoredSession, persistSession]);
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      cancelIdle();
+      unsubscribe?.();
+    };
+  }, [clearStoredSession, navigate, persistSession]);
 
 
   const loginWithGoogle = async (options: LoginOptions = {}) => {
     setAuthError('');
 
-    if (!isFirebaseConfigured || !firebaseAuth) {
+    if (!isFirebaseConfigured) {
       setAuthError('auth/missing-config: Firebase keys are not configured. Check your VITE_FIREBASE_* environment variables.');
       return;
     }
 
     try {
       pendingLoginOptionsRef.current = options;
-      await signInWithPopup(firebaseAuth, googleProvider);
+      const [{ signInWithPopup }, auth, provider] = await Promise.all([
+        import('firebase/auth'),
+        getFirebaseAuth(),
+        getGoogleProvider(),
+      ]);
+
+      if (!auth || !provider) {
+        setAuthError('auth/missing-config: Firebase keys are not configured. Check your VITE_FIREBASE_* environment variables.');
+        return;
+      }
+
+      await signInWithPopup(auth, provider);
     } catch (error: any) {
       pendingLoginOptionsRef.current = null;
       if (error?.code === 'auth/popup-closed-by-user') {
@@ -246,8 +287,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     clearStoredSession();
     localStorage.removeItem('isAdmin');
-    if (firebaseAuth) {
-      void signOut(firebaseAuth).catch(() => undefined);
+    if (isFirebaseConfigured) {
+      void Promise.all([
+        import('firebase/auth'),
+        getFirebaseAuth(),
+      ])
+        .then(([{ signOut }, auth]) => auth ? signOut(auth) : undefined)
+        .catch(() => undefined);
     }
   };
 
@@ -264,19 +310,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{ user, authReady, authError, isAuthenticated, userRole, login, loginWithGoogle, logout, updateProfile }}>
       {children}
-      <AnimatePresence>
+      <>
         {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+          <div
             className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-red-500/90 text-white px-6 py-3 rounded-2xl shadow-2xl backdrop-blur-md border border-red-400/50 flex items-center gap-3 font-medium whitespace-nowrap"
           >
             <span className="text-xl">⚠️</span>
             {toastMessage}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </>
     </AuthContext.Provider>
   );
 }

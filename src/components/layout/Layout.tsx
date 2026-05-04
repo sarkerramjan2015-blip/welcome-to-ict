@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'motion/react';
 import {
   BookOpen,
   Brain,
@@ -21,12 +20,14 @@ import {
   UserPlus,
   X,
 } from 'lucide-react';
-import Footer from './Footer';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import PremiumSubscriptionModal, { type PremiumPlan } from '../PremiumSubscriptionModal';
+import type { PremiumPlan } from '../PremiumSubscriptionModal';
 import AnnouncementBar from '../ui/AnnouncementBar';
-import AIChatbot from '../ui/AIChatbot';
+
+const Footer = lazy(() => import('./Footer'));
+const AIChatbot = lazy(() => import('../ui/AIChatbot'));
+const PremiumSubscriptionModal = lazy(() => import('../PremiumSubscriptionModal'));
 
 const PREMIUM_PROMPT_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_SEO_TITLE = 'ICT Toppers | 1st Time in Bangladesh: Interactive HSC ICT Platform';
@@ -93,6 +94,27 @@ const isActivePath = (pathname: string, currentHash: string, to: string) => {
   return pathname === pathOnly || pathname.startsWith(`${pathOnly}/`);
 };
 
+function useDeferredMount(enabled = true) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!enabled) {
+      setReady(false);
+      return undefined;
+    }
+
+    if (window.requestIdleCallback) {
+      const id = window.requestIdleCallback(() => setReady(true), { timeout: 2500 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+
+    const timeout = window.setTimeout(() => setReady(true), 1400);
+    return () => window.clearTimeout(timeout);
+  }, [enabled]);
+
+  return ready;
+}
+
 export default function Layout() {
   const location = useLocation();
   const { user, authReady, authError, userRole, logout, updateProfile } = useAuth();
@@ -105,6 +127,7 @@ export default function Layout() {
   const isHomePage = location.pathname === '/';
   const pageTitle = getPageTitle(location.pathname, isBoardQuestionPage);
   const dashboardPath = userRole === 'admin' ? '/admin/dashboard' : '/dashboard';
+  const deferredUiReady = useDeferredMount();
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 12);
@@ -230,15 +253,23 @@ export default function Layout() {
       <SEO title={pageTitle} disabled={isBoardQuestionPage} />
       {!isBoardQuestionPage && <div className="premium-mesh-bg" aria-hidden="true"></div>}
 
-      <motion.header
-        animate={{ paddingTop: isScrolled ? 8 : 14, paddingBottom: isScrolled ? 8 : 14 }}
-        transition={{ duration: 0.2 }}
-        className="sticky top-0 z-50 flex items-center justify-between gap-3 border-b border-slate-900/10 bg-slate-50/88 px-4 shadow-sm shadow-slate-950/0 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/88 sm:px-6 md:px-10 lg:px-16"
+      <header
+        className={`sticky top-0 z-50 flex items-center justify-between gap-3 border-b border-slate-900/10 bg-slate-50/88 px-4 shadow-sm shadow-slate-950/0 backdrop-blur-2xl transition-[padding] duration-200 dark:border-white/10 dark:bg-slate-950/88 sm:px-6 md:px-10 lg:px-16 ${isScrolled ? 'py-2' : 'py-3.5'}`}
       >
         <Link to="/" className="flex shrink-0 items-center gap-2 sm:gap-2.5">
           <span className="logo-dotted-shine flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-900/10 dark:bg-white/10 dark:ring-white/10 sm:h-10 sm:w-10">
             <span className="logo-shine-sweep h-full w-full overflow-hidden rounded-full">
-              <img src="/logo.jpeg" alt="ICT Toppers" className="h-full w-full rounded-full object-cover" />
+              <img
+                src="/logo-128.webp"
+                srcSet="/logo-128.webp 128w, /logo-256.webp 256w"
+                sizes="40px"
+                alt=""
+                aria-hidden="true"
+                width="40"
+                height="40"
+                decoding="async"
+                className="h-full w-full rounded-full object-cover"
+              />
             </span>
           </span>
           <span className="whitespace-nowrap text-lg font-black tracking-tight text-slate-950 dark:text-white sm:text-xl">ICT Toppers</span>
@@ -328,13 +359,9 @@ export default function Layout() {
           </button>
         </div>
 
-        <AnimatePresence>
+        <>
           {isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.98 }}
-              transition={{ duration: 0.2 }}
+            <div
               className="absolute left-3 right-3 top-[calc(100%+0.5rem)] rounded-3xl border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/95 xl:hidden"
             >
               <div className="grid gap-1">
@@ -405,53 +432,49 @@ export default function Layout() {
                   </div>
                 )}
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
-      </motion.header>
+        </>
+      </header>
 
       {!isBoardQuestionPage && <AnnouncementBar />}
 
       <main className="relative z-10 flex flex-1 flex-col" data-protected-content="true">
         <section className="flex flex-1 flex-col" aria-label="ICT Toppers page content">
-          <Outlet />
+          <Suspense fallback={<div className="flex min-h-[45vh] flex-1 items-center justify-center px-6 text-center text-sm font-bold text-slate-500 dark:text-slate-300">Loading...</div>}>
+            <Outlet />
+          </Suspense>
         </section>
       </main>
 
-      <AnimatePresence>
+      <>
         {authError && (
-          <motion.div
-            initial={{ opacity: 0, y: 18, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            transition={{ duration: 0.22 }}
+          <div
             className="fixed left-1/2 top-24 z-[85] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 rounded-2xl border border-rose-400/25 bg-slate-950/95 px-5 py-4 text-left text-sm font-bold text-rose-100 shadow-2xl shadow-rose-950/35 backdrop-blur-2xl break-words"
           >
             {authError}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </>
 
-      <AnimatePresence>
+      <>
         {securityToastVisible && (
-          <motion.div
-            initial={{ opacity: 0, y: 24, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.96 }}
-            transition={{ duration: 0.22 }}
+          <div
             className="fixed left-1/2 bottom-24 z-[80] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-2xl border border-red-400/25 bg-slate-950/90 px-5 py-4 text-center text-sm font-black text-red-100 shadow-2xl shadow-red-950/40 backdrop-blur-2xl"
           >
             কনটেন্ট কপি করা নিষেধ!
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </>
 
-      {!isBoardQuestionPage && (
-        <PremiumSubscriptionModal
-          open={premiumModalOpen}
-          onClose={() => setPremiumModalOpen(false)}
-          onUpgrade={handlePremiumUpgrade}
-        />
+      {deferredUiReady && !isBoardQuestionPage && (
+        <Suspense fallback={null}>
+          <PremiumSubscriptionModal
+            open={premiumModalOpen}
+            onClose={() => setPremiumModalOpen(false)}
+            onUpgrade={handlePremiumUpgrade}
+          />
+        </Suspense>
       )}
 
       {!location.pathname.startsWith('/topics/') && !isBoardQuestionPage && (
@@ -470,13 +493,19 @@ export default function Layout() {
         </a>
       )}
 
-      {!isBoardQuestionPage && (
+      {deferredUiReady && !isBoardQuestionPage && (
         <div className="hidden md:block">
-          <AIChatbot />
+          <Suspense fallback={null}>
+            <AIChatbot />
+          </Suspense>
         </div>
       )}
 
-      <Footer />
+      {deferredUiReady && (
+        <Suspense fallback={null}>
+          <Footer />
+        </Suspense>
+      )}
     </div>
   );
 }

@@ -1,6 +1,3 @@
-import { collection, getDocs } from 'firebase/firestore';
-import { firebaseDb } from './firebase';
-
 export interface UpcomingChallenge {
   id: string;
   title: string;
@@ -120,28 +117,10 @@ export const fetchApiChallenges = async (): Promise<UpcomingChallenge[]> => {
   }
 };
 
-export const fetchFirestoreChallenges = async (): Promise<UpcomingChallenge[]> => {
-  if (!firebaseDb) return [];
-
-  try {
-    const snapshot = await getDocs(collection(firebaseDb, 'megaChallenges'));
-    return snapshot.docs
-      .filter(item => item.id !== 'current')
-      .map(item => normalizeChallenge(item.id, item.data()))
-      .filter((item): item is UpcomingChallenge => Boolean(item));
-  } catch (error) {
-    console.error('Failed to load Firestore quiz routines:', error);
-    return [];
-  }
-};
+export const fetchFirestoreChallenges = async (): Promise<UpcomingChallenge[]> => [];
 
 export const fetchUpcomingChallenge = async (): Promise<UpcomingChallenge> => {
-  const [apiChallenges, firestoreChallenges] = await Promise.all([
-    fetchApiChallenges(),
-    fetchFirestoreChallenges(),
-  ]);
-  
-  const items = [...apiChallenges, ...firestoreChallenges];
+  const items = await fetchApiChallenges();
   const byId = new Map<string, UpcomingChallenge>();
   items.forEach(item => byId.set(item.id, item));
 

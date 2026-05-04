@@ -1,6 +1,6 @@
-import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import type { FirebaseApp, FirebaseOptions } from 'firebase/app';
+import type { Auth, GoogleAuthProvider } from 'firebase/auth';
+import type { Firestore } from 'firebase/firestore';
 
 /** Strip accidental literal quote characters that Vercel can inject into env values. */
 function sanitizeEnv(value: string | undefined): string {
@@ -8,7 +8,7 @@ function sanitizeEnv(value: string | undefined): string {
   return String(value).replace(/['"]/g, '').trim();
 }
 
-const firebaseConfig = {
+const firebaseConfig: FirebaseOptions = {
   apiKey:            sanitizeEnv(import.meta.env.VITE_FIREBASE_API_KEY),
   authDomain:        sanitizeEnv(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN),
   projectId:         sanitizeEnv(import.meta.env.VITE_FIREBASE_PROJECT_ID),
@@ -25,14 +25,59 @@ export const isFirebaseConfigured = Boolean(
   firebaseConfig.appId
 );
 
-export const firebaseApp = isFirebaseConfigured
-  ? (getApps()[0] ?? initializeApp(firebaseConfig))
-  : null;
+let firebaseAppPromise: Promise<FirebaseApp | null> | null = null;
+let firebaseAuthPromise: Promise<Auth | null> | null = null;
+let firebaseDbPromise: Promise<Firestore | null> | null = null;
+let googleProviderPromise: Promise<GoogleAuthProvider | null> | null = null;
 
-export const firebaseAuth: Auth | null = firebaseApp ? getAuth(firebaseApp) : null;
-export const firebaseDb: Firestore | null = firebaseApp ? getFirestore(firebaseApp) : null;
+export const getFirebaseApp = async (): Promise<FirebaseApp | null> => {
+  if (!isFirebaseConfigured) return null;
 
-export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({
-  prompt: 'select_account',
-});
+  if (!firebaseAppPromise) {
+    firebaseAppPromise = import('firebase/app').then(({ getApps, initializeApp }) =>
+      getApps()[0] ?? initializeApp(firebaseConfig)
+    );
+  }
+
+  return firebaseAppPromise;
+};
+
+export const getFirebaseAuth = async (): Promise<Auth | null> => {
+  if (!isFirebaseConfigured) return null;
+
+  if (!firebaseAuthPromise) {
+    firebaseAuthPromise = Promise.all([
+      getFirebaseApp(),
+      import('firebase/auth'),
+    ]).then(([app, { getAuth }]) => app ? getAuth(app) : null);
+  }
+
+  return firebaseAuthPromise;
+};
+
+export const getFirebaseDb = async (): Promise<Firestore | null> => {
+  if (!isFirebaseConfigured) return null;
+
+  if (!firebaseDbPromise) {
+    firebaseDbPromise = Promise.all([
+      getFirebaseApp(),
+      import('firebase/firestore'),
+    ]).then(([app, { getFirestore }]) => app ? getFirestore(app) : null);
+  }
+
+  return firebaseDbPromise;
+};
+
+export const getGoogleProvider = async (): Promise<GoogleAuthProvider | null> => {
+  if (!isFirebaseConfigured) return null;
+
+  if (!googleProviderPromise) {
+    googleProviderPromise = import('firebase/auth').then(({ GoogleAuthProvider }) => {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      return provider;
+    });
+  }
+
+  return googleProviderPromise;
+};

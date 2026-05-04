@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Trophy, Lock, PlayCircle, CheckCircle, Clock, BookOpen, CreditCard, Sparkles, Loader2 } from 'lucide-react';
-import { collection, getDocs } from 'firebase/firestore';
 import ChallengeExam from '../components/ChallengeExam';
 import Countdown from '../components/Countdown';
 import ShareButton from '../components/ui/ShareButton';
 import { motion } from 'motion/react';
 import { useLms } from '../context/LmsContext';
 import { createChallengePayment } from '../actions/paymentAction';
-import { firebaseDb } from '../lib/firebase';
 
 import { 
   UpcomingChallenge, 
   getFallbackChallenge, 
-  fetchApiChallenges, 
-  fetchFirestoreChallenges 
+  fetchApiChallenges,
 } from '../lib/quiz-utils';
 
 const formatSchedule = (date: string | null) => {
@@ -64,14 +61,11 @@ export default function MegaChallenge() {
   }, [user, challenge, challengeEnrollments, loading]);
 
   const fetchChallenge = async () => {
-    const [apiChallenges, firestoreChallenges] = await Promise.all([
-      fetchApiChallenges(),
-      fetchFirestoreChallenges(),
-    ]);
-    const challenges = mergeChallenges([...apiChallenges, ...firestoreChallenges]);
+    const challenges = mergeChallenges(await fetchApiChallenges());
+    const fallbackChallenge = getFallbackChallenge();
 
-    setUpcomingChallenges(challenges);
-    setChallenge(challenges[0] || null);
+    setUpcomingChallenges(challenges.length ? challenges : [fallbackChallenge]);
+    setChallenge(challenges[0] || fallbackChallenge);
     setLoading(false);
   };
 

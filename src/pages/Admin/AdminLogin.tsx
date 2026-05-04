@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, KeyRound, MessageSquare, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { firebaseAuth } from '../../lib/firebase';
+import { getFirebaseAuth } from '../../lib/firebase';
 import emailjs from '@emailjs/browser';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -41,6 +40,8 @@ export default function AdminLogin() {
       return;
     }
 
+    const firebaseAuth = await getFirebaseAuth();
+
     if (!firebaseAuth) {
       setError('Firebase Auth কনফিগার করা নেই।');
       return;
@@ -50,6 +51,7 @@ export default function AdminLogin() {
     setLoadingText('OTP পাঠানো হচ্ছে, দয়া করে অপেক্ষা করুন...');
     
     try {
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
       await signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
 
       // Generate a random 6-digit numeric code

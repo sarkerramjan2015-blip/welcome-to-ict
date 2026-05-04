@@ -1,24 +1,26 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { fetchUpcomingChallenge, UpcomingChallenge } from '../lib/quiz-utils';
+import { fetchUpcomingChallenge, getFallbackChallenge, type UpcomingChallenge } from '../lib/quiz-utils';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import Countdown from '../components/Countdown';
 import { BookOpen, BriefcaseBusiness, CreditCard, GraduationCap, NotebookTabs, Rocket, Timer, Trophy, Video, Users, Star, User, ChevronDown, Zap, ArrowRight } from 'lucide-react';
-import bioImage from '@/src/asset/bio_image.png';
+import bioImage from '@/src/asset/bio_image-mentor.webp';
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
-};
+function useDeferredSections() {
+  const [ready, setReady] = useState(false);
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-};
+  React.useEffect(() => {
+    if (window.requestIdleCallback) {
+      const id = window.requestIdleCallback(() => setReady(true), { timeout: 2200 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+
+    const timeout = window.setTimeout(() => setReady(true), 1200);
+    return () => window.clearTimeout(timeout);
+  }, []);
+
+  return ready;
+}
 
 function WhatsAppIcon({ className = 'size-5' }: { className?: string }) {
   return (
@@ -33,12 +35,8 @@ function WhatsAppIcon({ className = 'size-5' }: { className?: string }) {
 
 function MentorSection() {
   return (
-    <motion.section
+    <section
       id="mentor-section"
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.25 }}
-      transition={{ duration: 0.55 }}
       className="scroll-mt-28 px-4 sm:px-6 md:px-16 mb-16 md:mb-20 w-full"
     >
       <div className="mx-auto max-w-5xl">
@@ -47,7 +45,7 @@ function MentorSection() {
             href="https://wa.me/8801518657869"
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute right-4 top-4 z-20 inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:scale-105 hover:bg-emerald-400"
+            className="absolute right-4 top-4 z-20 inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-700 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-700/25 transition-all duration-300 hover:scale-105 hover:bg-emerald-800"
             aria-label="Message mentor on WhatsApp"
           >
             <WhatsAppIcon className="size-5" />
@@ -62,6 +60,10 @@ function MentorSection() {
                   <img
                     src={bioImage}
                     alt="Md. Ramjan Sarker"
+                    width="384"
+                    height="494"
+                    loading="lazy"
+                    decoding="async"
                     className="size-full rounded-[1.8rem] object-cover object-top"
                   />
                 </div>
@@ -92,7 +94,7 @@ function MentorSection() {
           </div>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 }
 
@@ -112,11 +114,7 @@ function FAQSection() {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
 
   return (
-    <motion.section 
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.1 }}
-      transition={{ duration: 0.55 }}
+    <section 
       className="px-4 sm:px-6 md:px-16 mb-20 max-w-4xl mx-auto w-full"
     >
       <div className="text-center mb-10">
@@ -133,24 +131,19 @@ function FAQSection() {
               <span className="pr-4">{faq.q}</span>
               <ChevronDown className={`size-5 shrink-0 transition-transform duration-300 ${openIdx === idx ? 'rotate-180 text-sky-500' : 'text-slate-400'}`} />
             </button>
-            <AnimatePresence>
+            <>
               {openIdx === idx && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
+                <div>
                   <div className="px-6 pb-5 text-slate-600 dark:text-gray-300 leading-relaxed border-t border-slate-900/5 dark:border-white/5 pt-4">
                     {faq.a}
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+            </>
           </div>
         ))}
       </div>
-    </motion.section>
+    </section>
   );
 }
 
@@ -183,11 +176,7 @@ function StudentQuickStartSection() {
   ];
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.18 }}
-      transition={{ duration: 0.55 }}
+    <section
       className="px-4 sm:px-6 md:px-16 mb-20 w-full"
     >
       <div className="mx-auto max-w-6xl">
@@ -249,7 +238,71 @@ function StudentQuickStartSection() {
           </Link>
         </div>
       </div>
-    </motion.section>
+    </section>
+  );
+}
+
+function QuizExamBanner() {
+  const [upcomingChallenge, setUpcomingChallenge] = useState<UpcomingChallenge>(() => getFallbackChallenge());
+
+  React.useEffect(() => {
+    let mounted = true;
+    void fetchUpcomingChallenge()
+      .then(challenge => {
+        if (mounted) setUpcomingChallenge(challenge);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  return (
+    <section
+      className="px-4 sm:px-6 md:px-16 mb-20 max-w-4xl mx-auto w-full"
+    >
+      <Link to="/monthly-quiz" className="block group relative">
+        <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+        <div className="relative bg-white/[0.08] backdrop-blur-3xl border border-slate-900/10 dark:border-white/20 rounded-3xl p-5 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden shadow-2xl shadow-indigo-500/10">
+          <div className="absolute top-0 right-0 bg-sky-500/80 backdrop-blur-md text-white px-6 py-1 rounded-bl-2xl font-bold font-mono text-xs shadow-lg border-b border-l border-slate-900/10 dark:border-white/10 uppercase">
+            Upcoming
+          </div>
+
+          <div className="flex-1 text-center md:text-left">
+            <h2 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white mb-4 break-words">HSC ICT Monthly Quiz Exam</h2>
+            <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 mb-6 font-medium leading-8">Join the biggest HSC ICT Quiz in Bangladesh. Test your skills, compete with thousands, and win exciting prizes!</p>
+
+            <div className="mb-6">
+              <Countdown targetDate={upcomingChallenge.startsAt} />
+            </div>
+
+            {upcomingChallenge.syllabus.length > 0 && (
+              <div className="mb-6 text-left border-l-2 border-indigo-400 pl-4">
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Syllabus:</p>
+                <div className="flex flex-col gap-1">
+                  {upcomingChallenge.syllabus.map((topic, i) => (
+                    <p key={i} className="text-xs font-semibold text-slate-600 dark:text-slate-400">- {topic}</p>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+              <span className="inline-flex items-center gap-2 bg-slate-900/5 dark:bg-white/10 px-4 py-2 rounded-full text-sm font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><Trophy className="w-4 h-4 text-amber-400" /> 30 Marks</span>
+              <span className="inline-flex items-center gap-2 bg-slate-900/5 dark:bg-white/10 px-4 py-2 rounded-full text-sm font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><Timer className="w-4 h-4 text-sky-400" /> 30 Minutes</span>
+              <span className="inline-flex items-center gap-2 bg-slate-900/5 dark:bg-white/10 px-4 py-2 rounded-full text-sm font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><CreditCard className="w-4 h-4 text-emerald-400" /> 20 TK Entry</span>
+            </div>
+          </div>
+
+          <div className="shrink-0 w-full md:w-auto">
+            <div className="w-full text-center px-8 py-4 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl font-bold text-lg text-white shadow-[0_0_20px_rgba(236,72,153,0.5)] group-hover:shadow-[0_0_30px_rgba(236,72,153,0.7)] group-hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 border border-slate-900/10 dark:border-white/20">
+              Join Quiz Exam <Rocket className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+      </Link>
+    </section>
   );
 }
 
@@ -262,11 +315,9 @@ export default function Home() {
   ];
 
   const [phraseIndex, setPhraseIndex] = useState(0);
-  const [upcomingChallenge, setUpcomingChallenge] = useState<UpcomingChallenge | null>(null);
+  const showDeferredSections = useDeferredSections();
 
   React.useEffect(() => {
-    fetchUpcomingChallenge().then(setUpcomingChallenge);
-    
     const interval = setInterval(() => {
       setPhraseIndex((prev) => (prev + 1) % phrases.length);
     }, 3400);
@@ -274,12 +325,7 @@ export default function Home() {
   }, []);
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="flex-1 flex flex-col"
-    >
+    <div className="flex-1 flex flex-col">
       <Helmet>
         <title>ICT Toppers | Interactive HSC ICT Platform in Bangladesh</title>
         <meta name="description" content="Practice HSC ICT MCQ, board questions, chapter-wise lessons, smart suggestions, and monthly exams from home with ICT Toppers." />
@@ -298,71 +344,37 @@ export default function Home() {
       <section className="px-4 sm:px-6 md:px-16 mt-8 md:mt-12 text-center">
         <h1 className="text-[2.05rem] sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 break-words">
           <div className="flex flex-row items-center justify-center gap-2.5 sm:gap-5 mb-2 sm:mb-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.72, rotate: -8 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ duration: 0.65, type: "spring", stiffness: 240, damping: 22 }}
-              className="logo-dotted-shine relative flex shrink-0 items-center justify-center rounded-full p-[2px] shadow-[0_8px_26px_rgb(0,0,0,0.12)] ring-1 ring-slate-900/5 dark:ring-white/10"
-            >
+            <div className="logo-dotted-shine relative flex shrink-0 items-center justify-center rounded-full p-[2px] shadow-[0_8px_26px_rgb(0,0,0,0.12)] ring-1 ring-slate-900/5 dark:ring-white/10">
               <div className="logo-shine-sweep relative overflow-hidden rounded-full bg-gradient-to-br from-white to-slate-50/95 p-1.5 sm:p-2 md:p-2.5 backdrop-blur-xl dark:from-slate-800 dark:to-slate-900/95 flex items-center justify-center">
-                <motion.div
-                  animate={{ 
-                    y: [-2, 2, -2],
-                    boxShadow: [
-                      "0px 0px 0px 0px rgba(56, 189, 248, 0)",
-                      "0px 8px 18px -6px rgba(56, 189, 248, 0.32)",
-                      "0px 0px 0px 0px rgba(56, 189, 248, 0)"
-                    ]
-                  }}
-                  transition={{ duration: 4.6, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-0 rounded-full"
-                />
                 <div className="absolute inset-0 bg-gradient-to-tr from-sky-400/20 via-transparent to-pink-400/20 opacity-50 mix-blend-overlay"></div>
                 <img 
-                  src="/logo.jpeg" 
-                  alt="ICT Toppers Logo" 
+                  src="/logo-128.webp"
+                  srcSet="/logo-128.webp 128w, /logo-256.webp 256w"
+                  sizes="(min-width: 1024px) 72px, (min-width: 768px) 64px, (min-width: 640px) 56px, 40px"
+                  alt=""
+                  aria-hidden="true"
+                  width="72"
+                  height="72"
+                  decoding="async"
+                  fetchPriority="high"
                   className="relative z-10 h-10 w-10 rounded-full object-cover shadow-sm sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-[4.5rem] lg:w-[4.5rem]"
                 />
               </div>
-            </motion.div>
-            <motion.span 
-              initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ duration: 0.72, ease: [0.16, 1, 0.3, 1] }}
-              className="block whitespace-nowrap bg-clip-text text-slate-900 dark:text-white"
-            >
+            </div>
+            <span className="block whitespace-nowrap bg-clip-text text-slate-900 dark:text-white">
               ICT Toppers
-            </motion.span>
+            </span>
           </div>
           <div className="min-h-[4.8rem] sm:min-h-[5.6rem] md:min-h-[6.4rem] lg:min-h-[7.2rem] flex items-center justify-center mt-2 px-0 overflow-visible">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={phraseIndex}
-                initial={{ opacity: 0, y: 16, filter: "blur(5px)", scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
-                exit={{ opacity: 0, y: -14, filter: "blur(5px)", scale: 0.99 }}
-                transition={{ duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
-                className="inline-block w-full max-w-full whitespace-nowrap bg-gradient-to-r from-red-500 via-rose-500 to-red-600 bg-clip-text px-1 text-center text-[clamp(0.95rem,4.45vw,1.55rem)] leading-[1.18] text-transparent drop-shadow-sm sm:text-[clamp(1.8rem,4.7vw,4.5rem)]"
-              >
-                {phrases[phraseIndex]}
-              </motion.span>
-            </AnimatePresence>
+            <span className="inline-block w-full max-w-full whitespace-nowrap bg-gradient-to-r from-red-500 via-rose-500 to-red-600 bg-clip-text px-1 text-center text-[clamp(0.95rem,4.45vw,1.55rem)] leading-[1.18] text-transparent drop-shadow-sm sm:text-[clamp(1.8rem,4.7vw,4.5rem)]">
+              {phrases[phraseIndex]}
+            </span>
           </div>
         </h1>
-        <motion.p 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.7, ease: "easeOut" }}
-          className="text-base md:text-[1.15rem] text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 md:mb-12 leading-relaxed md:leading-[1.8] font-medium px-2"
-        >
+        <p className="text-base md:text-[1.15rem] text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 md:mb-12 leading-relaxed md:leading-[1.8] font-medium px-2">
           ICT কি কঠিন লাগে? আর নয় দুশ্চিন্তা! বাংলাদেশের প্রথম <span className="text-sky-500 dark:text-sky-400 font-bold">ইন্টারঅ্যাকটিভ লার্নিং প্ল্যাটফর্মে</span> জটিল সব অধ্যায় বুঝে নাও একদম পানির মতো <span className="text-amber-600 dark:text-amber-400 font-bold">সহজ ভাষায়</span>। স্মার্ট নোট, আনলিমিটেড কুইজ আর মেন্টর সাপোর্ট—সবকিছু এখন <span className="text-sky-500 dark:text-sky-400 font-bold">এক জায়গায়</span>। বাসা থেকেই কনফিউশন কমাও, কনফিডেন্স বাড়াও এবং বোর্ড পরীক্ষার জন্য নিজেকে <span className="text-amber-600 dark:text-amber-400 font-bold">১০০% প্রস্তুত</span> করো।
-        </motion.p>
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.32, duration: 0.45 }}
-          className="mb-12 flex flex-row items-center justify-center gap-2 md:gap-4 px-2 md:px-0"
-        >
+        </p>
+        <div className="mb-12 flex flex-row items-center justify-center gap-2 md:gap-4 px-2 md:px-0">
           <Link to="/syllabus" className="group relative inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-red-600 via-rose-500 to-pink-600 p-[2px] font-black text-white shadow-[0_0_40px_rgba(225,29,72,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(225,29,72,0.6)] overflow-hidden flex-1 md:flex-none">
             <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%,transparent_100%)] bg-[length:250%_250%] animate-[shimmer_2s_infinite]"></div>
             <div className="relative flex items-center justify-center gap-1.5 md:gap-2 bg-gradient-to-r from-red-600 to-rose-600 px-3 py-2.5 md:px-8 md:py-4 rounded-[14px] w-full border border-white/10">
@@ -374,41 +386,35 @@ export default function Home() {
             <span className="tracking-wide text-[10px] md:text-base whitespace-nowrap">Join Quiz</span>
             <Trophy className="size-3.5 md:size-5 text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
           </Link>
-        </motion.div>
+        </div>
       </section>
 
       {/* Stats Counter Section */}
-      <motion.section 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
+      <section 
         className="px-2 sm:px-6 md:px-16 mb-16 max-w-5xl mx-auto w-full grid grid-cols-3 gap-2 md:gap-6"
       >
         <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-xl border border-sky-500/20 rounded-xl md:rounded-2xl p-2 md:p-6 flex flex-col items-center justify-center text-center shadow-[0_0_20px_rgba(56,189,248,0.1)] hover:shadow-[0_0_30px_rgba(56,189,248,0.2)] transition-shadow group">
           <Video className="w-4 h-4 md:w-10 md:h-10 text-sky-400 mb-1 md:mb-3 group-hover:scale-110 transition-transform" />
-          <h3 className="text-xs md:text-3xl font-black text-slate-900 dark:text-white mb-0.5 md:mb-1 leading-none">১০০+</h3>
+          <p className="text-xs md:text-3xl font-black text-slate-900 dark:text-white mb-0.5 md:mb-1 leading-none">১০০+</p>
           <p className="text-[8px] md:text-base text-slate-600 dark:text-gray-300 font-bold leading-none">ভিডিও লেসন</p>
         </div>
         <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-xl border border-indigo-500/20 rounded-xl md:rounded-2xl p-2 md:p-6 flex flex-col items-center justify-center text-center shadow-[0_0_20px_rgba(99,102,241,0.1)] hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-shadow group">
           <BookOpen className="w-4 h-4 md:w-10 md:h-10 text-indigo-400 mb-1 md:mb-3 group-hover:scale-110 transition-transform" />
-          <h3 className="text-xs md:text-3xl font-black text-slate-900 dark:text-white mb-0.5 md:mb-1 leading-none">৫০০০+</h3>
+          <p className="text-xs md:text-3xl font-black text-slate-900 dark:text-white mb-0.5 md:mb-1 leading-none">৫০০০+</p>
           <p className="text-[8px] md:text-base text-slate-600 dark:text-gray-300 font-bold leading-none">প্র্যাকটিস MCQ</p>
         </div>
         <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-xl border border-emerald-500/20 rounded-xl md:rounded-2xl p-2 md:p-6 flex flex-col items-center justify-center text-center shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:shadow-[0_0_30px_rgba(16,185,129,0.2)] transition-shadow group">
           <Users className="w-4 h-4 md:w-10 md:h-10 text-emerald-400 mb-1 md:mb-3 group-hover:scale-110 transition-transform" />
-          <h3 className="text-xs md:text-3xl font-black text-slate-900 dark:text-white mb-0.5 md:mb-1 leading-none">১০০০+</h3>
+          <p className="text-xs md:text-3xl font-black text-slate-900 dark:text-white mb-0.5 md:mb-1 leading-none">১০০০+</p>
           <p className="text-[8px] md:text-base text-slate-600 dark:text-gray-300 font-bold leading-none">সাকসেস স্টুডেন্ট</p>
         </div>
-      </motion.section>
+    </section>
 
       {/* Categories Grid */}
-      <motion.section 
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
+      <section 
         className="px-4 sm:px-6 md:px-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 max-w-7xl mx-auto w-full pb-14 md:pb-16"
       >
-        <motion.div variants={itemVariants} className="block group h-full">
+        <div className="block group h-full">
           <Link to="/syllabus" className="relative rounded-3xl overflow-hidden p-[2px] h-full block">
             <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,#38bdf8_360deg)] animate-spin-slow"></div>
             <div className="absolute inset-0 bg-[conic-gradient(from_180deg,transparent_0_300deg,#818cf8_360deg)] animate-spin-slow"></div>
@@ -423,9 +429,9 @@ export default function Home() {
               </div>
             </div>
           </Link>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants} className="block group h-full">
+        <div className="block group h-full">
           <div className="relative rounded-3xl overflow-hidden p-[2px] h-full block opacity-60 cursor-not-allowed">
             <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,#f43f5e_360deg)] animate-spin-slow"></div>
             <div className="absolute inset-0 bg-[conic-gradient(from_180deg,transparent_0_300deg,#fb7185_360deg)] animate-spin-slow"></div>
@@ -440,9 +446,9 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants} className="block group h-full">
+        <div className="block group h-full">
           <div className="relative rounded-3xl overflow-hidden p-[2px] h-full block opacity-60 cursor-not-allowed">
             <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,#f43f5e_360deg)] animate-spin-slow"></div>
             <div className="absolute inset-0 bg-[conic-gradient(from_180deg,transparent_0_300deg,#fb7185_360deg)] animate-spin-slow"></div>
@@ -457,9 +463,9 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants} className="block group h-full">
+        <div className="block group h-full">
           <div className="relative rounded-3xl overflow-hidden p-[2px] h-full block opacity-60 cursor-not-allowed">
             <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,#f43f5e_360deg)] animate-spin-slow"></div>
             <div className="absolute inset-0 bg-[conic-gradient(from_180deg,transparent_0_300deg,#fb7185_360deg)] animate-spin-slow"></div>
@@ -474,60 +480,16 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </motion.div>
-      </motion.section>
+        </div>
+      </section>
 
-      {/* Quiz Exam Banner */}
-      <motion.section 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-        className="px-4 sm:px-6 md:px-16 mb-20 max-w-4xl mx-auto w-full"
-      >
-        <Link to="/monthly-quiz" className="block group relative">
-          <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-          <div className="relative bg-white/[0.08] backdrop-blur-3xl border border-slate-900/10 dark:border-white/20 rounded-3xl p-5 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden shadow-2xl shadow-indigo-500/10">
-            <div className="absolute top-0 right-0 bg-sky-500/80 backdrop-blur-md text-white px-6 py-1 rounded-bl-2xl font-bold font-mono text-xs shadow-lg border-b border-l border-slate-900/10 dark:border-white/10 uppercase">
-              Upcoming
-            </div>
-            
-            <div className="flex-1 text-center md:text-left">
-              <h2 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white mb-4 break-words">HSC ICT Monthly Quiz Exam</h2>
-              <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 mb-6 font-medium leading-8">Join the biggest HSC ICT Quiz in Bangladesh. Test your skills, compete with thousands, and win exciting prizes!</p>
-              
-              <div className="mb-6">
-                {upcomingChallenge && <Countdown targetDate={upcomingChallenge.startsAt} />}
-              </div>
-
-              {upcomingChallenge && upcomingChallenge.syllabus.length > 0 && (
-                <div className="mb-6 text-left border-l-2 border-indigo-400 pl-4">
-                  <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Syllabus:</p>
-                  <div className="flex flex-col gap-1">
-                    {upcomingChallenge.syllabus.map((topic, i) => (
-                      <p key={i} className="text-xs font-semibold text-slate-600 dark:text-slate-400">- {topic}</p>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-                <span className="inline-flex items-center gap-2 bg-slate-900/5 dark:bg-white/10 px-4 py-2 rounded-full text-sm font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><Trophy className="w-4 h-4 text-amber-400" /> 30 Marks</span>
-                <span className="inline-flex items-center gap-2 bg-slate-900/5 dark:bg-white/10 px-4 py-2 rounded-full text-sm font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><Timer className="w-4 h-4 text-sky-400" /> 30 Minutes</span>
-                <span className="inline-flex items-center gap-2 bg-slate-900/5 dark:bg-white/10 px-4 py-2 rounded-full text-sm font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><CreditCard className="w-4 h-4 text-emerald-400" /> 20 TK Entry</span>
-              </div>
-            </div>
-            
-            <div className="shrink-0 w-full md:w-auto">
-              <div className="w-full text-center px-8 py-4 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl font-bold text-lg text-white shadow-[0_0_20px_rgba(236,72,153,0.5)] group-hover:shadow-[0_0_30px_rgba(236,72,153,0.7)] group-hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 border border-slate-900/10 dark:border-white/20">
-                Join Quiz Exam <Rocket className="w-5 h-5" />
-              </div>
-            </div>
-          </div>
-        </Link>
-      </motion.section>
-
-      <MentorSection />
-      <StudentQuickStartSection />
-    </motion.div>
+      {showDeferredSections && (
+        <>
+          <QuizExamBanner />
+          <MentorSection />
+          <StudentQuickStartSection />
+        </>
+      )}
+    </div>
   );
 }

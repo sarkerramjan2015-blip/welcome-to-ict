@@ -67,7 +67,18 @@ export default function Footer() {
         <div>
           <Link to="/" className="inline-flex items-center gap-3">
             <span className="flex h-11 w-11 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-900/10 dark:bg-white/10 dark:ring-white/10">
-              <img src="/logo.jpeg" alt="ICT Toppers" className="h-full w-full object-cover" />
+              <img
+                src="/logo-128.webp"
+                srcSet="/logo-128.webp 128w, /logo-256.webp 256w"
+                sizes="44px"
+                alt=""
+                aria-hidden="true"
+                width="44"
+                height="44"
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
             </span>
             <span className="text-2xl font-black">ICT Toppers</span>
           </Link>
@@ -128,7 +139,7 @@ export default function Footer() {
               href="https://wa.me/8801518657869"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-sm font-black text-white transition hover:bg-emerald-400"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-emerald-700 px-4 py-2 text-sm font-black text-white transition hover:bg-emerald-800"
             >
               <MessageCircle className="h-4 w-4" /> WhatsApp
             </a>

@@ -33,9 +33,10 @@ import {
   setDoc,
   writeBatch,
 } from 'firebase/firestore';
+import type { Firestore } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
 import { useLms } from '../../context/LmsContext';
-import { firebaseDb } from '../../lib/firebase';
+import { getFirebaseDb } from '../../lib/firebase';
 
 type ActionType = 'chapter' | 'topic' | 'mcq' | 'cq' | 'course' | 'suggestion' | 'challenge';
 type Notice = { type: 'success' | 'error'; text: string } | null;
@@ -501,11 +502,27 @@ export default function AdminDashboard() {
   const [forms, setForms] = useState<FormState>(() => makeInitialForms());
   const [notice, setNotice] = useState<Notice>(null);
   const [trafficTotal, setTrafficTotal] = useState<number | null>(null);
+  const [firebaseDb, setFirebaseDb] = useState<Firestore | null | undefined>(undefined);
 
   useEffect(() => {
+    let mounted = true;
+    void getFirebaseDb().then(db => {
+      if (mounted) setFirebaseDb(db);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (firebaseDb === undefined) {
+      return undefined;
+    }
+
     if (!firebaseDb) {
       setTrafficTotal(0);
-      return;
+      return undefined;
     }
 
     return onSnapshot(
@@ -518,7 +535,7 @@ export default function AdminDashboard() {
         setTrafficTotal(0);
       }
     );
-  }, []);
+  }, [firebaseDb]);
 
   const statCards = useMemo(() => ([
     { label: 'Total Chapters', value: adminStats.chapters, icon: BookOpen, iconClass: 'bg-indigo-500/20 text-indigo-400', delay: 0.1 },
@@ -568,6 +585,11 @@ export default function AdminDashboard() {
   const saveAction = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!activeAction || !requireAdminSession()) return;
+
+    if (firebaseDb === undefined) {
+      setNotice({ type: 'error', text: 'Firebase is still loading. Please try again in a moment.' });
+      return;
+    }
 
     if (!firebaseDb) {
       setNotice({ type: 'error', text: 'Firebase is not configured. Check your VITE_FIREBASE_* environment variables.' });
@@ -625,6 +647,11 @@ export default function AdminDashboard() {
   const generateChallenge = async () => {
     if (!requireAdminSession()) return;
 
+    if (firebaseDb === undefined) {
+      setNotice({ type: 'error', text: 'Firebase is still loading. Please try again in a moment.' });
+      return;
+    }
+
     if (!firebaseDb) {
       setNotice({ type: 'error', text: 'Firebase is not configured. Challenge generation needs Firestore access.' });
       return;
@@ -643,6 +670,7 @@ export default function AdminDashboard() {
         throw new Error(`At least 30 valid MCQs are required in Firestore/mcqs. Found ${mcqs.length}.`);
       }
 
+      const selectedQuestions = [...mcqs].sort(() => Math.random() - 0.5).slice(0, 30);
       const currentRef = doc(firebaseDb, 'megaChallenges', 'current');
       const currentSnap = await getDoc(currentRef);
       let challengeId = getCurrentChallengeId();
@@ -873,7 +901,7 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      {!firebaseDb && (
+      {firebaseDb === null && (
         <div className="mb-6 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-5 py-4 text-sm font-semibold text-amber-300">
           Firestore is not configured. Add the VITE_FIREBASE_* environment variables before using admin write actions.
         </div>
