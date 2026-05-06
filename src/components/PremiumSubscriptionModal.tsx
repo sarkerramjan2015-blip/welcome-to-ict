@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Check, Crown, Headphones, ShieldCheck, Trophy, X, Zap } from 'lucide-react';
+import { ArrowLeft, Check, Crown, Headphones, ShieldCheck, Trophy, X, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import PaymentGateway from './PaymentGateway';
 
 export type PremiumPlan = 'monthly' | 'yearly';
 
@@ -39,16 +41,15 @@ function PaymentMark({ type }: { type: 'bkash' | 'nagad' }) {
 }
 
 export default function PremiumSubscriptionModal({ open, onClose }: PremiumSubscriptionModalProps) {
+  const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState<PremiumPlan>('yearly');
-  const [loading, setLoading] = useState(false);
-  const [notice, setNotice] = useState('');
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
 
-  const handleUpgrade = () => {
-    setLoading(true);
-    window.setTimeout(() => {
-      setNotice(`${selectedPlan === 'yearly' ? 'Yearly' : 'Monthly'} premium payment method is under construction. Quiz Exam and ICT Short Suggestion payments are active now.`);
-      setLoading(false);
-    }, 250);
+  const selectedPlanInfo = plans.find(plan => plan.id === selectedPlan) ?? plans[1];
+
+  const handleClose = () => {
+    setShowPaymentForm(false);
+    onClose();
   };
 
   return (
@@ -70,13 +71,51 @@ export default function PremiumSubscriptionModal({ open, onClose }: PremiumSubsc
             <div className="absolute inset-0 rounded-[1.7rem] bg-[radial-gradient(circle_at_16%_8%,rgba(239,68,68,0.22),transparent_28%),radial-gradient(circle_at_90%_18%,rgba(20,184,166,0.14),transparent_26%),linear-gradient(180deg,rgba(255,255,255,0.08),transparent_36%)]" />
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="absolute right-4 top-4 z-20 rounded-full border border-white/10 bg-white/10 p-2 text-white/70 transition hover:bg-white/20 hover:text-white"
               aria-label="Close premium subscription modal"
             >
               <X className="size-5" />
             </button>
 
+            {showPaymentForm ? (
+              <div className="relative z-10">
+                <button
+                  type="button"
+                  onClick={() => setShowPaymentForm(false)}
+                  className="mb-4 inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-black text-white transition hover:bg-white/15"
+                >
+                  <ArrowLeft className="size-4" />
+                  Change Plan
+                </button>
+                <PaymentGateway
+                  courseId={`premium-${selectedPlanInfo.id}`}
+                  courseTitle={`ICT Toppers Premium - ${selectedPlanInfo.name}`}
+                  amount={selectedPlanInfo.price}
+                  paymentType="premium"
+                  title="Premium Payment"
+                  eyebrow="ICT Toppers Premium"
+                  instructionText="Send Money using bKash or Nagad, then submit your sender number, TrxID, and screenshot. After review, your Premium access will be activated."
+                  submitButtonLabel="Submit Premium Payment"
+                  successTitle="Premium Payment Submitted"
+                  successMessage="আপনার প্রিমিয়াম পেমেন্ট সফলভাবে সাবমিট হয়েছে! আমরা এটি রিভিউ করছি। অনুমোদনের পর আপনার প্রিমিয়াম অ্যাক্সেস চালু হবে।"
+                  onSubmitted={(paymentId) => {
+                    localStorage.setItem(
+                      'ict-toppers:premium-payment-pending',
+                      JSON.stringify({
+                        paymentId,
+                        plan: selectedPlanInfo.id,
+                        submittedAt: new Date().toISOString(),
+                      })
+                    );
+                    window.setTimeout(() => {
+                      handleClose();
+                      navigate('/dashboard');
+                    }, 1400);
+                  }}
+                />
+              </div>
+            ) : (
             <div className="relative z-10 grid gap-6 md:grid-cols-[0.92fr_1.08fr]">
               <div className="flex flex-col justify-between rounded-[1.35rem] border border-white/10 bg-white/[0.045] p-5">
                 <div>
@@ -152,23 +191,18 @@ export default function PremiumSubscriptionModal({ open, onClose }: PremiumSubsc
 
                 <button
                   type="button"
-                  onClick={handleUpgrade}
-                  disabled={loading}
+                  onClick={() => setShowPaymentForm(true)}
                   className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-4 text-sm font-black text-white shadow-2xl shadow-red-950/35 transition hover:-translate-y-0.5 hover:bg-red-500 disabled:opacity-60"
                 >
-                  {loading ? 'Checking...' : 'Payment Method Under Construction'}
+                  Continue with bKash/Nagad
                   <Zap className="size-4" />
                 </button>
-                {notice && (
-                  <div className="mt-3 rounded-2xl border border-amber-300/20 bg-amber-400/10 px-4 py-3 text-center text-xs font-bold text-amber-100">
-                    {notice}
-                  </div>
-                )}
                 <p className="mt-3 text-center text-xs font-medium text-slate-500">
-                  Premium checkout will be connected later.
+                  Manual verification keeps Premium activation clean and secure.
                 </p>
               </div>
             </div>
+            )}
           </motion.div>
         </motion.div>
       )}

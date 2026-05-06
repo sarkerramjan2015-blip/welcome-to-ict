@@ -4,6 +4,7 @@ import { Trophy, CheckCircle, Clock, Book, User as UserIcon, Edit2, Save, X, Cam
 import { Link } from 'react-router-dom';
 import { useLms } from '../context/LmsContext';
 import AdBanner from '../components/AdBanner';
+import { fetchManualPayments, type ManualPaymentRecord } from '../services/manualPayment';
 
 interface Task {
   id: string;
@@ -11,6 +12,23 @@ interface Task {
   priority: 'High' | 'Medium' | 'Low';
   completed: boolean;
 }
+
+const PREMIUM_PENDING_KEY = 'ict-toppers:premium-payment-pending';
+
+const readLocalPremiumPending = () => {
+  try {
+    return JSON.parse(localStorage.getItem(PREMIUM_PENDING_KEY) || 'null') as { paymentId?: string; plan?: string } | null;
+  } catch {
+    return null;
+  }
+};
+
+const getPaymentType = (payment: ManualPaymentRecord) => {
+  if (payment.paymentType) return payment.paymentType;
+  if (payment.courseId.startsWith('premium-')) return 'premium';
+  if (payment.courseId.startsWith('quiz-')) return 'quiz';
+  return 'course';
+};
 
 export default function Dashboard() {
   const { user, updateProfile } = useAuth();
@@ -21,6 +39,8 @@ export default function Dashboard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [phoneError, setPhoneError] = useState('');
+  const [manualPayments, setManualPayments] = useState<ManualPaymentRecord[]>([]);
+  const [localPremiumPending, setLocalPremiumPending] = useState(readLocalPremiumPending);
 
   // Profile Edit State
   const [isEditing, setIsEditing] = useState(false);
@@ -46,6 +66,60 @@ export default function Dashboard() {
     }
     setLoading(false);
   }, [user]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setManualPayments([]);
+      setLocalPremiumPending(null);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const loadPayments = async () => {
+      setLocalPremiumPending(readLocalPremiumPending());
+      try {
+        const payments = await fetchManualPayments();
+        if (!cancelled) {
+          setManualPayments(payments);
+        }
+      } catch {
+        if (!cancelled) {
+          setManualPayments([]);
+        }
+      }
+    };
+
+    void loadPayments();
+    const intervalId = window.setInterval(loadPayments, 15000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const pendingPayments = manualPayments.filter(payment => payment.status === 'pending');
+    const approvedPremium = manualPayments.find(payment =>
+      payment.status === 'approved' && getPaymentType(payment) === 'premium'
+    );
+
+    if (approvedPremium && !user.isPremium) {
+      void updateProfile({
+        isPremium: true,
+        premiumPlan: approvedPremium.courseId.includes('monthly') ? 'monthly' : 'yearly',
+        premiumSince: approvedPremium.approvedAt || new Date().toISOString(),
+      });
+    }
+
+    if (pendingPayments.length === 0 && approvedPremium) {
+      localStorage.removeItem(PREMIUM_PENDING_KEY);
+      setLocalPremiumPending(null);
+    }
+  }, [manualPayments, updateProfile, user]);
 
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,6 +226,8 @@ export default function Dashboard() {
 
   const hasPurchasedSuggestion = localStorage.getItem('hasPurchasedSuggestion') === 'true';
   const enrollments = challengeEnrollments;
+  const pendingManualPayments = manualPayments.filter(payment => payment.status === 'pending');
+  const hasPendingPayment = pendingManualPayments.length > 0 || Boolean(localPremiumPending && !user.isPremium);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -190,6 +266,12 @@ export default function Dashboard() {
               <span className={`rounded-full border px-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.16em] ${user.isPremium ? 'border-amber-300/40 bg-amber-400/15 text-amber-300' : 'border-slate-400/20 bg-slate-900/5 text-slate-500 dark:bg-white/5 dark:text-slate-400'}`}>
                 {user.isPremium ? 'Premium' : 'Free'}
               </span>
+              {hasPendingPayment && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/40 bg-amber-400/15 px-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.12em] text-amber-500 dark:text-amber-300">
+                  <Clock className="h-3.5 w-3.5" />
+                  Status: Pending
+                </span>
+              )}
             </div>
 
             {isEditing ? (

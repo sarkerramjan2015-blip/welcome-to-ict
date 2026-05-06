@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Trophy, Lock, PlayCircle, CheckCircle, Clock, BookOpen, CreditCard, Sparkles, Loader2 } from 'lucide-react';
+import { Trophy, Lock, PlayCircle, CheckCircle, Clock, BookOpen, CreditCard, Sparkles, X } from 'lucide-react';
 import ChallengeExam from '../components/ChallengeExam';
 import Countdown from '../components/Countdown';
 import ShareButton from '../components/ui/ShareButton';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useLms } from '../context/LmsContext';
-import { createChallengePayment } from '../actions/paymentAction';
+import PaymentGateway from '../components/PaymentGateway';
 
 import { 
   UpcomingChallenge, 
@@ -47,8 +47,9 @@ export default function MegaChallenge() {
   const [enrollment, setEnrollment] = useState<any>(null);
   const [showExam, setShowExam] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState('');
+  const [paymentNotice, setPaymentNotice] = useState('');
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
   useEffect(() => {
     fetchChallenge();
@@ -96,6 +97,7 @@ export default function MegaChallenge() {
     if (!user) return;
 
     setPaymentError('');
+    setPaymentNotice('');
     const nextEnrollment = enrollment || enrollChallenge(selectedChallenge.id, selectedChallenge.fee);
     if (nextEnrollment) {
       setEnrollment(nextEnrollment);
@@ -109,24 +111,7 @@ export default function MegaChallenge() {
       return;
     }
 
-    setPaymentLoading(true);
-    try {
-      const payment = await createChallengePayment({
-        userId: user.id,
-        fullName: user.name || 'ICT Toppers Student',
-        email: user.email,
-        challengeId: selectedChallenge.id,
-        challengeTitle: selectedChallenge.title || 'HSC ICT Monthly Quiz Exam',
-        amount: selectedChallenge.fee || 20,
-        challengeMonth: selectedChallenge.month,
-        challengeYear: selectedChallenge.year,
-      });
-      window.location.href = payment.paymentUrl;
-    } catch (error: any) {
-      console.error('UddoktaPay challenge checkout error:', error);
-      setPaymentError(error?.message || 'Failed to create payment link. Please try again.');
-      setPaymentLoading(false);
-    }
+    setPaymentModalOpen(true);
   };
 
   const handleJoin = async () => {
@@ -216,6 +201,12 @@ export default function MegaChallenge() {
       {paymentError && (
         <div className="rounded-2xl border border-rose-400/30 bg-rose-400/10 px-5 py-4 text-sm font-semibold text-rose-300">
           {paymentError}
+        </div>
+      )}
+
+      {paymentNotice && (
+        <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-5 py-4 text-sm font-semibold text-emerald-200">
+          {paymentNotice}
         </div>
       )}
 
@@ -402,8 +393,7 @@ export default function MegaChallenge() {
                 <>
                   <button
                     type="button"
-                    disabled={paymentLoading}
-                    className="flex flex-col items-center gap-2 group disabled:cursor-wait disabled:opacity-60"
+                    className="flex flex-col items-center gap-2 group"
                     onClick={handlePaymentClick}
                   >
                     <div className="h-12 w-20 bg-white/90 rounded-xl p-2 flex items-center justify-center border border-slate-900/10 dark:border-white/20 shadow-lg group-hover:scale-105 transition-transform">
@@ -413,8 +403,7 @@ export default function MegaChallenge() {
                   </button>
                   <button
                     type="button"
-                    disabled={paymentLoading}
-                    className="flex flex-col items-center gap-2 group disabled:cursor-wait disabled:opacity-60"
+                    className="flex flex-col items-center gap-2 group"
                     onClick={handlePaymentClick}
                   >
                     <div className="h-12 w-20 bg-white/90 rounded-xl p-2 flex items-center justify-center border border-slate-900/10 dark:border-white/20 shadow-lg group-hover:scale-105 transition-transform">
@@ -439,11 +428,10 @@ export default function MegaChallenge() {
             ) : !enrollment ? (
               <button 
                 onClick={handleJoin}
-                disabled={paymentLoading}
                 className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
               >
-                {paymentLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                {paymentLoading ? 'Opening Checkout...' : user?.isPremium ? 'Activate Free Premium Exam' : `Join the Exam for Tk ${displayChallenge.fee}`}
+                <Sparkles className="w-5 h-5" />
+                {user?.isPremium ? 'Activate Free Premium Exam' : `Register for Tk ${displayChallenge.fee}`}
               </button>
             ) : enrollment.paymentStatus === 'PENDING' ? (
               user?.isPremium ? (
@@ -457,11 +445,10 @@ export default function MegaChallenge() {
               ) : (
                 <button 
                   onClick={handlePaymentClick}
-                  disabled={paymentLoading}
                   className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
                 >
-                  {paymentLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
-                  {paymentLoading ? 'Opening Checkout...' : `Pay Tk ${displayChallenge.fee} & Join`}
+                  <CreditCard className="w-5 h-5" />
+                  Complete Payment Verification
                 </button>
               )
             ) : enrollment.score !== null ? (
@@ -486,6 +473,50 @@ export default function MegaChallenge() {
           </div>
         </motion.div>
       </div>
+
+      <AnimatePresence>
+        {paymentModalOpen && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setPaymentModalOpen(false)}
+              className="absolute inset-0 bg-slate-950/75 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 18, scale: 0.96 }}
+              className="relative max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-[1.75rem] shadow-2xl"
+            >
+              <button
+                type="button"
+                onClick={() => setPaymentModalOpen(false)}
+                className="absolute right-4 top-4 z-20 rounded-full border border-white/10 bg-white/10 p-2 text-slate-300 transition hover:bg-white/20 hover:text-white"
+                aria-label="Close payment modal"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <PaymentGateway
+                courseId={`quiz-${displayChallenge.id}`}
+                courseTitle={displayChallenge.title || 'HSC ICT Monthly Quiz Exam'}
+                amount={displayChallenge.fee || 20}
+                paymentType="quiz"
+                title="Quiz Exam Registration"
+                eyebrow="Monthly Quiz Payment"
+                instructionText="Send Money using bKash or Nagad, then submit your sender number, TrxID, and screenshot. After review, your quiz registration will be approved."
+                submitButtonLabel="Submit Exam Registration"
+                successTitle="Registration Payment Submitted"
+                successMessage="আপনার এক্সাম রেজিস্ট্রেশন পেমেন্ট সফলভাবে সাবমিট হয়েছে! আমরা এটি রিভিউ করছি। অনুমোদনের পর আপনার এক্সাম অ্যাক্সেস চালু হবে।"
+                onSubmitted={(paymentId) => {
+                  setPaymentNotice(`Your quiz registration payment was submitted. Review pending. Reference ID: ${paymentId}`);
+                }}
+              />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

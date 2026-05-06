@@ -1,16 +1,20 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import {
   Activity,
+  BadgeCheck,
+  Ban,
   BookOpen,
   CalendarDays,
   CheckCircle,
+  CreditCard,
   Database,
   FileText,
   Globe2,
   GraduationCap,
   HelpCircle,
+  Image as ImageIcon,
   Layers,
   Lightbulb,
   Loader2,
@@ -18,6 +22,9 @@ import {
   Plus,
   Save,
   Sparkles,
+  ReceiptText,
+  RefreshCw,
+  Smartphone,
   Trophy,
   Users,
   X,
@@ -37,6 +44,12 @@ import type { Firestore } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
 import { useLms } from '../../context/LmsContext';
 import { getFirebaseDb } from '../../lib/firebase';
+import {
+  approveManualPayment,
+  fetchManualPayments,
+  rejectManualPayment,
+  type ManualPaymentRecord,
+} from '../../services/manualPayment';
 
 type ActionType = 'chapter' | 'topic' | 'mcq' | 'cq' | 'course' | 'suggestion' | 'challenge';
 type Notice = { type: 'success' | 'error'; text: string } | null;
@@ -492,6 +505,28 @@ const buildFirestorePayload = (action: ActionType, forms: FormState) => {
   };
 };
 
+const getManualPaymentLabel = (payment: ManualPaymentRecord) => {
+  if (payment.courseTitle) return payment.courseTitle;
+  if (payment.courseId.startsWith('premium-')) {
+    return `ICT Toppers Premium - ${payment.courseId.replace('premium-', '')}`;
+  }
+  if (payment.courseId.startsWith('quiz-')) {
+    return 'HSC ICT Monthly Quiz Exam';
+  }
+  return payment.courseId;
+};
+
+const formatPaymentDate = (value?: string | null) => {
+  if (!value) return 'Just now';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Just now';
+  return date.toLocaleString('en-GB', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Asia/Dhaka',
+  });
+};
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -503,6 +538,9 @@ export default function AdminDashboard() {
   const [notice, setNotice] = useState<Notice>(null);
   const [trafficTotal, setTrafficTotal] = useState<number | null>(null);
   const [firebaseDb, setFirebaseDb] = useState<Firestore | null | undefined>(undefined);
+  const [manualPayments, setManualPayments] = useState<ManualPaymentRecord[]>([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [paymentActionId, setPaymentActionId] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -560,6 +598,52 @@ export default function AdminDashboard() {
       return false;
     }
     return true;
+  };
+
+  const loadManualPayments = useCallback(async () => {
+    setPaymentsLoading(true);
+    try {
+      const payments = await fetchManualPayments({ status: 'pending' });
+      setManualPayments(payments);
+    } catch (error: any) {
+      setNotice({
+        type: 'error',
+        text: error?.message || 'Failed to load pending manual payments.',
+      });
+      setManualPayments([]);
+    } finally {
+      setPaymentsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadManualPayments();
+  }, [loadManualPayments]);
+
+  const handleManualPaymentDecision = async (paymentId: string, action: 'approve' | 'reject') => {
+    if (!requireAdminSession()) return;
+
+    setPaymentActionId(`${action}:${paymentId}`);
+    try {
+      if (action === 'approve') {
+        await approveManualPayment(paymentId);
+      } else {
+        await rejectManualPayment(paymentId);
+      }
+
+      setNotice({
+        type: 'success',
+        text: `Payment request ${action === 'approve' ? 'approved' : 'rejected'} successfully.`,
+      });
+      await loadManualPayments();
+    } catch (error: any) {
+      setNotice({
+        type: 'error',
+        text: error?.message || `Failed to ${action} payment request.`,
+      });
+    } finally {
+      setPaymentActionId('');
+    }
   };
 
   const updateForm = (action: ActionType, field: string, value: string) => {
@@ -960,6 +1044,125 @@ export default function AdminDashboard() {
             </motion.button>
           );
         })}
+      </div>
+
+      <div className="mb-12">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-emerald-400">Manual Payment Approvals</h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Review bKash/Nagad submissions. Approved premium payments disappear from the student's pending badge.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={loadManualPayments}
+            disabled={paymentsLoading}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-900/10 bg-slate-900/5 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-900/10 disabled:cursor-wait disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+          >
+            {paymentsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Refresh
+          </button>
+        </div>
+
+        <div className="rounded-3xl border border-slate-900/10 bg-slate-900/5 p-5 dark:border-white/10 dark:bg-white/5 md:p-6">
+          {paymentsLoading && manualPayments.length === 0 ? (
+            <div className="flex items-center justify-center gap-3 py-10 text-sm font-bold text-slate-500 dark:text-slate-400">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Loading pending payments...
+            </div>
+          ) : manualPayments.length === 0 ? (
+            <div className="py-10 text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-400/10 text-emerald-300">
+                <BadgeCheck className="h-6 w-6" />
+              </div>
+              <p className="font-bold text-slate-700 dark:text-slate-200">No pending manual payments.</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">New submissions will appear here for approval.</p>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {manualPayments.map(payment => {
+                const approveKey = `approve:${payment.id}`;
+                const rejectKey = `reject:${payment.id}`;
+                return (
+                  <div
+                    key={payment.id}
+                    className="grid gap-4 rounded-2xl border border-slate-900/10 bg-white/70 p-4 dark:border-white/10 dark:bg-slate-950/60 lg:grid-cols-[112px_1fr_auto]"
+                  >
+                    <a
+                      href={payment.screenshotUrl || '#'}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex h-28 w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-900/10 bg-slate-900/5 text-slate-400 dark:border-white/10 dark:bg-white/5 lg:w-28"
+                    >
+                      {payment.screenshotUrl ? (
+                        <img src={payment.screenshotUrl} alt="Payment screenshot" className="h-full w-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-7 w-7" />
+                      )}
+                    </a>
+
+                    <div className="min-w-0">
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                        <span className="rounded-full border border-amber-300/30 bg-amber-400/10 px-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.14em] text-amber-500 dark:text-amber-300">
+                          Status: Pending
+                        </span>
+                        <span className="rounded-full border border-sky-300/30 bg-sky-400/10 px-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.14em] text-sky-500 dark:text-sky-300">
+                          {payment.paymentType || 'manual'}
+                        </span>
+                      </div>
+                      <h3 className="truncate text-lg font-black text-slate-900 dark:text-white">
+                        {getManualPaymentLabel(payment)}
+                      </h3>
+                      <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        Submitted: {formatPaymentDate(payment.createdAt)} - Ref: {payment.id}
+                      </p>
+
+                      <div className="mt-4 grid gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 sm:grid-cols-2 xl:grid-cols-4">
+                        <span className="inline-flex min-w-0 items-center gap-2">
+                          <CreditCard className="h-4 w-4 shrink-0 text-pink-400" />
+                          {payment.method}
+                        </span>
+                        <span className="inline-flex min-w-0 items-center gap-2">
+                          <Smartphone className="h-4 w-4 shrink-0 text-cyan-400" />
+                          {payment.senderNumber}
+                        </span>
+                        <span className="inline-flex min-w-0 items-center gap-2">
+                          <ReceiptText className="h-4 w-4 shrink-0 text-amber-400" />
+                          <span className="truncate">{payment.trxId}</span>
+                        </span>
+                        <span className="font-black text-emerald-500 dark:text-emerald-300">
+                          BDT {Number(payment.amount || 0).toLocaleString('en-US')}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-stretch lg:justify-center">
+                      <button
+                        type="button"
+                        onClick={() => handleManualPaymentDecision(payment.id, 'approve')}
+                        disabled={Boolean(paymentActionId)}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-emerald-950/20 transition hover:bg-emerald-400 disabled:cursor-wait disabled:opacity-60"
+                      >
+                        {paymentActionId === approveKey ? <Loader2 className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />}
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleManualPaymentDecision(payment.id, 'reject')}
+                        disabled={Boolean(paymentActionId)}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm font-black text-rose-500 transition hover:bg-rose-500/15 disabled:cursor-wait disabled:opacity-60 dark:text-rose-300"
+                      >
+                        {paymentActionId === rejectKey ? <Loader2 className="h-4 w-4 animate-spin" /> : <Ban className="h-4 w-4" />}
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       <h2 className="text-xl font-bold mb-6 text-yellow-400">Mega Challenge Management</h2>

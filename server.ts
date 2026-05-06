@@ -7,6 +7,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv";
 import { createPayment, executePayment } from "./src/services/bkash";
 import paymentActionHandler from "./api/paymentAction";
+import manualPaymentsHandler from "./api/manualPayments";
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ async function startServer() {
   });
 
   app.all("/api/paymentAction", paymentActionHandler);
+  app.all("/api/manualPayments", manualPaymentsHandler);
 
   // Get all Categories
   app.get("/api/categories", async (req, res) => {

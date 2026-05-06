@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Book, Eye, ShoppingCart, Lock, CheckCircle, Loader2 } from 'lucide-react';
+import { Book, Eye, ShoppingCart, Lock, CheckCircle } from 'lucide-react';
 import ShareButton from '../components/ui/ShareButton';
 import { useAuth } from '../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { createSuggestionPayment } from '../actions/paymentAction';
 
 export default function Suggestions() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [showDemo, setShowDemo] = useState(false);
-  const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState('');
 
   const handleBuy = async () => {
@@ -28,19 +26,7 @@ export default function Suggestions() {
       return;
     }
 
-    setPaymentLoading(true);
-    try {
-      const payment = await createSuggestionPayment({
-        userId: user.id,
-        fullName: user.name || 'ICT Toppers Student',
-        email: user.email,
-      });
-      window.location.href = payment.paymentUrl;
-    } catch (error: any) {
-      console.error('UddoktaPay suggestion checkout error:', error);
-      setPaymentError(error?.message || 'Failed to create payment link. Please try again.');
-      setPaymentLoading(false);
-    }
+    setPaymentError('ICT Short Suggestion payment is under construction right now. Premium upgrade and Quiz Exam registration payments are active.');
   };
 
   return (
@@ -56,7 +42,7 @@ export default function Suggestions() {
       </div>
 
       {paymentError && (
-        <div className="rounded-2xl border border-rose-400/30 bg-rose-400/10 px-5 py-4 text-sm font-semibold text-rose-300">
+        <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 px-5 py-4 text-sm font-semibold text-amber-200">
           {paymentError}
         </div>
       )}
@@ -112,11 +98,10 @@ export default function Suggestions() {
             </button>
             <button 
               onClick={handleBuy}
-              disabled={paymentLoading}
-              className="py-4 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-400 hover:to-orange-400 text-white rounded-xl font-bold text-lg transition-all shadow-xl shadow-red-500/25 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
+              className="py-4 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-400 hover:to-orange-400 text-white rounded-xl font-bold text-lg transition-all shadow-xl shadow-red-500/25 flex items-center justify-center gap-2"
             >
-              {paymentLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShoppingCart className="w-5 h-5" />}
-              {paymentLoading ? 'Opening Checkout...' : 'Buy Now'}
+              <ShoppingCart className="w-5 h-5" />
+              Under Construction
             </button>
           </div>
         </motion.div>
@@ -172,10 +157,9 @@ export default function Suggestions() {
             </div>
             <button 
               onClick={() => { setShowDemo(false); handleBuy(); }}
-              disabled={paymentLoading}
-              className="w-full mt-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-colors disabled:opacity-60 disabled:cursor-wait"
+              className="w-full mt-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-colors"
             >
-              {paymentLoading ? 'Opening Checkout...' : 'Buy Full E-Book for ৳150'}
+              Payment Under Construction
             </button>
           </div>
         </div>

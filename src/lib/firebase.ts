@@ -1,6 +1,7 @@
 import type { FirebaseApp, FirebaseOptions } from 'firebase/app';
 import type { Auth, GoogleAuthProvider } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
+import type { FirebaseStorage } from 'firebase/storage';
 
 /** Strip accidental literal quote characters that Vercel can inject into env values. */
 function sanitizeEnv(value: string | undefined): string {
@@ -28,6 +29,7 @@ export const isFirebaseConfigured = Boolean(
 let firebaseAppPromise: Promise<FirebaseApp | null> | null = null;
 let firebaseAuthPromise: Promise<Auth | null> | null = null;
 let firebaseDbPromise: Promise<Firestore | null> | null = null;
+let firebaseStoragePromise: Promise<FirebaseStorage | null> | null = null;
 let googleProviderPromise: Promise<GoogleAuthProvider | null> | null = null;
 
 export const getFirebaseApp = async (): Promise<FirebaseApp | null> => {
@@ -66,6 +68,19 @@ export const getFirebaseDb = async (): Promise<Firestore | null> => {
   }
 
   return firebaseDbPromise;
+};
+
+export const getFirebaseStorage = async (): Promise<FirebaseStorage | null> => {
+  if (!isFirebaseConfigured || !firebaseConfig.storageBucket) return null;
+
+  if (!firebaseStoragePromise) {
+    firebaseStoragePromise = Promise.all([
+      getFirebaseApp(),
+      import('firebase/storage'),
+    ]).then(([app, { getStorage }]) => app ? getStorage(app) : null);
+  }
+
+  return firebaseStoragePromise;
 };
 
 export const getGoogleProvider = async (): Promise<GoogleAuthProvider | null> => {
