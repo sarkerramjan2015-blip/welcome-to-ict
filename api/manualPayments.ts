@@ -1,6 +1,6 @@
 import type { DecodedIdToken } from 'firebase-admin/auth';
 import { FieldValue, type DocumentSnapshot, type Query } from 'firebase-admin/firestore';
-import { getAdminDb, httpError, isAdminToken, requireAdmin, verifyRequest } from '../src/server/firebaseAdminAccess';
+import { getAdminDb, httpError, isAdminToken, requireAdmin, verifyRequest } from '../src/server/firebaseAdminAccess.js';
 
 const VALID_STATUSES = new Set(['pending', 'approved', 'rejected']);
 

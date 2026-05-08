@@ -1,5 +1,5 @@
 import type { UserRecord } from 'firebase-admin/auth';
-import { getAdminAuth, requireAdmin, verifyRequest } from '../src/server/firebaseAdminAccess';
+import { getAdminAuth, requireAdmin, verifyRequest } from '../src/server/firebaseAdminAccess.js';
 
 const DEFAULT_ANALYTICS_DASHBOARD_URL = 'https://analytics.google.com/analytics/web/';
 

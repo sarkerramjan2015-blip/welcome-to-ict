@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Clock, CheckCircle, Lock, ShieldAlert, Download, Facebook, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import html2canvas from 'html2canvas';
 import { ictSyllabus } from '../data/ict-syllabus';
 import { useLms } from '../context/LmsContext';
 
@@ -9,6 +8,200 @@ interface Props {
   challengeId: string;
   onComplete: () => void;
 }
+
+const SCORECARD_WIDTH = 1200;
+const SCORECARD_HEIGHT = 780;
+const SCORECARD_SCALE = 2;
+
+const drawRoundedRect = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) => {
+  const safeRadius = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + safeRadius, y);
+  ctx.lineTo(x + width - safeRadius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
+  ctx.lineTo(x + width, y + height - safeRadius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
+  ctx.lineTo(x + safeRadius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
+  ctx.lineTo(x, y + safeRadius);
+  ctx.quadraticCurveTo(x, y, x + safeRadius, y);
+  ctx.closePath();
+};
+
+const drawCenteredText = (
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  y: number,
+  font: string,
+  color: string,
+) => {
+  ctx.font = font;
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, SCORECARD_WIDTH / 2, y);
+};
+
+const triggerDownloadLink = (href: string, fileName: string) => {
+  const link = document.createElement('a');
+  link.href = href;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
+
+const triggerCanvasDownload = (canvas: HTMLCanvasElement, fileName: string) => new Promise<void>((resolve, reject) => {
+  canvas.toBlob((blob) => {
+    try {
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        triggerDownloadLink(url, fileName);
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        resolve();
+        return;
+      }
+
+      triggerDownloadLink(canvas.toDataURL('image/png'), fileName);
+      resolve();
+    } catch (error) {
+      reject(error);
+    }
+  }, 'image/png');
+});
+
+const createScorecardCanvas = ({
+  challengeId,
+  finalScore,
+  totalQuestions,
+  timeTaken,
+}: {
+  challengeId: string;
+  finalScore: number;
+  totalQuestions: number;
+  timeTaken: string;
+}) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = SCORECARD_WIDTH * SCORECARD_SCALE;
+  canvas.height = SCORECARD_HEIGHT * SCORECARD_SCALE;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas is not supported in this browser.');
+
+  ctx.scale(SCORECARD_SCALE, SCORECARD_SCALE);
+
+  const background = ctx.createLinearGradient(0, 0, SCORECARD_WIDTH, SCORECARD_HEIGHT);
+  background.addColorStop(0, '#172554');
+  background.addColorStop(0.5, '#020617');
+  background.addColorStop(1, '#312e81');
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, SCORECARD_WIDTH, SCORECARD_HEIGHT);
+
+  const glowTop = ctx.createRadialGradient(980, 80, 0, 980, 80, 360);
+  glowTop.addColorStop(0, 'rgba(16, 185, 129, 0.34)');
+  glowTop.addColorStop(1, 'rgba(16, 185, 129, 0)');
+  ctx.fillStyle = glowTop;
+  ctx.fillRect(650, 0, 550, 340);
+
+  const glowBottom = ctx.createRadialGradient(130, 720, 0, 130, 720, 380);
+  glowBottom.addColorStop(0, 'rgba(99, 102, 241, 0.38)');
+  glowBottom.addColorStop(1, 'rgba(99, 102, 241, 0)');
+  ctx.fillStyle = glowBottom;
+  ctx.fillRect(0, 380, 520, 400);
+
+  drawRoundedRect(ctx, 46, 46, SCORECARD_WIDTH - 92, SCORECARD_HEIGHT - 92, 54);
+  ctx.strokeStyle = 'rgba(129, 140, 248, 0.42)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  const badgeGradient = ctx.createLinearGradient(510, 65, 690, 220);
+  badgeGradient.addColorStop(0, '#fbbf24');
+  badgeGradient.addColorStop(1, '#f59e0b');
+  ctx.fillStyle = badgeGradient;
+  ctx.beginPath();
+  ctx.arc(SCORECARD_WIDTH / 2, 142, 72, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#fff7ed';
+  ctx.font = '900 64px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('ICT', SCORECARD_WIDTH / 2, 144);
+
+  drawCenteredText(ctx, 'ICT Mega Quiz', 255, '900 56px Arial, sans-serif', '#ffffff');
+  drawCenteredText(ctx, 'ACHIEVEMENT UNLOCKED', 315, '800 22px Arial, sans-serif', '#a5b4fc');
+
+  drawRoundedRect(ctx, 260, 365, 680, 170, 28);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  const scoreGradient = ctx.createLinearGradient(390, 430, 815, 430);
+  scoreGradient.addColorStop(0, '#34d399');
+  scoreGradient.addColorStop(1, '#2dd4bf');
+  ctx.fillStyle = scoreGradient;
+  ctx.font = '900 88px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`${finalScore}`, 540, 430);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '700 46px Arial, sans-serif';
+  ctx.fillText(`/ ${totalQuestions}`, 690, 438);
+  drawCenteredText(ctx, 'Total Marks Scored', 500, '700 24px Arial, sans-serif', '#cbd5e1');
+
+  const accuracy = totalQuestions > 0 ? Math.round((finalScore / totalQuestions) * 100) : 0;
+  drawRoundedRect(ctx, 260, 570, 680, 92, 24);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.24)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.stroke();
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '800 18px Arial, sans-serif';
+  ctx.fillText('TIME TAKEN', 315, 604);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '800 30px Arial, sans-serif';
+  ctx.fillText(timeTaken, 315, 640);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '800 18px Arial, sans-serif';
+  ctx.fillText('ACCURACY', 885, 604);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '800 30px Arial, sans-serif';
+  ctx.fillText(`${accuracy}%`, 885, 640);
+
+  drawCenteredText(ctx, '"I just took a test on ICT Toppers!"', 705, '700 24px Arial, sans-serif', '#c7d2fe');
+
+  ctx.fillStyle = '#4f46e5';
+  drawRoundedRect(ctx, 445, 735, 42, 32, 8);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 14px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('ICT', 466, 752);
+
+  drawCenteredText(ctx, 'WWW.ICT-TOPPERS.COM', 752, '800 17px Arial, sans-serif', '#94a3b8');
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = 'rgba(203, 213, 225, 0.58)';
+  ctx.font = '700 15px Arial, sans-serif';
+  ctx.fillText(`Challenge: ${challengeId}`, SCORECARD_WIDTH - 72, 88);
+
+  return canvas;
+};
 
 export default function ChallengeExam({ challengeId, onComplete }: Props) {
   const { completeChallengeExam } = useLms();
@@ -19,7 +212,6 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
-  const scorecardRef = useRef<HTMLDivElement>(null);
   
   const [offenseCount, setOffenseCount] = useState(0);
   const [showCheatWarning, setShowCheatWarning] = useState(false);
@@ -108,14 +300,16 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
     const timeTakenStr = `${Math.floor(timeTakenSeconds / 60)}m ${timeTakenSeconds % 60}s`;
 
     const handleDownloadScorecard = async () => {
-      if (!scorecardRef.current) return;
       try {
-        const canvas = await html2canvas(scorecardRef.current, { scale: 2, useCORS: true, backgroundColor: null });
-        const image = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = image;
-        link.download = `ict-toppers-scorecard-${challengeId}.png`;
-        link.click();
+        const safeChallengeId = challengeId.replace(/[^a-z0-9_-]+/gi, '-').replace(/^-+|-+$/g, '') || 'challenge';
+        const canvas = createScorecardCanvas({
+          challengeId,
+          finalScore,
+          totalQuestions: questions.length,
+          timeTaken: timeTakenStr,
+        });
+
+        await triggerCanvasDownload(canvas, `ict-toppers-scorecard-${safeChallengeId}.png`);
       } catch (err) {
         console.error("Failed to generate scorecard", err);
         alert("Failed to download score card. Please try again.");
@@ -133,7 +327,6 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
       <div className="max-w-3xl mx-auto p-6 text-center mt-10">
         <div className="flex justify-center mb-8">
           <div 
-            ref={scorecardRef}
             className="w-[400px] sm:w-[500px] max-w-full bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-950 rounded-[2rem] p-8 border border-indigo-500/30 shadow-[0_0_50px_rgba(79,70,229,0.2)] relative overflow-hidden text-center"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 blur-[50px] rounded-full"></div>
