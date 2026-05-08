@@ -7,9 +7,11 @@ import {
   Ban,
   BookOpen,
   CalendarDays,
+  ChevronDown,
   CheckCircle,
   CreditCard,
   Database,
+  DollarSign,
   ExternalLink,
   FileText,
   Globe2,
@@ -20,6 +22,7 @@ import {
   Lightbulb,
   Loader2,
   LogOut,
+  Medal,
   Plus,
   Pencil,
   Save,
@@ -57,6 +60,14 @@ import {
   fetchAdminActivity,
   type AdminActivitySummary,
 } from '../../services/adminActivity';
+import {
+  fetchAdminLeaderboard,
+  publishAdminLeaderboard,
+  updateAdminLeaderboardResult,
+  type AdminLeaderboardChallengeSet,
+  type AdminLeaderboardResult,
+  type AdminPaymentSummary,
+} from '../../services/adminLeaderboard';
 import {
   fetchAdminChallengeQuestions,
   fetchAdminChallengeSets,
@@ -554,6 +565,9 @@ const formatActivityDate = (value?: string | null) => {
   });
 };
 
+const formatCurrency = (value?: number | null) =>
+  `BDT ${Number(value || 0).toLocaleString('en-US')}`;
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
@@ -571,6 +585,15 @@ export default function AdminDashboard() {
   const [activitySummary, setActivitySummary] = useState<AdminActivitySummary | null>(null);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityError, setActivityError] = useState('');
+  const [recentUsersExpanded, setRecentUsersExpanded] = useState(false);
+  const [leaderboardSets, setLeaderboardSets] = useState<AdminLeaderboardChallengeSet[]>([]);
+  const [selectedLeaderboardChallengeId, setSelectedLeaderboardChallengeId] = useState('');
+  const [leaderboardResults, setLeaderboardResults] = useState<AdminLeaderboardResult[]>([]);
+  const [paymentSummary, setPaymentSummary] = useState<AdminPaymentSummary | null>(null);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [leaderboardError, setLeaderboardError] = useState('');
+  const [savingLeaderboardResultId, setSavingLeaderboardResultId] = useState('');
+  const [publishingLeaderboard, setPublishingLeaderboard] = useState(false);
   const [challengeSets, setChallengeSets] = useState<AdminChallengeSet[]>([]);
   const [selectedQuestionChallengeId, setSelectedQuestionChallengeId] = useState('');
   const [quizQuestions, setQuizQuestions] = useState<AdminQuizQuestion[]>([]);
@@ -709,6 +732,75 @@ export default function AdminDashboard() {
   useEffect(() => {
     void loadAdminActivity();
   }, [loadAdminActivity]);
+
+  const loadAdminLeaderboard = useCallback(async (challengeId = selectedLeaderboardChallengeId) => {
+    if (!isAdmin) {
+      setLeaderboardSets([]);
+      setLeaderboardResults([]);
+      setPaymentSummary(null);
+      return;
+    }
+
+    setLeaderboardLoading(true);
+    try {
+      const data = await fetchAdminLeaderboard(challengeId || undefined);
+      setLeaderboardSets(data.challengeSets || []);
+      setLeaderboardResults(data.results || []);
+      setPaymentSummary(data.paymentSummary || null);
+      setSelectedLeaderboardChallengeId(data.selectedChallengeId || data.challengeSets?.[0]?.id || '');
+      setLeaderboardError('');
+    } catch (error: any) {
+      setLeaderboardError(error?.message || 'Failed to load admin leaderboard.');
+      setLeaderboardResults([]);
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  }, [isAdmin, selectedLeaderboardChallengeId]);
+
+  useEffect(() => {
+    void loadAdminLeaderboard();
+  }, [loadAdminLeaderboard]);
+
+  const updateLeaderboardResult = (resultId: string, updates: Partial<AdminLeaderboardResult>) => {
+    setLeaderboardResults(prev => prev.map(result =>
+      result.id === resultId ? { ...result, ...updates } : result
+    ));
+  };
+
+  const saveLeaderboardResult = async (result: AdminLeaderboardResult) => {
+    if (!requireAdminSession() || !selectedLeaderboardChallengeId) return;
+
+    setSavingLeaderboardResultId(result.id);
+    try {
+      await updateAdminLeaderboardResult({
+        challengeId: selectedLeaderboardChallengeId,
+        resultId: result.id,
+        score: result.score,
+        manualRank: result.manualRank || '',
+      });
+      setNotice({ type: 'success', text: `Merit list updated for ${result.email}.` });
+      await loadAdminLeaderboard(selectedLeaderboardChallengeId);
+    } catch (error: any) {
+      setNotice({ type: 'error', text: error?.message || 'Failed to update merit list.' });
+    } finally {
+      setSavingLeaderboardResultId('');
+    }
+  };
+
+  const publishLeaderboardResults = async () => {
+    if (!requireAdminSession() || !selectedLeaderboardChallengeId) return;
+
+    setPublishingLeaderboard(true);
+    try {
+      await publishAdminLeaderboard(selectedLeaderboardChallengeId);
+      setNotice({ type: 'success', text: 'Leaderboard results published successfully.' });
+      await loadAdminLeaderboard(selectedLeaderboardChallengeId);
+    } catch (error: any) {
+      setNotice({ type: 'error', text: error?.message || 'Failed to publish leaderboard results.' });
+    } finally {
+      setPublishingLeaderboard(false);
+    }
+  };
 
   const loadQuizQuestionSets = useCallback(async () => {
     if (!isAdmin) {
@@ -1256,12 +1348,21 @@ export default function AdminDashboard() {
         </div>
 
         <div className="mt-6 overflow-hidden rounded-3xl border border-slate-900/10 bg-slate-900/5 dark:border-white/10 dark:bg-white/5">
-          <div className="flex flex-col gap-2 border-b border-slate-900/10 px-5 py-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            type="button"
+            onClick={() => setRecentUsersExpanded(value => !value)}
+            className="flex w-full flex-col gap-2 border-b border-slate-900/10 px-5 py-4 text-left transition hover:bg-slate-900/5 dark:border-white/10 dark:hover:bg-white/5 sm:flex-row sm:items-center sm:justify-between"
+          >
             <div>
               <h3 className="text-lg font-black text-slate-900 dark:text-white">Recent Logins / Signups</h3>
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Latest 10 Firebase Auth users sorted by recent activity.</p>
             </div>
-          </div>
+            <span className="inline-flex items-center gap-2 text-sm font-black text-sky-500 dark:text-sky-300">
+              {recentUsersExpanded ? 'Hide' : 'Show'}
+              <ChevronDown className={`h-4 w-4 transition-transform ${recentUsersExpanded ? 'rotate-180' : ''}`} />
+            </span>
+          </button>
+          {recentUsersExpanded && (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead className="bg-slate-900/5 text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:bg-white/5 dark:text-slate-400">
@@ -1312,7 +1413,193 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
+          )}
         </div>
+      </section>
+
+      <section className="mb-12">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-xl font-bold text-amber-400">
+              <Medal className="h-5 w-5" />
+              Results, Leaderboard & Income
+            </h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Review submitted quiz results, edit merit positions, publish leaderboard, and track payment income.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void loadAdminLeaderboard(selectedLeaderboardChallengeId)}
+            disabled={leaderboardLoading}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-900/10 bg-slate-900/5 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-900/10 disabled:cursor-wait disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+          >
+            {leaderboardLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Refresh
+          </button>
+        </div>
+
+        <div className="mb-6 grid gap-4 md:grid-cols-4">
+          {[
+            { label: 'This Month Income', value: formatCurrency(paymentSummary?.currentMonthIncome), hint: `${paymentSummary?.currentMonthPaymentCount || 0} approved payments`, tone: 'text-emerald-300 bg-emerald-500/15' },
+            { label: 'Lifetime Income', value: formatCurrency(paymentSummary?.lifetimeIncome), hint: `${paymentSummary?.lifetimePaymentCount || 0} total payments`, tone: 'text-amber-300 bg-amber-500/15' },
+            { label: 'Submitted Results', value: leaderboardResults.length.toLocaleString('en-US'), hint: 'Current selected quiz', tone: 'text-sky-300 bg-sky-500/15' },
+            { label: 'Published Results', value: leaderboardResults.filter(item => item.published).length.toLocaleString('en-US'), hint: 'Visible to students', tone: 'text-violet-300 bg-violet-500/15' },
+          ].map(card => (
+            <div key={card.label} className="rounded-3xl border border-slate-900/10 bg-slate-900/5 p-5 dark:border-white/10 dark:bg-white/5">
+              <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${card.tone}`}>
+                <DollarSign className="h-6 w-6" />
+              </div>
+              <div className="text-2xl font-black text-slate-900 dark:text-white">{card.value}</div>
+              <div className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{card.label}</div>
+              <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-400">{card.hint}</p>
+            </div>
+          ))}
+        </div>
+
+        {leaderboardError && (
+          <div className="mb-4 rounded-2xl border border-rose-400/30 bg-rose-400/10 px-5 py-4 text-sm font-semibold text-rose-300">
+            {leaderboardError}
+          </div>
+        )}
+
+        <div className="overflow-hidden rounded-3xl border border-slate-900/10 bg-slate-900/5 dark:border-white/10 dark:bg-white/5">
+          <div className="grid gap-4 border-b border-slate-900/10 p-5 dark:border-white/10 lg:grid-cols-[1fr_auto] lg:items-end">
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-slate-600 dark:text-gray-300">Quiz Result Set</span>
+              <select
+                value={selectedLeaderboardChallengeId}
+                onChange={event => {
+                  setSelectedLeaderboardChallengeId(event.target.value);
+                  void loadAdminLeaderboard(event.target.value);
+                }}
+                disabled={leaderboardLoading || leaderboardSets.length === 0}
+                className="w-full rounded-xl border border-slate-900/10 bg-white px-4 py-3 font-bold text-slate-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-slate-900/70 dark:text-white"
+              >
+                {leaderboardSets.length === 0 ? (
+                  <option value="">No quiz set found</option>
+                ) : (
+                  leaderboardSets.map(item => (
+                    <option key={item.id} value={item.id}>
+                      {item.title} - {item.id}
+                    </option>
+                  ))
+                )}
+              </select>
+            </label>
+
+            <button
+              type="button"
+              onClick={() => void publishLeaderboardResults()}
+              disabled={!selectedLeaderboardChallengeId || publishingLeaderboard || leaderboardResults.length === 0}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-3 text-sm font-black text-slate-950 shadow-lg shadow-amber-950/20 transition hover:bg-amber-300 disabled:cursor-wait disabled:opacity-60"
+            >
+              {publishingLeaderboard ? <Loader2 className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />}
+              Publish Result
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[980px] text-left text-sm">
+              <thead className="bg-slate-900/5 text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:bg-white/5 dark:text-slate-400">
+                <tr>
+                  <th className="px-5 py-3">Rank</th>
+                  <th className="px-5 py-3">Student</th>
+                  <th className="px-5 py-3">Score</th>
+                  <th className="px-5 py-3">Manual Rank</th>
+                  <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">Submitted</th>
+                  <th className="px-5 py-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-900/10 dark:divide-white/10">
+                {leaderboardLoading && leaderboardResults.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-8 text-center font-bold text-slate-500 dark:text-slate-400">
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading results...
+                      </span>
+                    </td>
+                  </tr>
+                ) : leaderboardResults.length ? (
+                  leaderboardResults.map(result => (
+                    <tr key={result.id} className="text-slate-700 dark:text-slate-200">
+                      <td className="px-5 py-4 font-black text-amber-500 dark:text-amber-300">#{result.rank}</td>
+                      <td className="px-5 py-4">
+                        <div className="font-bold">{result.name}</div>
+                        <div className="mt-1 max-w-[260px] truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{result.email}</div>
+                      </td>
+                      <td className="px-5 py-4">
+                        <input
+                          type="number"
+                          min="0"
+                          value={result.score}
+                          onChange={event => updateLeaderboardResult(result.id, { score: Number(event.target.value) })}
+                          className="w-20 rounded-xl border border-slate-900/10 bg-white px-3 py-2 font-bold text-slate-900 outline-none focus:border-amber-500 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                        />
+                        <span className="ml-1 font-bold text-slate-400">/ {result.total}</span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <input
+                          type="number"
+                          min="1"
+                          value={result.manualRank || ''}
+                          onChange={event => updateLeaderboardResult(result.id, { manualRank: event.target.value ? Number(event.target.value) : null })}
+                          placeholder="Auto"
+                          className="w-24 rounded-xl border border-slate-900/10 bg-white px-3 py-2 font-bold text-slate-900 outline-none focus:border-amber-500 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                        />
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className={`rounded-full px-3 py-1 text-xs font-black ${result.published ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                          {result.published ? 'Published' : 'Pending'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 font-semibold">{formatActivityDate(result.submittedAt)}</td>
+                      <td className="px-5 py-4 text-right">
+                        <button
+                          type="button"
+                          onClick={() => void saveLeaderboardResult(result)}
+                          disabled={Boolean(savingLeaderboardResultId)}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-sm font-black text-white transition hover:bg-sky-400 disabled:cursor-wait disabled:opacity-60"
+                        >
+                          {savingLeaderboardResultId === result.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                          Save
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-8 text-center font-bold text-slate-500 dark:text-slate-400">
+                      No submitted results found for this quiz yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {paymentSummary?.recentPayments?.length ? (
+          <div className="mt-5 rounded-3xl border border-slate-900/10 bg-slate-900/5 p-5 dark:border-white/10 dark:bg-white/5">
+            <h3 className="mb-4 text-lg font-black text-slate-900 dark:text-white">Recent Approved Payments</h3>
+            <div className="grid gap-3 md:grid-cols-2">
+              {paymentSummary.recentPayments.map(payment => (
+                <div key={payment.id} className="rounded-2xl border border-slate-900/10 bg-white/70 p-4 dark:border-white/10 dark:bg-slate-950/55">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-black text-slate-900 dark:text-white">{payment.itemTitle}</p>
+                      <p className="mt-1 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{payment.email}</p>
+                    </div>
+                    <span className="shrink-0 font-black text-emerald-500 dark:text-emerald-300">{formatCurrency(payment.amount)}</span>
+                  </div>
+                  <p className="mt-3 text-xs font-bold text-slate-500 dark:text-slate-400">{formatActivityDate(payment.paidAt)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-12">

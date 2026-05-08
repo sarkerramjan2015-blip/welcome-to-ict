@@ -55,6 +55,17 @@ const parseOptions = (value: unknown): string[] => {
   return [];
 };
 
+const getNextDayNinePmDhaka = (value: Date) => {
+  const dhakaDate = new Date(value.toLocaleString('en-US', { timeZone: 'Asia/Dhaka' }));
+  dhakaDate.setDate(dhakaDate.getDate() + 1);
+  dhakaDate.setHours(21, 0, 0, 0);
+
+  const yyyy = dhakaDate.getFullYear();
+  const mm = String(dhakaDate.getMonth() + 1).padStart(2, '0');
+  const dd = String(dhakaDate.getDate()).padStart(2, '0');
+  return new Date(`${yyyy}-${mm}-${dd}T21:00:00+06:00`).toISOString();
+};
+
 const normalizeQuestion = (id: string, data: Record<string, any>, index = 0): FullQuestion | null => {
   const question = cleanString(data.question || data.q);
   const options = parseOptions(data.options);
@@ -147,7 +158,8 @@ const handleGetQuestions = async (req: any, res: any) => {
   const challengeId = queryValue(req, 'challengeId');
   if (!challengeId) throw httpError(400, 'Challenge ID is required.');
 
-  await assertCanAccessChallenge(decoded.uid, challengeId, await isAdminToken(decoded));
+  const adminBypass = await isAdminToken(decoded);
+  await assertCanAccessChallenge(decoded.uid, challengeId, adminBypass);
 
   const { challenge, questions } = await getChallengeQuestions(challengeId);
   if (!questions.length) {
@@ -171,7 +183,8 @@ const handleSubmit = async (req: any, res: any) => {
   if (!challengeId) throw httpError(400, 'Challenge ID is required.');
   if (!answers || typeof answers !== 'object') throw httpError(400, 'Answers are required.');
 
-  await assertCanAccessChallenge(decoded.uid, challengeId, await isAdminToken(decoded));
+  const adminBypass = await isAdminToken(decoded);
+  await assertCanAccessChallenge(decoded.uid, challengeId, adminBypass);
 
   const { questions } = await getChallengeQuestions(challengeId);
   if (!questions.length) {
@@ -186,13 +199,20 @@ const handleSubmit = async (req: any, res: any) => {
   ), 0);
 
   const db = getAdminDb();
+  const submittedAt = new Date();
+  const resultVisibleAt = getNextDayNinePmDhaka(submittedAt);
   const resultPayload = {
     userId: decoded.uid,
     email: decoded.email || null,
+    name: cleanString((decoded as any).name) || cleanString(decoded.email).split('@')[0],
     challengeId,
     score,
     total: questions.length,
     answers: Object.fromEntries(normalizedAnswers),
+    resultStatus: adminBypass ? 'published' : 'pending',
+    published: adminBypass,
+    resultVisibleAt,
+    ...(adminBypass ? { publishedAt: FieldValue.serverTimestamp() } : {}),
     submittedAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
   };
@@ -201,8 +221,10 @@ const handleSubmit = async (req: any, res: any) => {
   batch.set(
     db.collection('students').doc(decoded.uid).collection('challengeEnrollments').doc(challengeId),
     {
-      score,
+      score: adminBypass ? score : null,
       paymentStatus: 'PAID',
+      resultStatus: adminBypass ? 'published' : 'pending',
+      resultVisibleAt,
       updatedAt: FieldValue.serverTimestamp(),
       submittedAt: FieldValue.serverTimestamp(),
     },
@@ -217,8 +239,14 @@ const handleSubmit = async (req: any, res: any) => {
 
   return json(res, 200, {
     success: true,
-    score,
+    ...(adminBypass ? { score } : {}),
     total: questions.length,
+    published: adminBypass,
+    resultStatus: adminBypass ? 'published' : 'pending',
+    resultVisibleAt,
+    message: adminBypass
+      ? 'Result published.'
+      : 'Exam submitted. Result will be published after admin approval.',
   });
 };
 

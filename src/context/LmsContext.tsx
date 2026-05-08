@@ -35,6 +35,8 @@ export interface ChallengeEnrollment {
   };
   paymentStatus: 'PENDING' | 'PAID';
   score: number | null;
+  resultStatus?: 'pending' | 'published';
+  resultVisibleAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -92,7 +94,14 @@ interface LmsContextType {
   deleteTask: (taskId: string) => void;
   enrollChallenge: (challengeId: string, fee?: number) => ChallengeEnrollment | null;
   markChallengePaid: (challengeId: string) => void;
-  completeChallengeExam: (challengeId: string, answers: Record<string, string>, total: number) => Promise<number>;
+  completeChallengeExam: (challengeId: string, answers: Record<string, string>, total: number) => Promise<{
+    score: number | null;
+    total: number;
+    published: boolean;
+    resultStatus: 'pending' | 'published';
+    resultVisibleAt?: string;
+    message?: string;
+  }>;
   enrollCourse: (courseId: string, fee: number, courseType: string) => void;
 }
 
@@ -309,26 +318,42 @@ export function LmsProvider({ children }: { children: React.ReactNode }) {
     
     try {
       const data = await submitChallengeExam(challengeId, answers);
-      const secureScore = Number(data.score || 0);
+      const secureScore = typeof data.score === 'number' ? data.score : null;
 
       setChallengeEnrollments(prev => {
         const next = prev.map(enrollment =>
           enrollment.challengeId === challengeId
-            ? { ...enrollment, score: secureScore, paymentStatus: 'PAID' as const, updatedAt: now }
+            ? {
+                ...enrollment,
+                score: data.published ? secureScore : null,
+                paymentStatus: 'PAID' as const,
+                resultStatus: data.resultStatus || 'pending',
+                resultVisibleAt: data.resultVisibleAt || null,
+                updatedAt: now,
+              }
             : enrollment
         );
         persistForUser('challengeEnrollments', next);
         return next;
       });
-      saveQuizResult({
-        topicId: challengeId,
-        topicTitle: 'HSC ICT Monthly Quiz Exam',
-        mode: 'mega',
-        score: secureScore,
-        total,
-      });
+      if (data.published && secureScore !== null) {
+        saveQuizResult({
+          topicId: challengeId,
+          topicTitle: 'HSC ICT Monthly Quiz Exam',
+          mode: 'mega',
+          score: secureScore,
+          total,
+        });
+      }
 
-      return secureScore;
+      return {
+        score: secureScore,
+        total: data.total || total,
+        published: Boolean(data.published),
+        resultStatus: data.resultStatus || 'pending',
+        resultVisibleAt: data.resultVisibleAt,
+        message: data.message,
+      };
     } catch (err: any) {
       console.error("Failed to submit exam to server securely", err);
       throw new Error(err?.message || 'Failed to submit quiz securely.');

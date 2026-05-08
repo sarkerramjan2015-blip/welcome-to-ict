@@ -212,7 +212,13 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
   const [loadError, setLoadError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
-  const [finalScore, setFinalScore] = useState(0);
+  const [examOutcome, setExamOutcome] = useState<{
+    score: number | null;
+    total: number;
+    published: boolean;
+    resultVisibleAt?: string;
+    message?: string;
+  } | null>(null);
   
   const [offenseCount, setOffenseCount] = useState(0);
   const [showCheatWarning, setShowCheatWarning] = useState(false);
@@ -237,8 +243,8 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
     
     setSubmitting(true);
     try {
-      const secureScore = await completeChallengeExam(challengeId, answers, questions.length);
-      setFinalScore(secureScore);
+      const outcome = await completeChallengeExam(challengeId, answers, questions.length);
+      setExamOutcome(outcome);
       setShowThankYou(true);
     } catch (error: any) {
       alert(error?.message || 'Failed to submit quiz. Please try again.');
@@ -322,6 +328,14 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
   if (showThankYou) {
     const timeTakenSeconds = (30 * 60) - timeLeft;
     const timeTakenStr = `${Math.floor(timeTakenSeconds / 60)}m ${timeTakenSeconds % 60}s`;
+    const finalScore = examOutcome?.score ?? 0;
+    const resultVisibleAt = examOutcome?.resultVisibleAt
+      ? new Date(examOutcome.resultVisibleAt).toLocaleString('en-GB', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+          timeZone: 'Asia/Dhaka',
+        })
+      : 'Next day at 9:00 PM';
 
     const handleDownloadScorecard = async () => {
       try {
@@ -347,6 +361,30 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
       }, 1500);
     };
 
+    if (!examOutcome?.published) {
+      return (
+        <div className="mx-auto mt-10 max-w-3xl p-6 text-center">
+          <div className="rounded-[2rem] border border-amber-400/30 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 p-8 shadow-[0_0_50px_rgba(245,158,11,0.16)]">
+            <Trophy className="mx-auto mb-5 h-20 w-20 text-amber-300 drop-shadow-[0_0_18px_rgba(251,191,36,0.45)]" />
+            <p className="mb-3 text-xs font-black uppercase tracking-[0.24em] text-amber-200">Exam Submitted</p>
+            <h2 className="text-3xl font-black text-white md:text-4xl">Result pending for admin approval</h2>
+            <p className="mx-auto mt-4 max-w-xl text-base font-semibold leading-8 text-slate-300">
+              Your answers are saved securely. Result will publish after admin approval, expected {resultVisibleAt}. You can see your rank and leaderboard from your dashboard after publication.
+            </p>
+            <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-bold text-slate-300">
+              Answered {Object.keys(answers).length}/{questions.length} questions in {timeTakenStr}
+            </div>
+            <button
+              onClick={onComplete}
+              className="mt-8 rounded-2xl bg-amber-400 px-8 py-4 text-lg font-black text-slate-950 shadow-lg shadow-amber-950/20 transition hover:bg-amber-300"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="max-w-3xl mx-auto p-6 text-center mt-10">
         <div className="flex justify-center mb-8">
@@ -363,7 +401,7 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
             
             <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-inner mb-6">
               <div className="text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-teal-400 mb-2 tracking-tighter">
-                ${finalScore} <span className="text-3xl text-slate-400 font-medium">/ ${questions.length}</span>
+                {finalScore} <span className="text-3xl text-slate-400 font-medium">/ {questions.length}</span>
               </div>
               <p className="text-slate-300 font-medium">Total Marks Scored</p>
             </div>
@@ -371,11 +409,11 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
             <div className="flex justify-between items-center bg-black/20 rounded-xl p-4 border border-white/5 mb-6">
               <div className="text-left">
                 <p className="text-xs text-slate-400 font-bold uppercase mb-1">Time Taken</p>
-                <p className="text-lg text-white font-bold">${timeTakenStr}</p>
+                <p className="text-lg text-white font-bold">{timeTakenStr}</p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-slate-400 font-bold uppercase mb-1">Accuracy</p>
-                <p className="text-lg text-white font-bold">${Math.round((finalScore / questions.length) * 100)}%</p>
+                <p className="text-lg text-white font-bold">{Math.round((finalScore / questions.length) * 100)}%</p>
               </div>
             </div>
             

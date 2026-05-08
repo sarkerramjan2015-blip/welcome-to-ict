@@ -159,13 +159,6 @@ export default function MegaChallenge() {
     });
   };
 
-  const isResultPublished = (updatedAt: string) => {
-    const examTime = new Date(updatedAt).getTime();
-    const now = new Date().getTime();
-    const hoursPassed = (now - examTime) / (1000 * 60 * 60);
-    return hoursPassed >= 12;
-  };
-
   if (loading) return <div className="p-8 text-center text-slate-900 dark:text-white">Loading...</div>;
 
   const displayChallenge: UpcomingChallenge = challenge || getFallbackChallenge();
@@ -451,15 +444,17 @@ export default function MegaChallenge() {
                   Complete Payment Verification
                 </button>
               )
+            ) : enrollment.resultStatus === 'pending' ? (
+              <div className="bg-amber-500/20 backdrop-blur-md border border-amber-500/50 rounded-2xl p-6 text-center shadow-lg shadow-amber-500/20">
+                <Clock className="w-12 h-12 text-amber-400 mx-auto mb-2" />
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Exam Submitted!</h3>
+                <p className="text-sm text-slate-600 dark:text-gray-300">Result and rank will appear on your dashboard after admin publishes the leaderboard.</p>
+              </div>
             ) : enrollment.score !== null ? (
               <div className="bg-green-500/20 backdrop-blur-md border border-green-500/50 rounded-2xl p-6 text-center shadow-lg shadow-green-500/20">
                 <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-2" />
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Exam Completed!</h3>
-                {isResultPublished(enrollment.updatedAt) ? (
-                  <p className="text-lg text-slate-600 dark:text-gray-300">Your Score: <span className="text-slate-900 dark:text-white font-bold">{enrollment.score} / 30</span></p>
-                ) : (
-                  <p className="text-sm text-slate-600 dark:text-gray-300">Thanks for participating! Your result will be published in 12 hours.</p>
-                )}
+                <p className="text-sm text-slate-600 dark:text-gray-300">Thanks for participating! Result and rank will appear on your dashboard after admin publishes the leaderboard.</p>
               </div>
             ) : (
               <button 

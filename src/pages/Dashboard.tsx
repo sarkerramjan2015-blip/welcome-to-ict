@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Trophy, CheckCircle, Clock, Book, User as UserIcon, Edit2, Save, X, Camera, Plus, Trash2, ListTodo, BarChart3, Target, Percent, History } from 'lucide-react';
+import { Trophy, CheckCircle, Clock, Book, Edit2, Save, Camera, Plus, Trash2, ListTodo, BarChart3, Target, Percent, History, Award, Share2, Download, Loader2, Medal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLms } from '../context/LmsContext';
 import AdBanner from '../components/AdBanner';
 import { fetchManualPayments, type ManualPaymentRecord } from '../services/manualPayment';
+import { fetchLeaderboard, type StudentLeaderboard } from '../services/leaderboard';
 
 interface Task {
   id: string;
@@ -30,6 +31,130 @@ const getPaymentType = (payment: ManualPaymentRecord) => {
   return 'course';
 };
 
+const formatDashboardDate = (value?: string | null) => {
+  if (!value) return 'Next day at 9:00 PM';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Next day at 9:00 PM';
+  return date.toLocaleString('en-GB', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Asia/Dhaka',
+  });
+};
+
+const triggerCanvasDownload = (canvas: HTMLCanvasElement, fileName: string) => new Promise<void>((resolve, reject) => {
+  canvas.toBlob(blob => {
+    try {
+      const url = blob ? URL.createObjectURL(blob) : canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      if (blob) window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      resolve();
+    } catch (error) {
+      reject(error);
+    }
+  }, 'image/png');
+});
+
+const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+  const image = new Image();
+  image.onload = () => resolve(image);
+  image.onerror = reject;
+  image.src = src;
+});
+
+const createRankCardCanvas = async ({
+  name,
+  rank,
+  score,
+  total,
+  challengeTitle,
+}: {
+  name: string;
+  rank: number;
+  score: number;
+  total: number;
+  challengeTitle: string;
+}) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1200;
+  canvas.height = 630;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas is not supported.');
+
+  const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+  gradient.addColorStop(0, '#0f172a');
+  gradient.addColorStop(0.5, '#1e1b4b');
+  gradient.addColorStop(1, '#082f49');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 1200, 630);
+
+  ctx.fillStyle = 'rgba(56,189,248,0.18)';
+  ctx.beginPath();
+  ctx.arc(1030, 80, 260, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(251,191,36,0.16)';
+  ctx.beginPath();
+  ctx.arc(120, 600, 260, 0, Math.PI * 2);
+  ctx.fill();
+
+  try {
+    const logo = await loadImage('/logo-256.webp');
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(74, 58, 112, 112, 26);
+    ctx.clip();
+    ctx.drawImage(logo, 74, 58, 112, 112);
+    ctx.restore();
+  } catch {
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(74, 58, 112, 112);
+  }
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 48px Arial, sans-serif';
+  ctx.fillText('ICT Toppers', 214, 104);
+  ctx.fillStyle = '#93c5fd';
+  ctx.font = '800 22px Arial, sans-serif';
+  ctx.fillText('All Bangladesh Monthly Quiz Leaderboard', 214, 142);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.roundRect(74, 210, 1052, 330, 42);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(125,211,252,0.28)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = '900 132px Arial, sans-serif';
+  ctx.fillText(`#${rank}`, 120, 375);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 54px Arial, sans-serif';
+  ctx.fillText(name || 'ICT Student', 410, 325);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = '800 28px Arial, sans-serif';
+  ctx.fillText(challengeTitle, 410, 376);
+
+  ctx.fillStyle = '#34d399';
+  ctx.font = '900 60px Arial, sans-serif';
+  ctx.fillText(`${score}/${total}`, 410, 462);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '800 24px Arial, sans-serif';
+  ctx.fillText('Score', 410, 500);
+
+  ctx.fillStyle = '#e0f2fe';
+  ctx.font = '800 24px Arial, sans-serif';
+  ctx.fillText('www.icttoppers.com', 74, 590);
+  ctx.textAlign = 'right';
+  ctx.fillText('Shared from Student Dashboard', 1126, 590);
+
+  return canvas;
+};
+
 export default function Dashboard() {
   const { user, updateProfile } = useAuth();
   const { analytics, quizResults, tasks, addTask, toggleTaskCompletion: toggleStoredTaskCompletion, deleteTask: deleteStoredTask, challengeEnrollments, courseEnrollments } = useLms();
@@ -41,6 +166,10 @@ export default function Dashboard() {
   const [phoneError, setPhoneError] = useState('');
   const [manualPayments, setManualPayments] = useState<ManualPaymentRecord[]>([]);
   const [localPremiumPending, setLocalPremiumPending] = useState(readLocalPremiumPending);
+  const [leaderboard, setLeaderboard] = useState<StudentLeaderboard | null>(null);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [leaderboardError, setLeaderboardError] = useState('');
+  const [sharingRank, setSharingRank] = useState(false);
 
   // Profile Edit State
   const [isEditing, setIsEditing] = useState(false);
@@ -120,6 +249,42 @@ export default function Dashboard() {
       setLocalPremiumPending(null);
     }
   }, [manualPayments, updateProfile, user]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setLeaderboard(null);
+      return;
+    }
+
+    let cancelled = false;
+    const preferredChallengeId = challengeEnrollments.find(item => item.paymentStatus === 'PAID')?.challengeId || challengeEnrollments[0]?.challengeId;
+
+    const loadLeaderboard = async () => {
+      setLeaderboardLoading(true);
+      try {
+        const data = await fetchLeaderboard(preferredChallengeId);
+        if (!cancelled) {
+          setLeaderboard(data);
+          setLeaderboardError('');
+        }
+      } catch (error: any) {
+        if (!cancelled) {
+          setLeaderboard(null);
+          setLeaderboardError(error?.message || 'Failed to load leaderboard.');
+        }
+      } finally {
+        if (!cancelled) setLeaderboardLoading(false);
+      }
+    };
+
+    void loadLeaderboard();
+    const intervalId = window.setInterval(loadLeaderboard, 30000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [challengeEnrollments, user?.id]);
 
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,11 +369,27 @@ export default function Dashboard() {
   };
 
 
-  const isResultPublished = (updatedAt: string) => {
-    const examTime = new Date(updatedAt).getTime();
-    const now = new Date().getTime();
-    const hoursPassed = (now - examTime) / (1000 * 60 * 60);
-    return hoursPassed >= 12;
+  const handleRankShare = async (openFacebook = false) => {
+    if (!leaderboard?.myResult?.published || !leaderboard.myResult.rank || leaderboard.myResult.score === undefined) return;
+
+    setSharingRank(true);
+    try {
+      const canvas = await createRankCardCanvas({
+        name: user?.name || user?.email?.split('@')[0] || 'ICT Student',
+        rank: leaderboard.myResult.rank,
+        score: leaderboard.myResult.score,
+        total: leaderboard.myResult.total || 0,
+        challengeTitle: leaderboard.challenge?.title || 'HSC ICT Monthly Quiz Exam',
+      });
+      await triggerCanvasDownload(canvas, `ict-toppers-rank-${leaderboard.myResult.rank}.png`);
+      if (openFacebook) {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://www.icttoppers.com/monthly-quiz')}`, '_blank', 'width=640,height=520');
+      }
+    } catch (error) {
+      alert('Failed to create leaderboard share image. Please try again.');
+    } finally {
+      setSharingRank(false);
+    }
   };
 
   if (!user) {
@@ -419,6 +600,101 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-slate-900/10 dark:border-white/20 mb-8">
+        <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-white">
+              <Award className="h-6 w-6 text-amber-400" />
+              All Bangladesh Leaderboard
+            </h2>
+            <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+              {leaderboard?.challenge?.title || 'Monthly quiz rank will appear here after result publication.'}
+            </p>
+          </div>
+          {leaderboardLoading && (
+            <span className="inline-flex items-center gap-2 rounded-full bg-slate-900/5 px-3 py-1 text-xs font-bold text-slate-500 dark:bg-white/5 dark:text-slate-300">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Updating
+            </span>
+          )}
+        </div>
+
+        {leaderboardError && (
+          <div className="mb-4 rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm font-semibold text-rose-300">
+            {leaderboardError}
+          </div>
+        )}
+
+        {leaderboard?.myResult?.submitted && !leaderboard.myResult.published && (
+          <div className="mb-5 rounded-2xl border border-amber-300/30 bg-amber-400/10 p-5">
+            <p className="font-black text-amber-500 dark:text-amber-300">Your exam has been submitted successfully.</p>
+            <p className="mt-2 text-sm font-semibold leading-7 text-slate-600 dark:text-slate-300">
+              Result will be published after admin approval. Expected publication time: {formatDashboardDate(leaderboard.myResult.resultVisibleAt)}. After publication, your rank and score will appear here.
+            </p>
+          </div>
+        )}
+
+        {leaderboard?.myResult?.published && (
+          <div className="mb-6 grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+            <div className="rounded-3xl border border-amber-300/30 bg-gradient-to-br from-amber-400/15 to-sky-400/10 p-5">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-500 dark:text-amber-300">Your Bangladesh Rank</p>
+              <div className="mt-2 flex flex-wrap items-end gap-4">
+                <div className="text-5xl font-black text-slate-900 dark:text-white">#{leaderboard.myResult.rank}</div>
+                <div className="pb-1 text-sm font-bold text-slate-600 dark:text-slate-300">
+                  Score {leaderboard.myResult.score}/{leaderboard.myResult.total}
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row md:flex-col">
+              <button
+                type="button"
+                onClick={() => void handleRankShare(false)}
+                disabled={sharingRank}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-sky-950/20 transition hover:bg-sky-400 disabled:cursor-wait disabled:opacity-60"
+              >
+                {sharingRank ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                Rank Card
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleRankShare(true)}
+                disabled={sharingRank}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1877F2] px-4 py-3 text-sm font-black text-white shadow-lg shadow-blue-950/20 transition hover:bg-[#166fe5] disabled:cursor-wait disabled:opacity-60"
+              >
+                <Share2 className="h-4 w-4" />
+                Share FB
+              </button>
+            </div>
+          </div>
+        )}
+
+        {leaderboard?.entries.length ? (
+          <div className="overflow-hidden rounded-2xl border border-slate-900/10 dark:border-white/10">
+            <div className="grid grid-cols-[72px_1fr_88px] bg-slate-900/5 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:bg-white/5 dark:text-slate-400">
+              <span>Rank</span>
+              <span>Student</span>
+              <span className="text-right">Score</span>
+            </div>
+            <div className="divide-y divide-slate-900/10 dark:divide-white/10">
+              {leaderboard.entries.slice(0, 10).map(entry => (
+                <div key={entry.id} className={`grid grid-cols-[72px_1fr_88px] items-center px-4 py-4 text-sm ${entry.userId === user.id ? 'bg-amber-400/10' : 'bg-white/40 dark:bg-slate-950/35'}`}>
+                  <span className="inline-flex items-center gap-2 font-black text-amber-500 dark:text-amber-300">
+                    <Medal className="h-4 w-4" />
+                    #{entry.rank}
+                  </span>
+                  <span className="min-w-0 truncate font-bold text-slate-800 dark:text-slate-100">{entry.name}</span>
+                  <span className="text-right font-black text-emerald-500 dark:text-emerald-300">{entry.score}/{entry.total}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-slate-900/15 p-8 text-center text-sm font-semibold text-slate-500 dark:border-white/15 dark:text-slate-400">
+            Leaderboard will unlock after admin publishes the monthly quiz result.
+          </div>
+        )}
+      </div>
+
       {/* Tasks Section */}
       <div className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-slate-900/10 dark:border-white/20 mb-8 mt-8 relative">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
@@ -481,7 +757,7 @@ export default function Dashboard() {
                   <span className={`text-lg transition-all ${task.completed ? 'line-through text-slate-500 dark:text-gray-500' : 'text-slate-900 dark:text-white'}`}>
                     {task.title}
                   </span>
-                  
+
                   {/* Priority Badge */}
                   <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-bold ml-2 shrink-0 ${
                     task.priority === 'High' ? 'bg-red-500/20 text-red-500' :
@@ -514,46 +790,47 @@ export default function Dashboard() {
           <p className="text-slate-500 dark:text-gray-400">You haven't enrolled in any exams yet.</p>
         ) : (
           <div className="space-y-4">
-            {enrollments.map((enrollment: any) => (
-              <div key={enrollment.id} className="bg-slate-900/5 dark:bg-white/5 rounded-xl p-6 border border-slate-900/10 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                    {enrollment.challenge.month} {enrollment.challenge.year} Quiz Exam
-                  </h3>
-                  <div className="flex items-center gap-4 mt-2 text-sm">
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${
-                      enrollment.paymentStatus === 'PAID' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
-                    }`}>
-                      {enrollment.paymentStatus}
-                    </span>
-                    <span className="text-slate-500 dark:text-gray-400">
-                      Enrolled: {new Date(enrollment.createdAt).toLocaleDateString()}
-                    </span>
+            {enrollments.map((enrollment: any) => {
+              const publishedResult = leaderboard?.challenge?.id === enrollment.challengeId ? leaderboard.myResult : null;
+
+              return (
+                <div key={enrollment.id} className="bg-slate-900/5 dark:bg-white/5 rounded-xl p-6 border border-slate-900/10 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                      {enrollment.challenge.month} {enrollment.challenge.year} Quiz Exam
+                    </h3>
+                    <div className="flex items-center gap-4 mt-2 text-sm">
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${
+                        enrollment.paymentStatus === 'PAID' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                      }`}>
+                        {enrollment.paymentStatus}
+                      </span>
+                      <span className="text-slate-500 dark:text-gray-400">
+                        Enrolled: {new Date(enrollment.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    {publishedResult?.published ? (
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-green-400">{publishedResult.score}/{publishedResult.total}</div>
+                        <div className="text-xs text-slate-500 dark:text-gray-400 uppercase tracking-wider">Rank #{publishedResult.rank}</div>
+                      </div>
+                    ) : publishedResult?.submitted || enrollment.resultStatus === 'pending' ? (
+                      <span className="inline-flex items-center gap-1 text-yellow-500 dark:text-yellow-400 bg-yellow-400/10 px-3 py-1 rounded-full text-sm">
+                        <Clock className="w-4 h-4" /> Result pending - {formatDashboardDate(publishedResult?.resultVisibleAt || enrollment.resultVisibleAt)}
+                      </span>
+                    ) : enrollment.paymentStatus === 'PAID' ? (
+                      <span className="inline-flex items-center gap-1 text-blue-400 bg-blue-400/10 px-3 py-1 rounded-full text-sm">
+                        <Clock className="w-4 h-4" /> Ready to take exam
+                      </span>
+                    ) : (
+                      <span className="text-gray-500 text-sm">Payment Required</span>
+                    )}
                   </div>
                 </div>
-                
-                <div className="text-right">
-                  {enrollment.score !== null ? (
-                    isResultPublished(enrollment.updatedAt) ? (
-                      <div className="text-center">
-                        <div className="text-3xl font-bold text-green-400">{enrollment.score}</div>
-                        <div className="text-xs text-slate-500 dark:text-gray-400 uppercase tracking-wider">Marks</div>
-                      </div>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-yellow-400 bg-yellow-400/10 px-3 py-1 rounded-full text-sm">
-                        <Clock className="w-4 h-4" /> Result Pending (12h)
-                      </span>
-                    )
-                  ) : enrollment.paymentStatus === 'PAID' ? (
-                    <span className="inline-flex items-center gap-1 text-blue-400 bg-blue-400/10 px-3 py-1 rounded-full text-sm">
-                      <Clock className="w-4 h-4" /> Ready to take exam
-                    </span>
-                  ) : (
-                    <span className="text-gray-500 text-sm">Payment Required</span>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

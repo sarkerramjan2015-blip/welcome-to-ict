@@ -46,8 +46,12 @@ export const fetchChallengeExamQuestions = async (challengeId: string) => {
 
 export const submitChallengeExam = async (challengeId: string, answers: Record<string, string>) => {
   return requestChallengeExam<{
-    score: number;
+    score?: number;
     total: number;
+    published: boolean;
+    resultStatus: 'pending' | 'published';
+    resultVisibleAt: string;
+    message?: string;
   }>('/api/challengeExam', {
     method: 'POST',
     body: JSON.stringify({ challengeId, answers }),
