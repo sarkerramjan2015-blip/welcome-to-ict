@@ -8,6 +8,11 @@ const outputs = [
     transform: image => image.rotate().resize({ width: 384, withoutEnlargement: true }).webp({ quality: 78, effort: 6 }),
   },
   {
+    input: 'src/asset/bio_image.png',
+    output: 'src/asset/bio_image-mentor-256.webp',
+    transform: image => image.rotate().resize({ width: 256, withoutEnlargement: true }).webp({ quality: 76, effort: 6 }),
+  },
+  {
     input: 'public/logo.jpeg',
     output: 'public/logo-128.webp',
     transform: image => image.rotate().resize(128, 128, { fit: 'cover' }).webp({ quality: 76, effort: 6 }),

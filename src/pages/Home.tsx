@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import Countdown from '../components/Countdown';
 import { BookOpen, BriefcaseBusiness, CreditCard, GraduationCap, NotebookTabs, Rocket, Timer, Trophy, Video, Users, Star, User, ChevronDown, Zap, ArrowRight } from 'lucide-react';
+import bioImageSmall from '@/src/asset/bio_image-mentor-256.webp';
 import bioImage from '@/src/asset/bio_image-mentor.webp';
-import { motion, AnimatePresence } from 'motion/react';
 
 function useDeferredSections() {
   const [ready, setReady] = useState(false);
@@ -41,12 +41,12 @@ function MentorSection() {
       className="scroll-mt-28 px-4 sm:px-6 md:px-16 mb-16 md:mb-20 w-full"
     >
       <div className="mx-auto max-w-5xl">
-        <div className="relative overflow-hidden rounded-[2rem] border border-red-500/20 bg-slate-50/50 dark:bg-slate-900/40 p-6 md:p-10 shadow-2xl shadow-red-900/10 backdrop-blur-3xl transition-all duration-500 hover:border-red-400/35">
+        <div className="relative overflow-hidden rounded-[2rem] border border-red-500/20 bg-slate-50/50 dark:bg-slate-900/40 p-6 md:p-10 shadow-2xl shadow-red-900/10 backdrop-blur-3xl transition-colors duration-500 hover:border-red-400/35">
           <a
             href="https://wa.me/8801518657869"
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute right-4 top-4 z-20 inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-700 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-700/25 transition-all duration-300 hover:scale-105 hover:bg-emerald-800"
+            className="absolute right-4 top-4 z-20 inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-700 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-700/25 transition-transform transition-colors duration-300 hover:scale-105 hover:bg-emerald-800"
             aria-label="Message mentor on WhatsApp"
           >
             <WhatsAppIcon className="size-5" />
@@ -59,10 +59,12 @@ function MentorSection() {
                 <div className="absolute inset-0 bg-red-500/20 blur-2xl rounded-full" />
                 <div className="relative size-36 sm:size-48 overflow-hidden rounded-[2rem] border-2 border-red-200/20 bg-black/5 p-1 shadow-xl">
                   <img
-                    src={bioImage}
+                    src={bioImageSmall}
+                    srcSet={`${bioImageSmall} 256w, ${bioImage} 384w`}
+                    sizes="(min-width: 640px) 192px, 144px"
                     alt="Md. Ramjan Sarker"
-                    width="384"
-                    height="494"
+                    width="256"
+                    height="329"
                     loading="lazy"
                     decoding="async"
                     className="size-full rounded-[1.8rem] object-cover object-top"
@@ -124,7 +126,7 @@ function FAQSection() {
       </div>
       <div className="space-y-3">
         {faqs.map((faq, idx) => (
-          <div key={idx} className="bg-slate-900/5 dark:bg-white/5 backdrop-blur-md border border-slate-900/10 dark:border-white/10 rounded-2xl overflow-hidden transition-all duration-300">
+          <div key={idx} className="bg-slate-900/5 dark:bg-white/5 backdrop-blur-md border border-slate-900/10 dark:border-white/10 rounded-2xl overflow-hidden transition-colors duration-300">
             <button 
               onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
               className="w-full text-left px-6 py-5 flex items-center justify-between font-bold text-slate-900 dark:text-white hover:bg-slate-900/5 dark:hover:bg-white/5 transition-colors"
@@ -196,7 +198,7 @@ function StudentQuickStartSection() {
               <Link
                 key={item.to}
                 to={item.to}
-                className="group rounded-3xl border border-slate-900/10 bg-white/72 p-5 shadow-xl shadow-slate-950/5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/35 hover:shadow-2xl hover:shadow-sky-500/10 dark:border-white/10 dark:bg-white/7"
+                className="group rounded-3xl border border-slate-900/10 bg-white/72 p-5 shadow-xl shadow-slate-950/5 backdrop-blur-xl transition-transform transition-colors transition-shadow duration-300 hover:-translate-y-1 hover:border-sky-400/35 hover:shadow-2xl hover:shadow-sky-500/10 dark:border-white/10 dark:bg-white/7"
               >
                 <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${item.tone}`}>
                   <Icon className="h-7 w-7" />
@@ -297,7 +299,7 @@ function QuizExamBanner() {
           </div>
 
           <div className="shrink-0 w-full md:w-auto">
-            <div className="w-full text-center px-8 py-4 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl font-bold text-lg text-white shadow-[0_0_20px_rgba(236,72,153,0.5)] group-hover:shadow-[0_0_30px_rgba(236,72,153,0.7)] group-hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 border border-slate-900/10 dark:border-white/20">
+            <div className="w-full text-center px-8 py-4 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl font-bold text-lg text-white shadow-[0_0_20px_rgba(236,72,153,0.5)] group-hover:shadow-[0_0_30px_rgba(236,72,153,0.7)] group-hover:scale-105 transition-transform transition-shadow duration-300 flex items-center justify-center gap-2 border border-slate-900/10 dark:border-white/20">
               Join Quiz Exam <Rocket className="w-5 h-5" />
             </div>
           </div>
@@ -343,19 +345,9 @@ export default function Home() {
       </Helmet>
 
       <section className="px-4 sm:px-6 md:px-16 mt-8 md:mt-12 text-center">
-        <motion.h1 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="text-[2.05rem] sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 break-words"
-        >
+        <h1 className="home-hero-title text-[2.05rem] sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 break-words">
           <div className="flex flex-row items-center justify-center gap-2.5 sm:gap-5 mb-2 sm:mb-4">
-            <motion.div 
-              initial={{ scale: 0.8, opacity: 0, rotate: -15 }}
-              animate={{ scale: 1, opacity: 1, rotate: 0 }}
-              transition={{ duration: 0.9, type: "spring", bounce: 0.5 }}
-              className="logo-dotted-shine relative flex shrink-0 items-center justify-center rounded-full p-[2px] shadow-[0_8px_26px_rgb(0,0,0,0.12)] ring-1 ring-slate-900/5 dark:ring-white/10"
-            >
+            <div className="home-logo-pop logo-dotted-shine relative flex shrink-0 items-center justify-center rounded-full p-[2px] shadow-[0_8px_26px_rgb(0,0,0,0.12)] ring-1 ring-slate-900/5 dark:ring-white/10">
               <div className="logo-shine-sweep relative overflow-hidden rounded-full bg-gradient-to-br from-white to-slate-50/95 p-1.5 sm:p-2 md:p-2.5 backdrop-blur-xl dark:from-slate-800 dark:to-slate-900/95 flex items-center justify-center">
                 <div className="absolute inset-0 bg-gradient-to-tr from-sky-400/20 via-transparent to-pink-400/20 opacity-50 mix-blend-overlay"></div>
                 <img 
@@ -371,47 +363,39 @@ export default function Home() {
                   className="relative z-10 h-10 w-10 rounded-full object-cover shadow-sm sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-[4.5rem] lg:w-[4.5rem]"
                 />
               </div>
-            </motion.div>
+            </div>
             <span className="block whitespace-nowrap bg-clip-text text-slate-900 dark:text-white">
               ICT Toppers
             </span>
           </div>
           <div className="min-h-[4.8rem] sm:min-h-[5.6rem] md:min-h-[6.4rem] lg:min-h-[7.2rem] flex items-center justify-center mt-2 px-0 overflow-visible relative">
-            <AnimatePresence mode="popLayout">
-              <motion.span 
-                key={phraseIndex}
-                initial={{ opacity: 0, y: 30, filter: 'blur(8px)', scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
-                exit={{ opacity: 0, y: -30, filter: 'blur(8px)', scale: 1.05 }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inline-block w-full max-w-full whitespace-nowrap bg-gradient-to-r from-red-500 via-rose-500 to-red-600 bg-clip-text px-1 text-center text-[clamp(0.95rem,4.45vw,1.55rem)] leading-[1.18] text-transparent drop-shadow-sm sm:text-[clamp(1.8rem,4.7vw,4.5rem)]"
+            {phrases.map((phrase, index) => (
+              <span
+                key={phrase}
+                aria-hidden={index !== phraseIndex}
+                className={`home-phrase absolute inline-block w-full max-w-full whitespace-nowrap bg-gradient-to-r from-red-500 via-rose-500 to-red-600 bg-clip-text px-1 text-center text-[clamp(0.95rem,4.45vw,1.55rem)] leading-[1.18] text-transparent drop-shadow-sm sm:text-[clamp(1.8rem,4.7vw,4.5rem)] ${index === phraseIndex ? 'home-phrase-active' : ''}`}
               >
-                {phrases[phraseIndex]}
-              </motion.span>
-            </AnimatePresence>
+                {phrase}
+              </span>
+            ))}
           </div>
-        </motion.h1>
+        </h1>
         <p className="text-base md:text-[1.15rem] text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-10 md:mb-12 leading-relaxed md:leading-[1.8] font-medium px-2">
           ICT কি কঠিন লাগে? আর নয় দুশ্চিন্তা! বাংলাদেশের প্রথম <span className="text-sky-500 dark:text-sky-400 font-bold">ইন্টারঅ্যাকটিভ লার্নিং প্ল্যাটফর্মে</span> জটিল সব অধ্যায় বুঝে নাও একদম পানির মতো <span className="text-amber-600 dark:text-amber-400 font-bold">সহজ ভাষায়</span>। স্মার্ট নোট, আনলিমিটেড কুইজ আর মেন্টর সাপোর্ট—সবকিছু এখন <span className="text-sky-500 dark:text-sky-400 font-bold">এক জায়গায়</span>। বাসা থেকেই কনফিউশন কমাও, কনফিডেন্স বাড়াও এবং বোর্ড পরীক্ষার জন্য নিজেকে <span className="text-amber-600 dark:text-amber-400 font-bold">১০০% প্রস্তুত</span> করো।
         </p>
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.35, ease: "easeOut" }}
-          className="mb-12 flex flex-row items-center justify-center gap-2 md:gap-4 px-2 md:px-0"
-        >
-          <Link to="/syllabus" className="group relative inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-red-600 via-rose-500 to-pink-600 p-[2px] font-black text-white shadow-[0_0_40px_rgba(225,29,72,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(225,29,72,0.6)] overflow-hidden flex-1 md:flex-none">
+        <div className="home-cta-row mb-12 flex flex-row items-center justify-center gap-2 md:gap-4 px-2 md:px-0">
+          <Link to="/syllabus" className="group relative inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-red-600 via-rose-500 to-pink-600 p-[2px] font-black text-white shadow-[0_0_40px_rgba(225,29,72,0.4)] transition-transform transition-shadow duration-300 hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(225,29,72,0.6)] overflow-hidden flex-1 md:flex-none">
             <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%,transparent_100%)] bg-[length:250%_250%] animate-[shimmer_2s_infinite]"></div>
             <div className="relative flex items-center justify-center gap-1.5 md:gap-2 bg-gradient-to-r from-red-600 to-rose-600 px-3 py-2.5 md:px-8 md:py-4 rounded-[14px] w-full border border-white/10">
               <Zap className="size-3.5 md:size-5 text-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.8)] group-hover:scale-125 transition-transform duration-300 shrink-0" />
               <span className="tracking-wide text-[10px] md:text-base leading-none whitespace-nowrap">Start HSC ICT</span>
             </div>
           </Link>
-          <Link to="/monthly-quiz" className="inline-flex items-center justify-center gap-1.5 md:gap-2 rounded-2xl border border-slate-900/10 bg-white/75 px-3 py-2.5 md:px-8 md:py-4 font-black text-slate-900 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-red-400/30 hover:text-red-600 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:text-red-400 flex-1 md:flex-none shadow-xl hover:shadow-red-500/20 leading-none">
+          <Link to="/monthly-quiz" className="inline-flex items-center justify-center gap-1.5 md:gap-2 rounded-2xl border border-slate-900/10 bg-white/75 px-3 py-2.5 md:px-8 md:py-4 font-black text-slate-900 backdrop-blur-xl transition-transform transition-colors transition-shadow duration-300 hover:-translate-y-1 hover:border-red-400/30 hover:text-red-600 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:text-red-400 flex-1 md:flex-none shadow-xl hover:shadow-red-500/20 leading-none">
             <span className="tracking-wide text-[10px] md:text-base whitespace-nowrap">Join Quiz</span>
             <Trophy className="size-3.5 md:size-5 text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
           </Link>
-        </motion.div>
+        </div>
       </section>
 
       {/* Stats Counter Section */}
@@ -443,7 +427,7 @@ export default function Home() {
           <Link to="/syllabus" className="relative rounded-3xl overflow-hidden p-[2px] h-full block">
             <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,#38bdf8_360deg)] animate-spin-slow"></div>
             <div className="absolute inset-0 bg-[conic-gradient(from_180deg,transparent_0_300deg,#818cf8_360deg)] animate-spin-slow"></div>
-            <div className="relative bg-gradient-to-br from-slate-100 dark:from-slate-900 to-indigo-50 dark:to-indigo-950 rounded-[22px] border border-dashed border-slate-900/10 dark:border-white/20 p-6 md:p-8 text-center flex flex-col items-center shadow-2xl shadow-black/20 h-full transition-all duration-300 group-hover:from-white dark:group-hover:from-slate-800 group-hover:to-indigo-100 dark:group-hover:to-indigo-900">
+            <div className="relative bg-gradient-to-br from-slate-100 dark:from-slate-900 to-indigo-50 dark:to-indigo-950 rounded-[22px] border border-dashed border-slate-900/10 dark:border-white/20 p-6 md:p-8 text-center flex flex-col items-center shadow-2xl shadow-black/20 h-full transition-colors duration-300 group-hover:from-white dark:group-hover:from-slate-800 group-hover:to-indigo-100 dark:group-hover:to-indigo-900">
               <div className="w-16 h-16 bg-indigo-500/20 rounded-2xl mb-6 flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
                 <BookOpen className="w-8 h-8" />
               </div>
@@ -460,7 +444,7 @@ export default function Home() {
           <div className="relative rounded-3xl overflow-hidden p-[2px] h-full block opacity-60 cursor-not-allowed">
             <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,#f43f5e_360deg)] animate-spin-slow"></div>
             <div className="absolute inset-0 bg-[conic-gradient(from_180deg,transparent_0_300deg,#fb7185_360deg)] animate-spin-slow"></div>
-            <div className="relative bg-gradient-to-br from-slate-100 dark:from-slate-900 to-rose-950 rounded-[22px] border border-dashed border-slate-900/10 dark:border-white/20 p-6 md:p-8 text-center flex flex-col items-center shadow-2xl shadow-black/20 h-full transition-all duration-300">
+            <div className="relative bg-gradient-to-br from-slate-100 dark:from-slate-900 to-rose-950 rounded-[22px] border border-dashed border-slate-900/10 dark:border-white/20 p-6 md:p-8 text-center flex flex-col items-center shadow-2xl shadow-black/20 h-full transition-colors duration-300">
               <div className="w-16 h-16 bg-slate-900/5 dark:bg-white/5 rounded-2xl mb-6 flex items-center justify-center text-rose-400">
                 <NotebookTabs className="w-8 h-8" />
               </div>
@@ -477,7 +461,7 @@ export default function Home() {
           <div className="relative rounded-3xl overflow-hidden p-[2px] h-full block opacity-60 cursor-not-allowed">
             <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,#f43f5e_360deg)] animate-spin-slow"></div>
             <div className="absolute inset-0 bg-[conic-gradient(from_180deg,transparent_0_300deg,#fb7185_360deg)] animate-spin-slow"></div>
-            <div className="relative bg-gradient-to-br from-slate-100 dark:from-slate-900 to-purple-950 rounded-[22px] border border-dashed border-slate-900/10 dark:border-white/20 p-6 md:p-8 text-center flex flex-col items-center shadow-2xl shadow-black/20 h-full transition-all duration-300">
+            <div className="relative bg-gradient-to-br from-slate-100 dark:from-slate-900 to-purple-950 rounded-[22px] border border-dashed border-slate-900/10 dark:border-white/20 p-6 md:p-8 text-center flex flex-col items-center shadow-2xl shadow-black/20 h-full transition-colors duration-300">
               <div className="w-16 h-16 bg-slate-900/5 dark:bg-white/5 rounded-2xl mb-6 flex items-center justify-center text-purple-400">
                 <BriefcaseBusiness className="w-8 h-8" />
               </div>
@@ -494,7 +478,7 @@ export default function Home() {
           <div className="relative rounded-3xl overflow-hidden p-[2px] h-full block opacity-60 cursor-not-allowed">
             <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,#f43f5e_360deg)] animate-spin-slow"></div>
             <div className="absolute inset-0 bg-[conic-gradient(from_180deg,transparent_0_300deg,#fb7185_360deg)] animate-spin-slow"></div>
-            <div className="relative bg-gradient-to-br from-slate-100 dark:from-slate-900 to-emerald-950 rounded-[22px] border border-dashed border-slate-900/10 dark:border-white/20 p-6 md:p-8 text-center flex flex-col items-center shadow-2xl shadow-black/20 h-full transition-all duration-300">
+            <div className="relative bg-gradient-to-br from-slate-100 dark:from-slate-900 to-emerald-950 rounded-[22px] border border-dashed border-slate-900/10 dark:border-white/20 p-6 md:p-8 text-center flex flex-col items-center shadow-2xl shadow-black/20 h-full transition-colors duration-300">
               <div className="w-16 h-16 bg-slate-900/5 dark:bg-white/5 rounded-2xl mb-6 flex items-center justify-center text-emerald-400">
                 <GraduationCap className="w-8 h-8" />
               </div>

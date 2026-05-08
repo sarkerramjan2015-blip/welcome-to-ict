@@ -16,10 +16,7 @@
     <meta name="google-site-verification" content="3Q7F266GUO5SBUoi2uUVUKPkWvX8NtnwWhsS7UJg_rA" />
     <meta name="google-adsense-account" content="ca-pub-6527194811427863">
     <meta name="theme-color" content="#020617" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preload" as="image" href="/logo-128.webp" imagesrcset="/logo-128.webp 128w, /logo-256.webp 256w" imagesizes="72px" fetchpriority="high" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
@@ -168,7 +165,36 @@
         ]
       }
     </script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6527194811427863" crossorigin="anonymous"></script>
+    <script>
+      (function () {
+        var client = 'ca-pub-6527194811427863';
+        var src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + client;
+
+        function loadAdsense() {
+          if (window.__ictAdsenseLoaded || document.querySelector('script[src="' + src + '"]')) return;
+          window.__ictAdsenseLoaded = true;
+          var script = document.createElement('script');
+          script.async = true;
+          script.crossOrigin = 'anonymous';
+          script.src = src;
+          document.head.appendChild(script);
+        }
+
+        function scheduleAdsense() {
+          if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(loadAdsense, { timeout: 4500 });
+          } else {
+            window.setTimeout(loadAdsense, 2800);
+          }
+        }
+
+        if (document.readyState === 'complete') {
+          scheduleAdsense();
+        } else {
+          window.addEventListener('load', scheduleAdsense, { once: true });
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
