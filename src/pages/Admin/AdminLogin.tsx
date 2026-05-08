@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { Mail, KeyRound, MessageSquare, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getFirebaseAuth } from '../../lib/firebase';
@@ -113,32 +112,18 @@ export default function AdminLogin() {
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="flex-1 flex items-center justify-center px-8 py-12 relative z-20">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
-        <div className="bg-slate-900/5 dark:bg-white/5 backdrop-blur-xl border border-slate-900/10 dark:border-white/10 rounded-3xl p-10 shadow-2xl shadow-black/20">
+      <div className="w-full max-w-md">
+        <div className="bg-slate-950/8 dark:bg-white/[0.055] backdrop-blur-xl border border-slate-900/10 dark:border-white/10 rounded-3xl p-10 shadow-2xl shadow-black/25">
 
           {/* Brand logo */}
-          <motion.div
-            className="relative mx-auto mb-6 h-28 w-28 overflow-hidden rounded-2xl border border-white/40 bg-white p-2 shadow-2xl shadow-blue-500/25"
-            animate={{ y: [0, -8, 0], rotate: [0, -1.5, 1.5, 0], scale: [1, 1.03, 1] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-          >
+          <div className="relative mx-auto mb-6 h-28 w-28 overflow-hidden rounded-2xl border border-white/50 bg-white p-2 shadow-xl shadow-indigo-500/20">
             <img
               src="/ict_toppers_logo.jpeg"
               alt="ICT Toppers"
               className="h-full w-full rounded-xl object-contain"
             />
-            <motion.span
-              aria-hidden="true"
-              className="absolute inset-y-0 -left-12 w-12 rotate-12 bg-white/70 blur-sm"
-              animate={{ x: [0, 180] }}
-              transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 1.15, ease: 'easeInOut' }}
-            />
             <span className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/70" />
-          </motion.div>
+          </div>
 
           {/* Title */}
           <h1 className="text-3xl font-black text-center mb-2">অ্যাডমিন পোর্টাল</h1>
@@ -150,16 +135,10 @@ export default function AdminLogin() {
             <StepDot active={step === 'otp'} done={false} label="২" />
           </div>
 
-          <AnimatePresence mode="wait">
-
             {/* ── STEP 1: Credentials ── */}
             {step === 'credentials' && (
-              <motion.form
+              <form
                 key="credentials"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.25 }}
                 onSubmit={handleCredentialSubmit}
                 className="space-y-4"
               >
@@ -224,17 +203,13 @@ export default function AdminLogin() {
                     <>চালিয়ে যান <ArrowRight size={16} /></>
                   )}
                 </button>
-              </motion.form>
+              </form>
             )}
 
             {/* ── STEP 2: OTP ── */}
             {step === 'otp' && (
-              <motion.form
+              <form
                 key="otp"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.25 }}
                 onSubmit={handleOtpSubmit}
                 className="space-y-4"
               >
@@ -280,12 +255,10 @@ export default function AdminLogin() {
                 >
                   ← লগইন পেজে ফিরে যান
                 </button>
-              </motion.form>
+              </form>
             )}
-
-          </AnimatePresence>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

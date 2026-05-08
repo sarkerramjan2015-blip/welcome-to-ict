@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { getFirebaseAuth, getGoogleProvider, isFirebaseConfigured } from '../lib/firebase';
+import { getFirebaseAuth, getGoogleProvider } from '../lib/firebase';
 import { verifyFirebaseAdminUser } from '../services/adminAuth';
 
 export type UserRole = 'admin' | 'student';
@@ -183,11 +183,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAuthReady(false);
 
     const cancelIdle = runAfterFirstPaint(() => {
-      if (!isFirebaseConfigured) {
-        setAuthReady(true);
-        return;
-      }
-
       void (async () => {
         const [{ onAuthStateChanged }, auth] = await Promise.all([
           import('firebase/auth'),
@@ -254,11 +249,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginWithGoogle = async (options: LoginOptions = {}) => {
     setAuthError('');
 
-    if (!isFirebaseConfigured) {
-      setAuthError('auth/missing-config: Firebase keys are not configured. Check your VITE_FIREBASE_* environment variables.');
-      return;
-    }
-
     try {
       pendingLoginOptionsRef.current = options;
       const [{ signInWithPopup }, auth, provider] = await Promise.all([
@@ -296,14 +286,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     clearStoredSession();
     localStorage.removeItem('isAdmin');
-    if (isFirebaseConfigured) {
-      void Promise.all([
-        import('firebase/auth'),
-        getFirebaseAuth(),
-      ])
-        .then(([{ signOut }, auth]) => auth ? signOut(auth) : undefined)
-        .catch(() => undefined);
-    }
+    void Promise.all([
+      import('firebase/auth'),
+      getFirebaseAuth(),
+    ])
+      .then(([{ signOut }, auth]) => auth ? signOut(auth) : undefined)
+      .catch(() => undefined);
   };
 
 

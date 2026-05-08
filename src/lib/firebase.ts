@@ -9,31 +9,62 @@ function sanitizeEnv(value: string | undefined): string {
   return String(value).replace(/['"]/g, '').trim();
 }
 
-const firebaseConfig: FirebaseOptions = {
-  apiKey:            sanitizeEnv(import.meta.env.VITE_FIREBASE_API_KEY),
-  authDomain:        sanitizeEnv(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN),
-  projectId:         sanitizeEnv(import.meta.env.VITE_FIREBASE_PROJECT_ID),
-  storageBucket:     sanitizeEnv(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET),
-  messagingSenderId: sanitizeEnv(import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID),
-  appId:             sanitizeEnv(import.meta.env.VITE_FIREBASE_APP_ID),
-  measurementId:     sanitizeEnv(import.meta.env.VITE_FIREBASE_MEASUREMENT_ID),
+const buildFirebaseConfig = (source: Record<string, any>): FirebaseOptions => ({
+  apiKey: sanitizeEnv(source.VITE_FIREBASE_API_KEY || source.apiKey),
+  authDomain: sanitizeEnv(source.VITE_FIREBASE_AUTH_DOMAIN || source.authDomain),
+  projectId: sanitizeEnv(source.VITE_FIREBASE_PROJECT_ID || source.projectId),
+  storageBucket: sanitizeEnv(source.VITE_FIREBASE_STORAGE_BUCKET || source.storageBucket),
+  messagingSenderId: sanitizeEnv(source.VITE_FIREBASE_MESSAGING_SENDER_ID || source.messagingSenderId),
+  appId: sanitizeEnv(source.VITE_FIREBASE_APP_ID || source.appId),
+  measurementId: sanitizeEnv(source.VITE_FIREBASE_MEASUREMENT_ID || source.measurementId),
+});
+
+const hasRequiredFirebaseConfig = (config: FirebaseOptions | null | undefined) =>
+  Boolean(config?.apiKey && config.authDomain && config.projectId && config.appId);
+
+const buildTimeFirebaseConfig = buildFirebaseConfig(import.meta.env);
+
+const fetchRuntimeFirebaseConfig = async (): Promise<FirebaseOptions | null> => {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const response = await fetch('/api/firebaseConfig', {
+      cache: 'no-store',
+      headers: { Accept: 'application/json' },
+    });
+    const data = await response.json().catch(() => ({}));
+    const runtimeConfig = buildFirebaseConfig(data?.config || {});
+    return response.ok && hasRequiredFirebaseConfig(runtimeConfig) ? runtimeConfig : null;
+  } catch (error) {
+    console.warn('Runtime Firebase config could not be loaded:', error);
+    return null;
+  }
 };
 
-export const isFirebaseConfigured = Boolean(
-  firebaseConfig.apiKey &&
-  firebaseConfig.authDomain &&
-  firebaseConfig.projectId &&
-  firebaseConfig.appId
-);
+export const isFirebaseConfigured = hasRequiredFirebaseConfig(buildTimeFirebaseConfig);
 
+let firebaseConfigPromise: Promise<FirebaseOptions | null> | null = null;
 let firebaseAppPromise: Promise<FirebaseApp | null> | null = null;
 let firebaseAuthPromise: Promise<Auth | null> | null = null;
 let firebaseDbPromise: Promise<Firestore | null> | null = null;
 let firebaseStoragePromise: Promise<FirebaseStorage | null> | null = null;
 let googleProviderPromise: Promise<GoogleAuthProvider | null> | null = null;
 
+const getFirebaseConfig = async () => {
+  if (hasRequiredFirebaseConfig(buildTimeFirebaseConfig)) {
+    return buildTimeFirebaseConfig;
+  }
+
+  if (!firebaseConfigPromise) {
+    firebaseConfigPromise = fetchRuntimeFirebaseConfig();
+  }
+
+  return firebaseConfigPromise;
+};
+
 export const getFirebaseApp = async (): Promise<FirebaseApp | null> => {
-  if (!isFirebaseConfigured) return null;
+  const firebaseConfig = await getFirebaseConfig();
+  if (!firebaseConfig) return null;
 
   if (!firebaseAppPromise) {
     firebaseAppPromise = import('firebase/app').then(({ getApps, initializeApp }) =>
@@ -45,7 +76,8 @@ export const getFirebaseApp = async (): Promise<FirebaseApp | null> => {
 };
 
 export const getFirebaseAuth = async (): Promise<Auth | null> => {
-  if (!isFirebaseConfigured) return null;
+  const firebaseConfig = await getFirebaseConfig();
+  if (!firebaseConfig) return null;
 
   if (!firebaseAuthPromise) {
     firebaseAuthPromise = Promise.all([
@@ -58,7 +90,8 @@ export const getFirebaseAuth = async (): Promise<Auth | null> => {
 };
 
 export const getFirebaseDb = async (): Promise<Firestore | null> => {
-  if (!isFirebaseConfigured) return null;
+  const firebaseConfig = await getFirebaseConfig();
+  if (!firebaseConfig) return null;
 
   if (!firebaseDbPromise) {
     firebaseDbPromise = Promise.all([
@@ -71,7 +104,8 @@ export const getFirebaseDb = async (): Promise<Firestore | null> => {
 };
 
 export const getFirebaseStorage = async (): Promise<FirebaseStorage | null> => {
-  if (!isFirebaseConfigured || !firebaseConfig.storageBucket) return null;
+  const firebaseConfig = await getFirebaseConfig();
+  if (!firebaseConfig?.storageBucket) return null;
 
   if (!firebaseStoragePromise) {
     firebaseStoragePromise = Promise.all([
@@ -84,7 +118,8 @@ export const getFirebaseStorage = async (): Promise<FirebaseStorage | null> => {
 };
 
 export const getGoogleProvider = async (): Promise<GoogleAuthProvider | null> => {
-  if (!isFirebaseConfigured) return null;
+  const firebaseConfig = await getFirebaseConfig();
+  if (!firebaseConfig) return null;
 
   if (!googleProviderPromise) {
     googleProviderPromise = import('firebase/auth').then(({ GoogleAuthProvider }) => {
