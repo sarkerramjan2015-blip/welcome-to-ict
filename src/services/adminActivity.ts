@@ -19,16 +19,34 @@ export type AdminActivitySummary = {
 
 export const fetchAdminActivity = async () => {
   const token = await getFirebaseIdToken();
+  if (!token) {
+    throw new Error('Firebase login token is missing. Please log out and sign in as admin again.');
+  }
+
   const response = await fetch('/api/adminActivity', {
     headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      Authorization: `Bearer ${token}`,
     },
   });
 
-  const data = await response.json().catch(() => ({}));
+  const rawText = await response.text().catch(() => '');
+  let data: Record<string, any> = {};
+
+  if (rawText) {
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      data = {};
+    }
+  }
 
   if (!response.ok || data?.success === false) {
-    throw new Error(String(data?.error || data?.message || 'Admin activity tracking failed.'));
+    throw new Error(String(
+      data?.error ||
+      data?.message ||
+      rawText ||
+      `Admin activity tracking failed with HTTP ${response.status}.`
+    ));
   }
 
   return data as AdminActivitySummary & { success: true };

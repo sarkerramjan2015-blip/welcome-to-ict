@@ -19,31 +19,52 @@ export const httpError = (status: number, message: string) =>
 const cleanString = (value: unknown) => String(value || '').trim();
 const normalizeEmail = (value: unknown) => cleanString(value).toLowerCase();
 
+const stripWrappingQuotes = (value: string) => {
+  const trimmed = value.trim();
+  const first = trimmed[0];
+  const last = trimmed[trimmed.length - 1];
+
+  if ((first === '"' || first === "'") && first === last) {
+    return trimmed.slice(1, -1);
+  }
+
+  return trimmed;
+};
+
+const normalizePrivateKey = (value: unknown) =>
+  stripWrappingQuotes(cleanString(value))
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\r\n/g, '\n');
+
+const normalizeServiceAccount = (value: Record<string, any>) => ({
+  projectId: cleanString(value.projectId || value.project_id),
+  clientEmail: cleanString(value.clientEmail || value.client_email),
+  privateKey: normalizePrivateKey(value.privateKey || value.private_key),
+});
+
+const parseServiceAccountJson = (value: string) => {
+  const parsed = JSON.parse(stripWrappingQuotes(value));
+  return normalizeServiceAccount(parsed);
+};
+
 const getFirebaseServiceAccount = () => {
   const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
   if (serviceAccount) {
-    const parsed = JSON.parse(serviceAccount);
-    if (parsed.private_key) {
-      parsed.private_key = String(parsed.private_key).replace(/\\n/g, '\n');
-    }
-    return parsed;
+    return parseServiceAccountJson(serviceAccount);
   }
 
   const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || process.env.GOOGLE_APPLICATION_CREDENTIALS;
 
   if (serviceAccountPath) {
-    const resolvedPath = path.resolve(serviceAccountPath);
-    const parsed = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
-    if (parsed.private_key) {
-      parsed.private_key = String(parsed.private_key).replace(/\\n/g, '\n');
-    }
-    return parsed;
+    const resolvedPath = path.resolve(stripWrappingQuotes(serviceAccountPath));
+    return parseServiceAccountJson(fs.readFileSync(resolvedPath, 'utf8'));
   }
 
-  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+  const projectId = cleanString(process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID);
+  const clientEmail = cleanString(process.env.FIREBASE_CLIENT_EMAIL);
+  const privateKey = normalizePrivateKey(process.env.FIREBASE_PRIVATE_KEY);
 
   if (!projectId || !clientEmail || !privateKey) {
     throw httpError(

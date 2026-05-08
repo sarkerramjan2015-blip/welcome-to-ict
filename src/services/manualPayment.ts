@@ -126,9 +126,24 @@ const getManualPaymentAuthHeaders = async () => {
 };
 
 const parseManualPaymentApiResponse = async <T,>(response: Response): Promise<T> => {
-  const data = await response.json().catch(() => ({}));
+  const rawText = await response.text().catch(() => '');
+  let data: Record<string, any> = {};
+
+  if (rawText) {
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      data = {};
+    }
+  }
+
   if (!response.ok || data?.success === false) {
-    throw new Error(String(data?.error || data?.message || 'Manual payment request failed.'));
+    throw new Error(String(
+      data?.error ||
+      data?.message ||
+      rawText ||
+      `Manual payment request failed with HTTP ${response.status}.`
+    ));
   }
   return data as T;
 };
