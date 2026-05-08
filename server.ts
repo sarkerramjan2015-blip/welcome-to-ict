@@ -15,6 +15,8 @@ import adminQuizQuestionsHandler from "./api/adminQuizQuestions";
 import challengeExamHandler from "./api/challengeExam";
 import firebaseConfigHandler from "./api/firebaseConfig";
 import leaderboardHandler from "./api/leaderboard";
+import rankCardImageHandler from "./api/rankCardImage";
+import rankShareHandler from "./api/rankShare";
 
 dotenv.config();
 
@@ -47,6 +49,8 @@ async function startServer() {
   app.all("/api/challengeExam", challengeExamHandler);
   app.all("/api/firebaseConfig", firebaseConfigHandler);
   app.all("/api/leaderboard", leaderboardHandler);
+  app.all("/api/rankCardImage", rankCardImageHandler);
+  app.all("/api/rankShare", rankShareHandler);
 
   // Get all Categories
   app.get("/api/categories", async (req, res) => {

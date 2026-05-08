@@ -374,16 +374,19 @@ export default function Dashboard() {
 
     setSharingRank(true);
     try {
-      const canvas = await createRankCardCanvas({
-        name: user?.name || user?.email?.split('@')[0] || 'ICT Student',
-        rank: leaderboard.myResult.rank,
-        score: leaderboard.myResult.score,
-        total: leaderboard.myResult.total || 0,
-        challengeTitle: leaderboard.challenge?.title || 'HSC ICT Monthly Quiz Exam',
-      });
-      await triggerCanvasDownload(canvas, `ict-toppers-rank-${leaderboard.myResult.rank}.png`);
       if (openFacebook) {
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://www.icttoppers.com/monthly-quiz')}`, '_blank', 'width=640,height=520');
+        const siteOrigin = window.location.hostname.includes('localhost') ? 'https://www.icttoppers.com' : window.location.origin;
+        const rankShareUrl = `${siteOrigin}/api/rankShare?challengeId=${encodeURIComponent(leaderboard.challenge?.id || '')}&uid=${encodeURIComponent(user?.id || '')}`;
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(rankShareUrl)}`, '_blank', 'width=640,height=520');
+      } else {
+        const canvas = await createRankCardCanvas({
+          name: user?.name || user?.email?.split('@')[0] || 'ICT Student',
+          rank: leaderboard.myResult.rank,
+          score: leaderboard.myResult.score,
+          total: leaderboard.myResult.total || 0,
+          challengeTitle: leaderboard.challenge?.title || 'HSC ICT Monthly Quiz Exam',
+        });
+        await triggerCanvasDownload(canvas, `ict-toppers-rank-${leaderboard.myResult.rank}.png`);
       }
     } catch (error) {
       alert('Failed to create leaderboard share image. Please try again.');
