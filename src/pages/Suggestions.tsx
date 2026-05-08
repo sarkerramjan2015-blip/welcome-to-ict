@@ -20,7 +20,7 @@ export default function Suggestions() {
       return;
     }
 
-    if (user.email === 'sarkerramjan2015@gmail.com') {
+    if (user.role === 'admin') {
       localStorage.setItem('hasPurchasedSuggestion', 'true');
       navigate('/dashboard');
       return;

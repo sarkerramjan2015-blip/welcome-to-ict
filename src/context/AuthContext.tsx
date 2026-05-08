@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import type { User as FirebaseUser } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { getFirebaseAuth, getGoogleProvider, isFirebaseConfigured } from '../lib/firebase';
+import { verifyFirebaseAdminUser } from '../services/adminAuth';
 
 export type UserRole = 'admin' | 'student';
 
@@ -91,22 +92,23 @@ const saveUserToDirectory = (user: User) => {
 const makeUserId = (email: string, role: UserRole) =>
   `${role}-${email.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'user'}`;
 
-const inferRole = (email: string, fallback: UserRole = 'student'): UserRole =>
-  email.trim().toLowerCase() === 'admin@ict.com' ? 'admin' : fallback;
+const inferRole = (_email: string, fallback: UserRole = 'student'): UserRole =>
+  fallback;
 
-const buildFirebaseUser = (firebaseUser: FirebaseUser): User => {
+const buildFirebaseUser = async (firebaseUser: FirebaseUser): Promise<User> => {
   const email = firebaseUser.email || 'student@gmail.com';
-  const role = inferRole(email);
+  const adminRecord = await verifyFirebaseAdminUser(firebaseUser);
+  const role: UserRole = adminRecord ? 'admin' : 'student';
   const existingUser = getStoredUsers().find(item =>
     item.id === firebaseUser.uid || item.email.toLowerCase() === email.toLowerCase()
   );
   return {
     id: firebaseUser.uid || makeUserId(email, role),
-    name: firebaseUser.displayName || existingUser?.name || 'Student',
+    name: firebaseUser.displayName || existingUser?.name || (role === 'admin' ? 'Super Admin' : 'Student'),
     email,
     profileImage: firebaseUser.photoURL || existingUser?.profileImage || null,
     role,
-    isPremium: existingUser?.isPremium || false,
+    isPremium: role === 'admin' || existingUser?.isPremium || false,
     premiumPlan: existingUser?.premiumPlan || null,
     premiumSince: existingUser?.premiumSince || null,
   };
@@ -171,25 +173,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     let cancelled = false;
-    const isManualAdmin = localStorage.getItem('isAdmin') === 'true';
-    const manualAdminUser: User = {
-      id: 'admin-manual',
-      name: 'Super Admin',
-      email: 'admin@ict.com',
-      role: 'admin',
-      isPremium: true,
-    };
+    const storedSession = getStoredSession();
 
-    if (isManualAdmin) {
-      setUser(manualAdminUser);
-    } else {
-      setUser(getStoredSession());
+    localStorage.removeItem('isAdmin');
+    if (storedSession?.role === 'admin') {
+      clearStoredSession();
     }
-
-    setAuthReady(true);
+    setUser(storedSession?.role === 'admin' ? null : storedSession);
+    setAuthReady(false);
 
     const cancelIdle = runAfterFirstPaint(() => {
       if (!isFirebaseConfigured) {
+        setAuthReady(true);
         return;
       }
 
@@ -199,37 +194,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           getFirebaseAuth(),
         ]);
 
-        if (cancelled || !auth) return;
+        if (cancelled) return;
+        if (!auth) {
+          setAuthReady(true);
+          return;
+        }
 
         unsubscribe = onAuthStateChanged(
           auth,
           firebaseUser => {
-            if (firebaseUser) {
-              const nextUser = buildFirebaseUser(firebaseUser);
-              persistSession(nextUser);
-              const options = pendingLoginOptionsRef.current;
-              if (options) {
-                pendingLoginOptionsRef.current = null;
-                navigate(options.redirectTo || getUserHomePath(nextUser), { replace: options.replace ?? true });
+            void (async () => {
+              if (cancelled) return;
+
+              if (firebaseUser) {
+                const nextUser = await buildFirebaseUser(firebaseUser);
+                if (cancelled) return;
+                persistSession(nextUser);
+                const options = pendingLoginOptionsRef.current;
+                if (options) {
+                  pendingLoginOptionsRef.current = null;
+                  navigate(options.redirectTo || getUserHomePath(nextUser), { replace: options.replace ?? true });
+                }
+              } else {
+                setUser(null);
+                clearStoredSession();
               }
-            } else if (isManualAdmin) {
-              setUser(manualAdminUser);
-            } else {
-              setUser(null);
-              clearStoredSession();
-            }
+
+              setAuthReady(true);
+            })().catch(error => {
+              if (!cancelled) {
+                setAuthError(getAuthErrorMessage(error));
+                setUser(null);
+                clearStoredSession();
+                setAuthReady(true);
+              }
+            });
           },
           error => {
-            if (isManualAdmin) {
-              setUser(manualAdminUser);
-            } else {
-              setAuthError(getAuthErrorMessage(error));
-            }
+            setAuthError(getAuthErrorMessage(error));
+            setAuthReady(true);
           }
         );
       })().catch(error => {
         if (!cancelled) {
           setAuthError(getAuthErrorMessage(error));
+          setAuthReady(true);
         }
       });
     });

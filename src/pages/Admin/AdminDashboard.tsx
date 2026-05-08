@@ -10,6 +10,7 @@ import {
   CheckCircle,
   CreditCard,
   Database,
+  ExternalLink,
   FileText,
   Globe2,
   GraduationCap,
@@ -26,6 +27,7 @@ import {
   RefreshCw,
   Smartphone,
   Trophy,
+  UserPlus,
   Users,
   X,
 } from 'lucide-react';
@@ -50,9 +52,15 @@ import {
   rejectManualPayment,
   type ManualPaymentRecord,
 } from '../../services/manualPayment';
+import {
+  fetchAdminActivity,
+  type AdminActivitySummary,
+} from '../../services/adminActivity';
 
 type ActionType = 'chapter' | 'topic' | 'mcq' | 'cq' | 'course' | 'suggestion' | 'challenge';
 type Notice = { type: 'success' | 'error'; text: string } | null;
+
+const DEFAULT_ANALYTICS_DASHBOARD_URL = 'https://analytics.google.com/analytics/web/';
 
 interface FormState {
   chapter: {
@@ -527,9 +535,20 @@ const formatPaymentDate = (value?: string | null) => {
   });
 };
 
+const formatActivityDate = (value?: string | null) => {
+  if (!value) return 'Never';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Never';
+  return date.toLocaleString('en-GB', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Asia/Dhaka',
+  });
+};
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { adminStats } = useLms();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -541,6 +560,10 @@ export default function AdminDashboard() {
   const [manualPayments, setManualPayments] = useState<ManualPaymentRecord[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
   const [paymentActionId, setPaymentActionId] = useState('');
+  const [activitySummary, setActivitySummary] = useState<AdminActivitySummary | null>(null);
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [activityError, setActivityError] = useState('');
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     let mounted = true;
@@ -585,6 +608,32 @@ export default function AdminDashboard() {
     { label: 'Completed Topics', value: adminStats.completedTopics, icon: CheckCircle, iconClass: 'bg-green-500/20 text-green-400', delay: 0.7 },
   ]), [adminStats, trafficTotal]);
 
+  const activityCards = useMemo(() => ([
+    {
+      label: 'Total Users',
+      value: activityLoading && !activitySummary ? '...' : Number(activitySummary?.totalUsers || 0).toLocaleString('en-US'),
+      description: 'Firebase Authentication accounts',
+      icon: Users,
+      iconClass: 'bg-sky-500/15 text-sky-300',
+    },
+    {
+      label: 'Active Today',
+      value: activityLoading && !activitySummary ? '...' : Number(activitySummary?.activeToday || 0).toLocaleString('en-US'),
+      description: 'Users with a login today',
+      icon: Activity,
+      iconClass: 'bg-emerald-500/15 text-emerald-300',
+    },
+    {
+      label: 'New Signups',
+      value: activityLoading && !activitySummary ? '...' : Number(activitySummary?.newSignupsToday || 0).toLocaleString('en-US'),
+      description: 'Accounts created today',
+      icon: UserPlus,
+      iconClass: 'bg-violet-500/15 text-violet-300',
+    },
+  ]), [activityLoading, activitySummary]);
+
+  const analyticsDashboardUrl = activitySummary?.analyticsDashboardUrl || DEFAULT_ANALYTICS_DASHBOARD_URL;
+
   const handleLogout = () => {
     logout();
     localStorage.removeItem('isAdmin');
@@ -592,15 +641,19 @@ export default function AdminDashboard() {
   };
 
   const requireAdminSession = () => {
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
     if (!isAdmin) {
-      setNotice({ type: 'error', text: 'Unauthorized: manual admin session required.' });
+      setNotice({ type: 'error', text: 'Unauthorized: verified Firestore admin role required.' });
       return false;
     }
     return true;
   };
 
   const loadManualPayments = useCallback(async () => {
+    if (!isAdmin) {
+      setManualPayments([]);
+      return;
+    }
+
     setPaymentsLoading(true);
     try {
       const payments = await fetchManualPayments({ status: 'pending' });
@@ -614,11 +667,34 @@ export default function AdminDashboard() {
     } finally {
       setPaymentsLoading(false);
     }
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     void loadManualPayments();
   }, [loadManualPayments]);
+
+  const loadAdminActivity = useCallback(async () => {
+    if (!isAdmin) {
+      setActivitySummary(null);
+      return;
+    }
+
+    setActivityLoading(true);
+    try {
+      const summary = await fetchAdminActivity();
+      setActivitySummary(summary);
+      setActivityError('');
+    } catch (error: any) {
+      setActivityError(error?.message || 'Failed to load admin activity tracking.');
+      setActivitySummary(null);
+    } finally {
+      setActivityLoading(false);
+    }
+  }, [isAdmin]);
+
+  useEffect(() => {
+    void loadAdminActivity();
+  }, [loadAdminActivity]);
 
   const handleManualPaymentDecision = async (paymentId: string, action: 'approve' | 'reject') => {
     if (!requireAdminSession()) return;
@@ -1000,6 +1076,128 @@ export default function AdminDashboard() {
           {notice.text}
         </div>
       )}
+
+      <section className="mb-12">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-sky-400">Activity Tracking</h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Firebase Auth activity and analytics access.</p>
+          </div>
+          <button
+            type="button"
+            onClick={loadAdminActivity}
+            disabled={activityLoading}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-900/10 bg-slate-900/5 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-900/10 disabled:cursor-wait disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+          >
+            {activityLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Refresh
+          </button>
+        </div>
+
+        {activityError && (
+          <div className="mb-4 rounded-2xl border border-rose-400/30 bg-rose-400/10 px-5 py-4 text-sm font-semibold text-rose-300">
+            {activityError}
+          </div>
+        )}
+
+        <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1fr_1.2fr]">
+          {activityCards.map(card => {
+            const Icon = card.icon;
+            return (
+              <div
+                key={card.label}
+                className="rounded-3xl border border-slate-900/10 bg-slate-900/5 p-5 dark:border-white/10 dark:bg-white/5"
+              >
+                <div className="mb-4 flex items-center justify-between gap-4">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.iconClass}`}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  {activityLoading && <Loader2 className="h-4 w-4 animate-spin text-slate-400" />}
+                </div>
+                <div className="text-3xl font-black text-slate-900 dark:text-white">{card.value}</div>
+                <div className="mt-1 text-sm font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{card.label}</div>
+                <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-400">{card.description}</p>
+              </div>
+            );
+          })}
+
+          <a
+            href={analyticsDashboardUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-3xl border border-sky-400/20 bg-sky-400/10 p-5 transition hover:border-sky-300/40 hover:bg-sky-400/15"
+          >
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
+                <Globe2 className="h-6 w-6" />
+              </div>
+              <ExternalLink className="h-4 w-4 text-sky-300" />
+            </div>
+            <div className="text-3xl font-black text-slate-900 dark:text-white">GA</div>
+            <div className="mt-1 text-sm font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Live Visitors</div>
+            <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-400">Open Google Analytics realtime dashboard.</p>
+          </a>
+        </div>
+
+        <div className="mt-6 overflow-hidden rounded-3xl border border-slate-900/10 bg-slate-900/5 dark:border-white/10 dark:bg-white/5">
+          <div className="flex flex-col gap-2 border-b border-slate-900/10 px-5 py-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">Recent Logins / Signups</h3>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Latest 10 Firebase Auth users sorted by recent activity.</p>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px] text-left text-sm">
+              <thead className="bg-slate-900/5 text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:bg-white/5 dark:text-slate-400">
+                <tr>
+                  <th className="px-5 py-3">Email</th>
+                  <th className="px-5 py-3">Last Login</th>
+                  <th className="px-5 py-3">Created</th>
+                  <th className="px-5 py-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-900/10 dark:divide-white/10">
+                {activityLoading && !activitySummary ? (
+                  <tr>
+                    <td colSpan={4} className="px-5 py-8 text-center font-bold text-slate-500 dark:text-slate-400">
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading recent users...
+                      </span>
+                    </td>
+                  </tr>
+                ) : activitySummary?.recentUsers.length ? (
+                  activitySummary.recentUsers.map(recentUser => (
+                    <tr key={recentUser.uid} className="text-slate-700 dark:text-slate-200">
+                      <td className="px-5 py-4">
+                        <div className="font-bold">{recentUser.email}</div>
+                        <div className="mt-1 max-w-[260px] truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{recentUser.uid}</div>
+                      </td>
+                      <td className="px-5 py-4 font-semibold">{formatActivityDate(recentUser.lastLoginAt)}</td>
+                      <td className="px-5 py-4 font-semibold">{formatActivityDate(recentUser.createdAt)}</td>
+                      <td className="px-5 py-4">
+                        <span className={`rounded-full px-3 py-1 text-xs font-black ${
+                          recentUser.disabled
+                            ? 'bg-rose-500/10 text-rose-400'
+                            : 'bg-emerald-500/10 text-emerald-400'
+                        }`}>
+                          {recentUser.disabled ? 'Disabled' : 'Active'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="px-5 py-8 text-center font-bold text-slate-500 dark:text-slate-400">
+                      No recent users found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-12">
         {statCards.map(stat => {

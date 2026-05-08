@@ -3,11 +3,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Mail, KeyRound, MessageSquare, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getFirebaseAuth } from '../../lib/firebase';
+import { verifyFirebaseAdminUser } from '../../services/adminAuth';
 import emailjs from '@emailjs/browser';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const VALID_EMAIL    = 'sarkerramjan2015@gmail.com';
-const VALID_PASSWORD = '172002@aA';
+const ADMIN_EMAIL_HINT = 'sarkerramjan2015@gmail.com';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function AdminLogin() {
@@ -24,6 +24,7 @@ export default function AdminLogin() {
   // OTP fields
   const [otp, setOtp] = useState('');
   const [generatedOtp, setGeneratedOtp] = useState('');
+  const [verifiedAdminEmail, setVerifiedAdminEmail] = useState(ADMIN_EMAIL_HINT);
 
   // Error / loading
   const [error,   setError]   = useState('');
@@ -35,8 +36,10 @@ export default function AdminLogin() {
     e.preventDefault();
     setError('');
 
-    if (email.trim() !== VALID_EMAIL || password !== VALID_PASSWORD) {
-      setError('ভুল ইমেইল বা পাসওয়ার্ড প্রদান করা হয়েছে। দয়া করে আবার চেষ্টা করুন।');
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail || !password) {
+      setError('Please enter the admin email and password.');
       return;
     }
 
@@ -51,8 +54,17 @@ export default function AdminLogin() {
     setLoadingText('OTP পাঠানো হচ্ছে, দয়া করে অপেক্ষা করুন...');
     
     try {
-      const { signInWithEmailAndPassword } = await import('firebase/auth');
-      await signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
+      const { signInWithEmailAndPassword, signOut } = await import('firebase/auth');
+      const credential = await signInWithEmailAndPassword(firebaseAuth, trimmedEmail, password);
+      const adminRecord = await verifyFirebaseAdminUser(credential.user, { throwOnFailure: true });
+
+      if (!adminRecord) {
+        await signOut(firebaseAuth).catch(() => undefined);
+        setError('This Firebase account is not verified in Firestore admin/{uid}. Check the uid, email, and role fields.');
+        return;
+      }
+
+      setVerifiedAdminEmail(adminRecord.email);
 
       // Generate a random 6-digit numeric code
       const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -64,7 +76,7 @@ export default function AdminLogin() {
           'template_fit0rsq',
           {
             otp_code: newOtp,
-            email: VALID_EMAIL,
+            email: adminRecord.email,
             time: '15 minutes'
           },
           'fXPRXq1rMmhQ2KrLF'
@@ -93,8 +105,8 @@ export default function AdminLogin() {
 
     setLoading(true);
     setTimeout(() => {
-      localStorage.setItem('isAdmin', 'true');
-      navigate('/admin/dashboard');
+      localStorage.removeItem('isAdmin');
+      navigate('/admin/dashboard', { replace: true });
     }, 600);
   }
 
@@ -227,7 +239,7 @@ export default function AdminLogin() {
                 className="space-y-4"
               >
                 <p className="text-slate-500 dark:text-slate-400 text-center text-sm mb-4">
-                  আপনার ইমেইল (<span className="font-semibold text-indigo-400">{VALID_EMAIL}</span>)-এ একটি OTP পাঠানো হয়েছে। নিচে সেটি প্রদান করুন।
+                  আপনার ইমেইল (<span className="font-semibold text-indigo-400">{verifiedAdminEmail}</span>)-এ একটি OTP পাঠানো হয়েছে। নিচে সেটি প্রদান করুন।
                 </p>
 
                 {/* OTP input */}

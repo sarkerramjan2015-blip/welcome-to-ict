@@ -103,7 +103,7 @@ export default function MegaChallenge() {
       setEnrollment(nextEnrollment);
     }
 
-    if (user.email === 'sarkerramjan2015@gmail.com') {
+    if (user.role === 'admin') {
       if (nextEnrollment) {
         markChallengePaid(selectedChallenge.id);
         setEnrollment({ ...nextEnrollment, paymentStatus: 'PAID', updatedAt: new Date().toISOString() });
@@ -121,7 +121,7 @@ export default function MegaChallenge() {
     }
 
     const selectedChallenge = challenge || getFallbackChallenge();
-    if (user.isPremium || user.email === 'sarkerramjan2015@gmail.com') {
+    if (user.isPremium || user.role === 'admin') {
       const nextEnrollment = enrollment || enrollChallenge(selectedChallenge.id, selectedChallenge.fee);
       if (nextEnrollment) {
         markChallengePaid(selectedChallenge.id);

@@ -1,8 +1,7 @@
-import { cert, getApps, initializeApp, type App } from 'firebase-admin/app';
-import { getAuth, type DecodedIdToken } from 'firebase-admin/auth';
-import { FieldValue, getFirestore, type DocumentSnapshot, type Query } from 'firebase-admin/firestore';
+import type { DecodedIdToken } from 'firebase-admin/auth';
+import { FieldValue, type DocumentSnapshot, type Query } from 'firebase-admin/firestore';
+import { getAdminDb, httpError, isAdminToken, requireAdmin, verifyRequest } from './firebaseAdminAccess';
 
-const ADMIN_EMAIL = 'sarkerramjan2015@gmail.com';
 const VALID_STATUSES = new Set(['pending', 'approved', 'rejected']);
 
 const json = (res: any, status: number, payload: Record<string, unknown>) => {
@@ -19,75 +18,6 @@ const parseBody = (body: unknown) => {
     }
   }
   return body as Record<string, any>;
-};
-
-const httpError = (status: number, message: string) =>
-  Object.assign(new Error(message), { status });
-
-const getFirebaseServiceAccount = () => {
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-
-  if (serviceAccount) {
-    const parsed = JSON.parse(serviceAccount);
-    if (parsed.private_key) {
-      parsed.private_key = String(parsed.private_key).replace(/\\n/g, '\n');
-    }
-    return parsed;
-  }
-
-  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
-
-  if (!projectId || !clientEmail || !privateKey) {
-    throw httpError(
-      500,
-      'Missing Firebase Admin credentials. Set FIREBASE_SERVICE_ACCOUNT_KEY or FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.'
-    );
-  }
-
-  return {
-    projectId,
-    clientEmail,
-    privateKey,
-  };
-};
-
-const getAdminApp = (): App => {
-  if (!getApps().length) {
-    initializeApp({
-      credential: cert(getFirebaseServiceAccount()),
-    });
-  }
-
-  return getApps()[0];
-};
-
-const getAdminDb = () => getFirestore(getAdminApp());
-const getAdminAuth = () => getAuth(getAdminApp());
-
-const getBearerToken = (req: any) => {
-  const header = String(req.headers?.authorization || req.headers?.Authorization || '');
-  const match = header.match(/^Bearer\s+(.+)$/i);
-  return match?.[1]?.trim() || '';
-};
-
-const verifyRequest = async (req: any) => {
-  const token = getBearerToken(req);
-  if (!token) {
-    throw httpError(401, 'Firebase login is required.');
-  }
-
-  return getAdminAuth().verifyIdToken(token);
-};
-
-const isAdminToken = (decoded: DecodedIdToken) =>
-  String(decoded.email || '').trim().toLowerCase() === ADMIN_EMAIL;
-
-const requireAdmin = (decoded: DecodedIdToken) => {
-  if (!isAdminToken(decoded)) {
-    throw httpError(403, 'Admin approval is required for this action.');
-  }
 };
 
 const queryValue = (req: any, key: string) => {
@@ -183,7 +113,7 @@ const listManualPayments = async (req: any) => {
   const decoded = await verifyRequest(req);
   const requestedUserId = queryValue(req, 'userId');
   const requestedStatus = queryValue(req, 'status').toLowerCase();
-  const isAdmin = isAdminToken(decoded);
+  const isAdmin = await isAdminToken(decoded);
 
   if (requestedStatus && !VALID_STATUSES.has(requestedStatus)) {
     throw httpError(400, 'Invalid payment status filter.');
@@ -217,7 +147,7 @@ const listManualPayments = async (req: any) => {
 };
 
 const approveManualPayment = async (paymentId: string, decoded: DecodedIdToken) => {
-  requireAdmin(decoded);
+  const admin = await requireAdmin(decoded);
   if (!paymentId) throw httpError(400, 'Payment ID is required.');
 
   const db = getAdminDb();
@@ -240,7 +170,7 @@ const approveManualPayment = async (paymentId: string, decoded: DecodedIdToken) 
 
   batch.set(paymentRef, {
     status: 'approved',
-    reviewedBy: decoded.email || ADMIN_EMAIL,
+    reviewedBy: admin.email,
     approvedAt,
     reviewedAt: approvedAt,
     updatedAt: approvedAt,
@@ -302,7 +232,7 @@ const approveManualPayment = async (paymentId: string, decoded: DecodedIdToken) 
 };
 
 const rejectManualPayment = async (paymentId: string, decoded: DecodedIdToken) => {
-  requireAdmin(decoded);
+  const admin = await requireAdmin(decoded);
   if (!paymentId) throw httpError(400, 'Payment ID is required.');
 
   const paymentRef = getAdminDb().collection('payments').doc(paymentId);
@@ -311,7 +241,7 @@ const rejectManualPayment = async (paymentId: string, decoded: DecodedIdToken) =
 
   await paymentRef.set({
     status: 'rejected',
-    reviewedBy: decoded.email || ADMIN_EMAIL,
+    reviewedBy: admin.email,
     rejectedAt: FieldValue.serverTimestamp(),
     reviewedAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),

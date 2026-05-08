@@ -59,7 +59,7 @@ export default function Courses() {
       return;
     }
 
-    if (user.email === 'sarkerramjan2015@gmail.com') {
+    if (user.role === 'admin') {
       enrollCourse(course.courseId, course.fee, course.type);
       navigate(course.type === 'RECORDED' ? '/course-player' : '/live-course-dashboard');
       return;

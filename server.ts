@@ -8,6 +8,8 @@ import dotenv from "dotenv";
 import { createPayment, executePayment } from "./src/services/bkash";
 import paymentActionHandler from "./api/paymentAction";
 import manualPaymentsHandler from "./api/manualPayments";
+import adminAuthHandler from "./api/adminAuth";
+import adminActivityHandler from "./api/adminActivity";
 
 dotenv.config();
 
@@ -33,6 +35,8 @@ async function startServer() {
 
   app.all("/api/paymentAction", paymentActionHandler);
   app.all("/api/manualPayments", manualPaymentsHandler);
+  app.all("/api/adminAuth", adminAuthHandler);
+  app.all("/api/adminActivity", adminActivityHandler);
 
   // Get all Categories
   app.get("/api/categories", async (req, res) => {
@@ -551,14 +555,10 @@ async function startServer() {
   // ADMIN ROUTES
   // ==========================================
   
-  app.post("/api/admin/login", (req, res) => {
-    const { email, password } = req.body;
-    // Hardcoded for Phase 7 demonstration. In production, compare with hashed DB password.
-    if (email === "admin@ict.com" && password === "admin123") {
-      res.json({ token: "mock-jwt-token-789" });
-    } else {
-      res.status(401).json({ error: "Invalid credentials" });
-    }
+  app.post("/api/admin/login", (_req, res) => {
+    res.status(410).json({
+      error: "Admin login now uses Firebase Auth plus Firestore admin/{uid} verification.",
+    });
   });
 
   app.get("/api/admin/stats", async (req, res) => {
