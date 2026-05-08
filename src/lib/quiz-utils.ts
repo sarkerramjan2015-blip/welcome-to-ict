@@ -13,8 +13,6 @@ export interface UpcomingChallenge {
 }
 
 export const fallbackSyllabus = [
-  'Chapter 1: World & Bangladesh Perspectives',
-  'Chapter 2: Communication Systems & Networking',
   'Chapter 3: Number Systems & Digital Devices',
 ];
 
