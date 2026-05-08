@@ -10,6 +10,8 @@ import paymentActionHandler from "./api/paymentAction";
 import manualPaymentsHandler from "./api/manualPayments";
 import adminAuthHandler from "./api/adminAuth";
 import adminActivityHandler from "./api/adminActivity";
+import adminQuizQuestionsHandler from "./api/adminQuizQuestions";
+import challengeExamHandler from "./api/challengeExam";
 import firebaseConfigHandler from "./api/firebaseConfig";
 
 dotenv.config();
@@ -38,6 +40,8 @@ async function startServer() {
   app.all("/api/manualPayments", manualPaymentsHandler);
   app.all("/api/adminAuth", adminAuthHandler);
   app.all("/api/adminActivity", adminActivityHandler);
+  app.all("/api/adminQuizQuestions", adminQuizQuestionsHandler);
+  app.all("/api/challengeExam", challengeExamHandler);
   app.all("/api/firebaseConfig", firebaseConfigHandler);
 
   // Get all Categories

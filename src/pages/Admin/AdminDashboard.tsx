@@ -21,6 +21,7 @@ import {
   Loader2,
   LogOut,
   Plus,
+  Pencil,
   Save,
   Sparkles,
   ReceiptText,
@@ -56,6 +57,13 @@ import {
   fetchAdminActivity,
   type AdminActivitySummary,
 } from '../../services/adminActivity';
+import {
+  fetchAdminChallengeQuestions,
+  fetchAdminChallengeSets,
+  saveAdminQuizQuestion,
+  type AdminChallengeSet,
+  type AdminQuizQuestion,
+} from '../../services/adminQuizQuestions';
 
 type ActionType = 'chapter' | 'topic' | 'mcq' | 'cq' | 'course' | 'suggestion' | 'challenge';
 type Notice = { type: 'success' | 'error'; text: string } | null;
@@ -563,6 +571,12 @@ export default function AdminDashboard() {
   const [activitySummary, setActivitySummary] = useState<AdminActivitySummary | null>(null);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityError, setActivityError] = useState('');
+  const [challengeSets, setChallengeSets] = useState<AdminChallengeSet[]>([]);
+  const [selectedQuestionChallengeId, setSelectedQuestionChallengeId] = useState('');
+  const [quizQuestions, setQuizQuestions] = useState<AdminQuizQuestion[]>([]);
+  const [quizQuestionsLoading, setQuizQuestionsLoading] = useState(false);
+  const [quizQuestionsError, setQuizQuestionsError] = useState('');
+  const [savingQuestionId, setSavingQuestionId] = useState('');
   const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
@@ -695,6 +709,108 @@ export default function AdminDashboard() {
   useEffect(() => {
     void loadAdminActivity();
   }, [loadAdminActivity]);
+
+  const loadQuizQuestionSets = useCallback(async () => {
+    if (!isAdmin) {
+      setChallengeSets([]);
+      setSelectedQuestionChallengeId('');
+      setQuizQuestions([]);
+      return;
+    }
+
+    setQuizQuestionsLoading(true);
+    try {
+      const sets = await fetchAdminChallengeSets();
+      setChallengeSets(sets);
+      setSelectedQuestionChallengeId(current => (
+        current && sets.some(item => item.id === current)
+          ? current
+          : sets[0]?.id || ''
+      ));
+      setQuizQuestionsError('');
+    } catch (error: any) {
+      setQuizQuestionsError(error?.message || 'Failed to load quiz question sets.');
+      setChallengeSets([]);
+      setSelectedQuestionChallengeId('');
+      setQuizQuestions([]);
+    } finally {
+      setQuizQuestionsLoading(false);
+    }
+  }, [isAdmin]);
+
+  useEffect(() => {
+    void loadQuizQuestionSets();
+  }, [loadQuizQuestionSets]);
+
+  const loadQuizQuestions = useCallback(async () => {
+    if (!isAdmin || !selectedQuestionChallengeId) {
+      setQuizQuestions([]);
+      return;
+    }
+
+    setQuizQuestionsLoading(true);
+    try {
+      const questions = await fetchAdminChallengeQuestions(selectedQuestionChallengeId);
+      setQuizQuestions(questions);
+      setQuizQuestionsError('');
+    } catch (error: any) {
+      setQuizQuestions([]);
+      setQuizQuestionsError(error?.message || 'Failed to load quiz questions.');
+    } finally {
+      setQuizQuestionsLoading(false);
+    }
+  }, [isAdmin, selectedQuestionChallengeId]);
+
+  useEffect(() => {
+    void loadQuizQuestions();
+  }, [loadQuizQuestions]);
+
+  const updateQuizQuestion = (questionId: string, updates: Partial<AdminQuizQuestion>) => {
+    setQuizQuestions(prev => prev.map(question =>
+      question.id === questionId ? { ...question, ...updates } : question
+    ));
+  };
+
+  const updateQuizQuestionOption = (questionId: string, optionIndex: number, value: string) => {
+    setQuizQuestions(prev => prev.map(question => {
+      if (question.id !== questionId) return question;
+
+      const options = [...question.options, '', '', '', ''].slice(0, 4);
+      const previousValue = options[optionIndex];
+      options[optionIndex] = value;
+
+      return {
+        ...question,
+        options,
+        correctAnswer: question.correctAnswer === previousValue ? value : question.correctAnswer,
+      };
+    }));
+  };
+
+  const saveQuizQuestion = async (question: AdminQuizQuestion) => {
+    if (!requireAdminSession() || !selectedQuestionChallengeId) return;
+
+    setSavingQuestionId(question.id);
+    try {
+      const savedQuestion = await saveAdminQuizQuestion(selectedQuestionChallengeId, {
+        ...question,
+        options: question.options.map(option => option.trim()).filter(Boolean),
+      });
+
+      setQuizQuestions(prev => prev.map(item => item.id === savedQuestion.id ? savedQuestion : item));
+      setNotice({
+        type: 'success',
+        text: `Question ${question.order || question.id} saved successfully.`,
+      });
+    } catch (error: any) {
+      setNotice({
+        type: 'error',
+        text: error?.message || 'Failed to save quiz question.',
+      });
+    } finally {
+      setSavingQuestionId('');
+    }
+  };
 
   const handleManualPaymentDecision = async (paymentId: string, action: 'approve' | 'reject') => {
     if (!requireAdminSession()) return;
@@ -1362,6 +1478,189 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
+
+      <section className="mb-12">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-xl font-bold text-cyan-400">
+              <Pencil className="h-5 w-5" />
+              Quiz Question Review & Edit
+            </h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              See exactly which monthly quiz questions are published, then edit wording, options, answer, and explanation.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              void loadQuizQuestionSets();
+              void loadQuizQuestions();
+            }}
+            disabled={quizQuestionsLoading}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-900/10 bg-slate-900/5 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-900/10 disabled:cursor-wait disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+          >
+            {quizQuestionsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Refresh
+          </button>
+        </div>
+
+        <div className="rounded-3xl border border-slate-900/10 bg-slate-900/5 p-5 dark:border-white/10 dark:bg-white/5 md:p-6">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-slate-600 dark:text-gray-300">Published Quiz Set</span>
+              <select
+                value={selectedQuestionChallengeId}
+                onChange={event => setSelectedQuestionChallengeId(event.target.value)}
+                disabled={quizQuestionsLoading || challengeSets.length === 0}
+                className="w-full rounded-xl border border-slate-900/10 bg-white px-4 py-3 font-bold text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-slate-900/70 dark:text-white"
+              >
+                {challengeSets.length === 0 ? (
+                  <option value="">No quiz set found</option>
+                ) : (
+                  challengeSets.map(item => (
+                    <option key={item.id} value={item.id}>
+                      {item.title} - {item.id}
+                    </option>
+                  ))
+                )}
+              </select>
+            </label>
+
+            <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-3 text-sm font-black text-cyan-500 dark:text-cyan-200">
+              {quizQuestionsLoading ? 'Loading...' : `${quizQuestions.length} Questions`}
+            </div>
+          </div>
+
+          {quizQuestionsError && (
+            <div className="mt-5 rounded-2xl border border-rose-400/30 bg-rose-400/10 px-5 py-4 text-sm font-semibold text-rose-300">
+              {quizQuestionsError}
+            </div>
+          )}
+
+          {selectedQuestionChallengeId && (
+            <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+              {challengeSets
+                .filter(item => item.id === selectedQuestionChallengeId)
+                .map(item => (
+                  <React.Fragment key={item.id}>
+                    <span className="rounded-full border border-slate-900/10 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-slate-950/50">
+                      Status: {item.status}
+                    </span>
+                    <span className="rounded-full border border-slate-900/10 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-slate-950/50">
+                      Starts: {formatActivityDate(item.startsAt)}
+                    </span>
+                    <span className="rounded-full border border-slate-900/10 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-slate-950/50">
+                      ID: {item.id}
+                    </span>
+                  </React.Fragment>
+                ))}
+            </div>
+          )}
+
+          <div className="mt-6 grid gap-4">
+            {quizQuestionsLoading && quizQuestions.length === 0 ? (
+              <div className="flex items-center justify-center gap-3 py-10 text-sm font-bold text-slate-500 dark:text-slate-400">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Loading quiz questions...
+              </div>
+            ) : quizQuestions.length === 0 ? (
+              <div className="py-10 text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-300">
+                  <HelpCircle className="h-6 w-6" />
+                </div>
+                <p className="font-bold text-slate-700 dark:text-slate-200">No questions found for this quiz set.</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Generate challenge questions first, then they will appear here.</p>
+              </div>
+            ) : (
+              quizQuestions.map((question, index) => {
+                const options = [...question.options, '', '', '', ''].slice(0, 4);
+                const saving = savingQuestionId === question.id;
+
+                return (
+                  <div
+                    key={question.id}
+                    className="rounded-2xl border border-slate-900/10 bg-white/75 p-4 shadow-sm dark:border-white/10 dark:bg-slate-950/55 md:p-5"
+                  >
+                    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-500 dark:text-cyan-300">
+                          Question {question.order || index + 1}
+                        </p>
+                        <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">ID: {question.id}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void saveQuizQuestion(question)}
+                        disabled={saving || Boolean(savingQuestionId)}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-cyan-950/20 transition hover:bg-cyan-400 disabled:cursor-wait disabled:opacity-60"
+                      >
+                        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                        Save
+                      </button>
+                    </div>
+
+                    <div className="grid gap-4">
+                      <TextAreaInput
+                        label="Question"
+                        value={question.question}
+                        onChange={value => updateQuizQuestion(question.id, { question: value })}
+                        rows={3}
+                      />
+
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {options.map((option, optionIndex) => (
+                          <div key={`${question.id}-option-${optionIndex}`}>
+                            <TextInput
+                              label={`Option ${String.fromCharCode(65 + optionIndex)}`}
+                              value={option}
+                              onChange={value => updateQuizQuestionOption(question.id, optionIndex, value)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-3">
+                        <label className="block md:col-span-1">
+                          <span className="mb-2 block text-sm font-semibold text-slate-600 dark:text-gray-300">Correct Answer</span>
+                          <select
+                            value={question.correctAnswer}
+                            onChange={event => updateQuizQuestion(question.id, { correctAnswer: event.target.value })}
+                            className="w-full rounded-xl border border-slate-900/10 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 dark:border-white/10 dark:bg-slate-900/70 dark:text-white"
+                          >
+                            {!options.includes(question.correctAnswer) && question.correctAnswer && (
+                              <option value={question.correctAnswer}>{question.correctAnswer}</option>
+                            )}
+                            {options.filter(Boolean).map(option => (
+                              <option key={option} value={option}>{option}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <TextInput
+                          label="Chapter ID"
+                          value={question.chapterId}
+                          onChange={value => updateQuizQuestion(question.id, { chapterId: value })}
+                        />
+                        <TextInput
+                          label="Topic ID"
+                          value={question.topicId}
+                          onChange={value => updateQuizQuestion(question.id, { topicId: value })}
+                        />
+                      </div>
+
+                      <TextAreaInput
+                        label="Explanation"
+                        value={question.explanation}
+                        onChange={value => updateQuizQuestion(question.id, { explanation: value })}
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </section>
 
       <h2 className="text-xl font-bold mb-6 text-yellow-400">Mega Challenge Management</h2>
       <div className="bg-slate-900/5 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-3xl p-6 md:p-8 text-center">

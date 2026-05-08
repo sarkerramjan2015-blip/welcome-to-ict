@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ictSyllabus } from '../data/ict-syllabus';
 import { useAuth } from './AuthContext';
+import { submitChallengeExam } from '../services/challengeExam';
 
 export interface StudyTask {
   id: string;
@@ -307,13 +308,8 @@ export function LmsProvider({ children }: { children: React.ReactNode }) {
     const now = new Date().toISOString();
     
     try {
-      const response = await fetch(`/api/challenges/${challengeId}/submit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, answers })
-      });
-      const data = await response.json();
-      const secureScore = data.score || 0;
+      const data = await submitChallengeExam(challengeId, answers);
+      const secureScore = Number(data.score || 0);
 
       setChallengeEnrollments(prev => {
         const next = prev.map(enrollment =>
@@ -333,9 +329,9 @@ export function LmsProvider({ children }: { children: React.ReactNode }) {
       });
 
       return secureScore;
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to submit exam to server securely", err);
-      return 0;
+      throw new Error(err?.message || 'Failed to submit quiz securely.');
     }
   }, [persistForUser, saveQuizResult, userId]);
 

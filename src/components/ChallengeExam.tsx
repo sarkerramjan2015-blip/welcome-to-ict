@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Clock, CheckCircle, Lock, ShieldAlert, Download, Facebook, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ictSyllabus } from '../data/ict-syllabus';
 import { useLms } from '../context/LmsContext';
+import { fetchChallengeExamQuestions, type ChallengeExamQuestion } from '../services/challengeExam';
 
 interface Props {
   challengeId: string;
@@ -205,10 +205,11 @@ const createScorecardCanvas = ({
 
 export default function ChallengeExam({ challengeId, onComplete }: Props) {
   const { completeChallengeExam } = useLms();
-  const [questions, setQuestions] = useState<any[]>([]);
+  const [questions, setQuestions] = useState<ChallengeExamQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [timeLeft, setTimeLeft] = useState(30 * 60);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
@@ -217,8 +218,8 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
   const [showCheatWarning, setShowCheatWarning] = useState(false);
 
   useEffect(() => {
-    fetchQuestions();
-  }, []);
+    void fetchQuestions();
+  }, [challengeId]);
 
   const handleSubmit = useCallback(async (forceSubmit = false) => {
     if (submitting || showThankYou) return;
@@ -235,10 +236,14 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
     }
     
     setSubmitting(true);
-    const secureScore = await completeChallengeExam(challengeId, answers, questions.length);
-
-    setFinalScore(secureScore);
-    setShowThankYou(true);
+    try {
+      const secureScore = await completeChallengeExam(challengeId, answers, questions.length);
+      setFinalScore(secureScore);
+      setShowThankYou(true);
+    } catch (error: any) {
+      alert(error?.message || 'Failed to submit quiz. Please try again.');
+      setSubmitting(false);
+    }
   }, [answers, questions, timeLeft, submitting, showThankYou, challengeId, completeChallengeExam]);
 
   useEffect(() => {
@@ -269,16 +274,19 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
   }, [submitting, showThankYou, handleSubmit]);
 
   const fetchQuestions = async () => {
-    const generatedQuestions = ictSyllabus
-      .flatMap(chapter => chapter.topics.flatMap(topic => topic.quizMcqs.map((mcq, index) => ({
-        id: `${topic.id}-${index}`,
-        question: mcq.q,
-        options: mcq.options,
-        correctAnswer: mcq.correct,
-      }))))
-      .slice(0, 30);
-    setQuestions(generatedQuestions);
-    setLoading(false);
+    setLoading(true);
+    setLoadError('');
+
+    try {
+      const data = await fetchChallengeExamQuestions(challengeId);
+      setQuestions(data.questions || []);
+      setTimeLeft(Math.max(1, Number(data.durationMinutes || 30)) * 60);
+    } catch (error: any) {
+      setQuestions([]);
+      setLoadError(error?.message || 'Failed to load quiz questions.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSelect = (questionId: string, option: string) => {
@@ -293,6 +301,22 @@ export default function ChallengeExam({ challengeId, onComplete }: Props) {
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-900 dark:text-white text-xl font-medium tracking-tight">Loading Exam Environment...</div>;
+  if (loadError) {
+    return (
+      <div className="mx-auto mt-10 max-w-2xl rounded-3xl border border-rose-400/30 bg-rose-500/10 p-8 text-center">
+        <ShieldAlert className="mx-auto mb-4 h-12 w-12 text-rose-400" />
+        <h2 className="text-2xl font-black text-slate-900 dark:text-white">Quiz questions could not be loaded</h2>
+        <p className="mt-3 font-semibold text-rose-500 dark:text-rose-300">{loadError}</p>
+        <button
+          type="button"
+          onClick={onComplete}
+          className="mt-6 rounded-2xl bg-slate-900 px-6 py-3 font-black text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+        >
+          Back to Quiz Page
+        </button>
+      </div>
+    );
+  }
   if (questions.length === 0) return <div className="p-8 text-center text-slate-900 dark:text-white">No questions available.</div>;
 
   if (showThankYou) {
