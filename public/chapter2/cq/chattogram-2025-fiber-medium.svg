@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 380" role="img" aria-labelledby="title desc">
+  <title id="title">চট্টগ্রাম বোর্ড ২০২৫ ফাইবার অপটিক মাধ্যম</title>
+  <desc id="desc">প্রেরক থেকে প্রাপক পর্যন্ত আলো সংকেতের মাধ্যমে ডেটা ট্রান্সমিশন</desc>
+  <rect width="920" height="380" rx="32" fill="#f8fafc"/>
+  <text x="460" y="54" text-anchor="middle" font-family="Noto Sans Bengali, Arial, sans-serif" font-size="28" font-weight="800" fill="#0f172a">ফাইবার অপটিক মাধ্যমে নিরাপদ ডেটা ট্রান্সমিশন</text>
+  <g font-family="Noto Sans Bengali, Arial, sans-serif">
+    <rect x="72" y="140" width="150" height="92" rx="20" fill="#dbeafe" stroke="#2563eb" stroke-width="4"/>
+    <text x="147" y="194" text-anchor="middle" font-size="22" font-weight="800" fill="#1d4ed8">প্রেরক</text>
+    <rect x="698" y="140" width="150" height="92" rx="20" fill="#dcfce7" stroke="#16a34a" stroke-width="4"/>
+    <text x="773" y="194" text-anchor="middle" font-size="22" font-weight="800" fill="#15803d">প্রাপক</text>
+    <path d="M230 186 C330 110 420 260 520 184 S650 120 690 186" fill="none" stroke="#0f766e" stroke-width="16" stroke-linecap="round"/>
+    <path d="M232 186 C332 110 420 260 520 184 S650 120 688 186" fill="none" stroke="#67e8f9" stroke-width="5" stroke-dasharray="18 18" stroke-linecap="round"/>
+    <text x="460" y="286" text-anchor="middle" font-size="20" font-weight="800" fill="#0f766e">Core + Cladding: আলো বারবার প্রতিফলিত হয়ে এগোয়</text>
+    <g fill="#f59e0b">
+      <circle cx="315" cy="158" r="9"/>
+      <circle cx="405" cy="215" r="9"/>
+      <circle cx="520" cy="184" r="9"/>
+      <circle cx="625" cy="151" r="9"/>
+    </g>
+  </g>
+</svg>

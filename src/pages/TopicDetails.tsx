@@ -54,7 +54,7 @@ function ComingSoonVideoPlaceholder() {
         Locked Media
       </div>
       <h3 className="relative max-w-[92%] text-xl sm:text-2xl md:text-3xl font-black text-white mb-3 md:mb-4 tracking-tight drop-shadow-md leading-snug break-words">
-        ভিডিও খুব শিগগিরই আসছে... (Coming Soon 🚀)
+        ভিডিও খুব শিগগিরই আসছে... (Coming Soon)
       </h3>
       <p className="relative text-indigo-100 text-sm md:text-base max-w-lg mx-auto font-medium leading-7 md:leading-8 opacity-85">
         এই টপিকের ভিডিও লেকচার এখনো যোগ করা হয়নি।
@@ -563,6 +563,16 @@ export default function TopicDetails() {
                         <h4 className="text-xs font-black text-indigo-600 dark:text-indigo-400 mb-3 uppercase tracking-widest flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span> উদ্দীপক (Stem)
                         </h4>
+                        {cq.image && (
+                          <figure className="mb-5 overflow-hidden rounded-2xl border border-indigo-100 bg-white shadow-sm dark:border-indigo-800/40 dark:bg-slate-950/50">
+                            <img
+                              src={cq.image}
+                              alt={cq.imageAlt || 'Creative question diagram'}
+                              className="max-h-[420px] w-full object-contain bg-white p-3"
+                              loading="lazy"
+                            />
+                          </figure>
+                        )}
                         <p className="text-slate-800 dark:text-slate-200 leading-loose text-sm md:text-lg font-medium break-words"><QuestionText text={cq.stem} /></p>
                       </div>
                       <div className="flex flex-col gap-4 md:gap-5 md:pl-2">

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 430" role="img" aria-labelledby="title desc">
+  <title id="title">চট্টগ্রাম বোর্ড ২০২৫ LAN ও ক্লাউড সেবা</title>
+  <desc id="desc">তিনটি LAN ফাইবার অপটিক ক্যাবল দিয়ে যুক্ত এবং অনলাইন ক্লাউড সেবা প্রদান</desc>
+  <rect width="980" height="430" rx="32" fill="#f8fafc"/>
+  <text x="490" y="54" text-anchor="middle" font-family="Noto Sans Bengali, Arial, sans-serif" font-size="28" font-weight="800" fill="#0f172a">LAN সমন্বয় ও Cloud Service</text>
+  <g font-family="Noto Sans Bengali, Arial, sans-serif">
+    <g stroke="#0f766e" stroke-width="5" stroke-linecap="round" fill="none">
+      <path d="M215 205 C315 145 382 145 472 205"/>
+      <path d="M505 205 C610 145 690 145 770 205"/>
+      <path d="M220 235 C360 310 625 310 765 235"/>
+    </g>
+    <g fill="#dbeafe" stroke="#2563eb" stroke-width="3">
+      <rect x="90" y="125" width="120" height="82" rx="16"/>
+      <rect x="95" y="240" width="120" height="82" rx="16"/>
+      <rect x="420" y="150" width="140" height="92" rx="18"/>
+      <rect x="770" y="125" width="120" height="82" rx="16"/>
+      <rect x="765" y="240" width="120" height="82" rx="16"/>
+    </g>
+    <text x="150" y="173" text-anchor="middle" font-size="18" font-weight="800" fill="#1d4ed8">LAN-1</text>
+    <text x="155" y="288" text-anchor="middle" font-size="18" font-weight="800" fill="#1d4ed8">LAN-2</text>
+    <text x="490" y="199" text-anchor="middle" font-size="20" font-weight="800" fill="#1d4ed8">Fiber Backbone</text>
+    <text x="830" y="173" text-anchor="middle" font-size="18" font-weight="800" fill="#1d4ed8">LAN-3</text>
+    <text x="825" y="288" text-anchor="middle" font-size="18" font-weight="800" fill="#1d4ed8">Clients</text>
+    <path d="M430 320 q60-70 120 0 h40 q45 0 45 35 t-45 35H390 q-45 0-45-35 t45-35z" fill="#dcfce7" stroke="#16a34a" stroke-width="4"/>
+    <text x="490" y="363" text-anchor="middle" font-size="20" font-weight="900" fill="#15803d">Cloud: 24x7, On Demand, Pay as you go</text>
+  </g>
+</svg>

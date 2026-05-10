@@ -10,7 +10,7 @@ export const notes = `
       <div class="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-indigo-100 font-semibold text-sm mb-4 border border-white/30 truncate">
         অধ্যায় ২: কমিউনিকেশন সিস্টেমস ও নেটওয়ার্কিং
       </div>
-      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">ডেটা কমিউনিকেশন সিস্টেম ও ব্যান্ডউইথ 📡</h2>
+      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">ডেটা কমিউনিকেশন সিস্টেম ও ব্যান্ডউইথ <span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-cyan-100 px-1.5 text-xs font-black text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-200">RF</span></h2>
       <p class="text-indigo-100 leading-relaxed text-lg md:text-xl font-medium max-w-3xl mb-6">
         নেটওয়ার্কের এক যন্ত্র থেকে অন্য যন্ত্রে নির্ভরযোগ্যভাবে ডেটা বা তথ্যের আদান-প্রদানই হচ্ছে <strong>ডেটা কমিউনিকেশন</strong>। আর যে পরিমাণ ডেটা প্রতি সেকেন্ডে স্থানান্তরিত হয়, তাকে বলে <strong>ব্যান্ডউইথ (Bandwidth)</strong>।
       </p>
@@ -20,19 +20,19 @@ export const notes = `
   <!-- 5 Basic Elements of Data Communication -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-indigo-200/50 dark:border-indigo-700/50">
     <h3 class="text-2xl font-bold text-indigo-700 dark:text-indigo-400 mb-6 flex items-center gap-3 border-b border-indigo-100 dark:border-indigo-900/50 pb-4">
-      <span class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl">🔗</span> ডেটা কমিউনিকেশনের ৫টি মৌলিক উপাদান
+      <span class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-indigo-100 px-1.5 text-xs font-black text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">Link</span></span> ডেটা কমিউনিকেশনের ৫টি মৌলিক উপাদান
     </h3>
     
     <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-800/30 overflow-x-auto">
       <div class="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-300">
         <div class="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 text-center min-w-[100px]">১. উৎস</div>
-        <span class="text-indigo-500">➡️</span>
+        <span class="text-indigo-500"><span class="font-black text-indigo-600 dark:text-indigo-300">-&gt;</span></span>
         <div class="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 text-center min-w-[100px]">২. প্রেরক</div>
-        <span class="text-indigo-500">➡️</span>
+        <span class="text-indigo-500"><span class="font-black text-indigo-600 dark:text-indigo-300">-&gt;</span></span>
         <div class="bg-indigo-500 text-white p-3 rounded-lg shadow-sm text-center min-w-[100px]">৩. মাধ্যম</div>
-        <span class="text-indigo-500">➡️</span>
+        <span class="text-indigo-500"><span class="font-black text-indigo-600 dark:text-indigo-300">-&gt;</span></span>
         <div class="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 text-center min-w-[100px]">৪. প্রাপক</div>
-        <span class="text-indigo-500">➡️</span>
+        <span class="text-indigo-500"><span class="font-black text-indigo-600 dark:text-indigo-300">-&gt;</span></span>
         <div class="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 text-center min-w-[100px]">৫. গন্তব্য</div>
       </div>
     </div>
@@ -54,7 +54,7 @@ export const notes = `
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <!-- Narrow Band -->
     <div class="bg-gradient-to-br from-rose-50 to-orange-50 dark:from-rose-900/20 dark:to-orange-900/20 p-6 md:p-8 rounded-3xl shadow-md border border-rose-100 dark:border-rose-800/30 hover:-translate-y-1 transition-transform duration-300">
-      <div class="text-3xl mb-4">🐢</div>
+      <div class="text-3xl mb-4"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-rose-100 px-1.5 text-xs font-black text-rose-700 dark:bg-rose-900/40 dark:text-rose-200">Slow</span></div>
       <h3 class="text-xl font-bold text-rose-700 dark:text-rose-400 mb-2">ন্যারো ব্যান্ড (Narrow Band)</h3>
       <p class="text-rose-600 dark:text-rose-300 font-bold mb-4 bg-rose-100/50 dark:bg-rose-900/30 inline-block px-3 py-1 rounded-full text-sm">৪৫ - ৩০০ bps</p>
       <p class="text-sm text-slate-700 dark:text-slate-300">
@@ -64,7 +64,7 @@ export const notes = `
 
     <!-- Voice Band -->
     <div class="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 p-6 md:p-8 rounded-3xl shadow-md border border-blue-100 dark:border-blue-800/30 hover:-translate-y-1 transition-transform duration-300">
-      <div class="text-3xl mb-4">🚶</div>
+      <div class="text-3xl mb-4"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-blue-100 px-1.5 text-xs font-black text-blue-700 dark:bg-blue-900/40 dark:text-blue-200">Mid</span></div>
       <h3 class="text-xl font-bold text-blue-700 dark:text-blue-400 mb-2">ভয়েস ব্যান্ড (Voice Band)</h3>
       <p class="text-blue-600 dark:text-blue-300 font-bold mb-4 bg-blue-100/50 dark:bg-blue-900/30 inline-block px-3 py-1 rounded-full text-sm">১২০০ - ৯৬০০ bps</p>
       <p class="text-sm text-slate-700 dark:text-slate-300">
@@ -74,7 +74,7 @@ export const notes = `
 
     <!-- Broad Band -->
     <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 p-6 md:p-8 rounded-3xl shadow-md border border-emerald-100 dark:border-emerald-800/30 hover:-translate-y-1 transition-transform duration-300">
-      <div class="text-3xl mb-4">🚀</div>
+      <div class="text-3xl mb-4"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">Fast</span></div>
       <h3 class="text-xl font-bold text-emerald-700 dark:text-emerald-400 mb-2">ব্রড ব্যান্ড (Broad Band)</h3>
       <p class="text-emerald-600 dark:text-emerald-300 font-bold mb-4 bg-emerald-100/50 dark:bg-emerald-900/30 inline-block px-3 py-1 rounded-full text-sm">১ Mbps বা এর অধিক</p>
       <p class="text-sm text-slate-700 dark:text-slate-300">
@@ -89,7 +89,7 @@ export const notes = `
       <span class="text-9xl font-black">bps</span>
     </div>
     <h3 class="text-xl font-bold text-blue-400 mb-4 flex items-center gap-2">
-      <span class="text-2xl">🧮</span> ব্যান্ডউইথ পরিমাপের একক ও সূত্র
+      <span class="text-2xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-purple-100 px-1.5 text-xs font-black text-purple-700 dark:bg-purple-900/40 dark:text-purple-200">Calc</span></span> ব্যান্ডউইথ পরিমাপের একক ও সূত্র
     </h3>
     <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-600 font-mono text-sm md:text-base">
       <p class="mb-2 text-yellow-300">// bps = bit per second</p>
@@ -97,7 +97,7 @@ export const notes = `
       <p class="mb-1"><span class="text-purple-400">১ কিলোবাইট (KB)</span> = ১০২৪ বাইট (B)</p>
       <p class="mb-1"><span class="text-purple-400">১ মেগাবাইট (MB)</span> = ১০২৪ কিলোবাইট (KB)</p>
       <div class="mt-4 pt-4 border-t border-slate-600">
-        <p class="text-green-400 font-bold">💡 Bandwidth = Total Bits / Time (in seconds)</p>
+        <p class="text-green-400 font-bold"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Tip</span> Bandwidth = Total Bits / Time (in seconds)</p>
         <p class="text-slate-400 text-sm mt-2">Example: 5 সেকেন্ডে 9000 bit স্থানান্তরিত হলে, ব্যান্ডউইথ = 9000 / 5 = 1800 bps.</p>
       </div>
     </div>
@@ -106,11 +106,11 @@ export const notes = `
   <!-- Exam Tips -->
   <div class="bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 p-6 md:p-8 rounded-3xl shadow-md border border-amber-200 dark:border-amber-800/50 mt-12">
     <h3 class="text-xl font-bold text-amber-700 dark:text-amber-400 mb-4 flex items-center gap-2">
-      <span class="animate-pulse">💡</span> Exam Master Tips
+      <span class="animate-pulse"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Tip</span></span> Exam Master Tips
     </h3>
     <ul class="space-y-3 text-slate-700 dark:text-slate-300 text-sm md:text-base">
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>MCQ হ্যাক:</strong> কম্পিউটার থেকে প্রিন্টারে বা কীবোর্ডে ডেটা স্থানান্তর = Voice Band (9600 bps)। HD ভিডিও কনফারেন্সিং = Broad Band (1 Mbps)। bps-এ 'b' ছোট হাতের হলে bit, আর 'B' বড় হাতের হলে Byte।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>CQ হ্যাক:</strong> উদ্দীপকে যদি "ডেটা ট্রান্সফার অত্যন্ত ধীরগতিতে (যেমন 300 bps)" বোঝায়, তবে সেটি ন্যারো ব্যান্ড। আর যদি "ডেটা ট্রান্সফার অনেক দ্রুত (যেমন অপটিক্যাল ফাইবার, আলোর বেগে)" বলা হয়, তবে সেটি ব্রড ব্যান্ড।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>MCQ হ্যাক:</strong> কম্পিউটার থেকে প্রিন্টারে বা কীবোর্ডে ডেটা স্থানান্তর = Voice Band (9600 bps)। HD ভিডিও কনফারেন্সিং = Broad Band (1 Mbps)। bps-এ 'b' ছোট হাতের হলে bit, আর 'B' বড় হাতের হলে Byte।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>CQ হ্যাক:</strong> উদ্দীপকে যদি "ডেটা ট্রান্সফার অত্যন্ত ধীরগতিতে (যেমন 300 bps)" বোঝায়, তবে সেটি ন্যারো ব্যান্ড। আর যদি "ডেটা ট্রান্সফার অনেক দ্রুত (যেমন অপটিক্যাল ফাইবার, আলোর বেগে)" বলা হয়, তবে সেটি ব্রড ব্যান্ড।</li>
     </ul>
   </div>
 

@@ -1,4 +1,4 @@
-import { PracticeMCQ, QuizMCQ } from "./ict-syllabus";
+import type { PracticeMCQ, QuizMCQ } from "./ict-syllabus";
 
 export const generateQuiz = (
   source: string | PracticeMCQ[],

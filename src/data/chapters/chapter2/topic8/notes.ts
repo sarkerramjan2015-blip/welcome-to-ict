@@ -10,7 +10,7 @@ export const notes = `
       <div class="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-indigo-100 font-semibold text-sm mb-4 border border-white/30 truncate">
         অধ্যায় ২: কমিউনিকেশন সিস্টেমস ও নেটওয়ার্কিং
       </div>
-      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">কম্পিউটার নেটওয়ার্ক 🌐</h2>
+      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">কম্পিউটার নেটওয়ার্ক <span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">Net</span></h2>
       <p class="text-indigo-100 leading-relaxed text-lg md:text-xl font-medium max-w-3xl mb-6">
         কম্পিউটার নেটওয়ার্ক হলো এমন একটি সিস্টেম যেখানে একাধিক কম্পিউটার একে অপরের সাথে সংযুক্ত হয়ে তথ্য, হার্ডওয়্যার, এবং সফটওয়্যার রিসোর্স শেয়ার করে। এর মূল উদ্দেশ্য হলো রিসোর্স শেয়ারিং এর মাধ্যমে খরচ কমানো এবং যোগাযোগ সহজ করা।
       </p>
@@ -46,7 +46,7 @@ export const notes = `
   <!-- Geographical Span (PAN, LAN, CAN, MAN, WAN) -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-emerald-200/50 dark:border-emerald-700/50 mt-8">
     <h3 class="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-6 flex items-center gap-3 border-b border-emerald-100 dark:border-emerald-900/50 pb-4">
-      <span class="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl">🗺️</span> ভৌগলিক বিস্তৃতির ভিত্তিতে নেটওয়ার্ক
+      <span class="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">Map</span></span> ভৌগলিক বিস্তৃতির ভিত্তিতে নেটওয়ার্ক
     </h3>
     
     <div class="space-y-6">
@@ -65,7 +65,7 @@ export const notes = `
       <!-- LAN -->
       <div class="p-5 border-l-4 border-cyan-400 bg-cyan-50 dark:bg-cyan-900/20 rounded-r-xl">
         <div class="flex items-center gap-2 mb-2">
-          <span class="text-xl">🏢</span>
+          <span class="text-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">LAN</span></span>
           <h4 class="font-bold text-lg text-cyan-700 dark:text-cyan-400">ল্যান (LAN - Local Area Network)</h4>
         </div>
         <p class="text-sm text-slate-600 dark:text-slate-400">
@@ -76,7 +76,7 @@ export const notes = `
       <!-- CAN -->
       <div class="p-5 border-l-4 border-teal-400 bg-teal-50 dark:bg-teal-900/20 rounded-r-xl">
         <div class="flex items-center gap-2 mb-2">
-          <span class="text-xl">🎓</span>
+          <span class="text-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">CAN</span></span>
           <h4 class="font-bold text-lg text-teal-700 dark:text-teal-400">ক্যান (CAN - Campus Area Network)</h4>
         </div>
         <p class="text-sm text-slate-600 dark:text-slate-400">
@@ -87,7 +87,7 @@ export const notes = `
       <!-- MAN -->
       <div class="p-5 border-l-4 border-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-r-xl">
         <div class="flex items-center gap-2 mb-2">
-          <span class="text-xl">🏙️</span>
+          <span class="text-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">MAN</span></span>
           <h4 class="font-bold text-lg text-blue-700 dark:text-blue-400">ম্যান (MAN - Metropolitan Area Network)</h4>
         </div>
         <p class="text-sm text-slate-600 dark:text-slate-400">
@@ -98,7 +98,7 @@ export const notes = `
       <!-- WAN -->
       <div class="p-5 border-l-4 border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 rounded-r-xl">
         <div class="flex items-center gap-2 mb-2">
-          <span class="text-xl">🌍</span>
+          <span class="text-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">WAN</span></span>
           <h4 class="font-bold text-lg text-indigo-700 dark:text-indigo-400">ওয়ান (WAN - Wide Area Network)</h4>
         </div>
         <p class="text-sm text-slate-600 dark:text-slate-400">
@@ -112,11 +112,11 @@ export const notes = `
   <!-- Exam Tips -->
   <div class="bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 p-6 md:p-8 rounded-3xl shadow-md border border-amber-200 dark:border-amber-800/50 mt-12">
     <h3 class="text-xl font-bold text-amber-700 dark:text-amber-400 mb-4 flex items-center gap-2">
-      <span class="animate-pulse">💡</span> Exam Master Tips
+      <span class="animate-pulse"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Tip</span></span> Exam Master Tips
     </h3>
     <ul class="space-y-3 text-slate-700 dark:text-slate-300 text-sm md:text-base">
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>রিসোর্স শেয়ারিং:</strong> একটি প্রিন্টার ৫টি কম্পিউটারে শেয়ার করা হলো "হার্ডওয়্যার রিসোর্স শেয়ার"।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>টপোলজি বা বিস্তৃতি চেনার উপায়:</strong>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>রিসোর্স শেয়ারিং:</strong> একটি প্রিন্টার ৫টি কম্পিউটারে শেয়ার করা হলো "হার্ডওয়্যার রিসোর্স শেয়ার"।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>টপোলজি বা বিস্তৃতি চেনার উপায়:</strong>
         <ul class="ml-6 mt-1 list-disc text-slate-600 dark:text-slate-400">
           <li>রুমের ভেতর বা ব্লুটুথ = PAN</li>
           <li>একই বিল্ডিং, ল্যাব বা অফিস = LAN</li>

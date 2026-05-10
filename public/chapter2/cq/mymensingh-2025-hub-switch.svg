@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 430" role="img" aria-labelledby="title desc">
+  <title id="title">ময়মনসিংহ বোর্ড ২০২৫ হাব ও সুইচ</title>
+  <desc id="desc">Device-1 broadcast করে, Device-2 MAC address ব্যবহার করে নির্দিষ্ট পোর্টে পাঠায়</desc>
+  <defs>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M1 1 9 5 1 9Z" fill="#dc2626"/>
+    </marker>
+  </defs>
+  <rect width="980" height="430" rx="32" fill="#f8fafc"/>
+  <text x="490" y="54" text-anchor="middle" font-family="Noto Sans Bengali, Arial, sans-serif" font-size="28" font-weight="800" fill="#0f172a">Device-1 বনাম Device-2</text>
+  <g font-family="Noto Sans Bengali, Arial, sans-serif">
+    <g transform="translate(70 95)">
+      <rect width="390" height="270" rx="24" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+      <rect x="140" y="108" width="110" height="62" rx="14" fill="#fee2e2" stroke="#dc2626" stroke-width="4"/>
+      <text x="195" y="146" text-anchor="middle" font-size="20" font-weight="800" fill="#b91c1c">Device-1</text>
+      <g stroke="#dc2626" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow-red)">
+        <path d="M140 139H58"/>
+        <path d="M250 139h82"/>
+        <path d="M168 108 98 55"/>
+        <path d="M222 108 292 55"/>
+        <path d="M168 170 98 220"/>
+        <path d="M222 170 292 220"/>
+      </g>
+      <g fill="#fecaca" stroke="#dc2626" stroke-width="3">
+        <circle cx="48" cy="139" r="15"/>
+        <circle cx="342" cy="139" r="15"/>
+        <circle cx="88" cy="47" r="15"/>
+        <circle cx="302" cy="47" r="15"/>
+        <circle cx="88" cy="228" r="15"/>
+        <circle cx="302" cy="228" r="15"/>
+      </g>
+      <text x="195" y="250" text-anchor="middle" font-size="17" font-weight="800" fill="#475569">প্রতিটি ডিভাইসে broadcast করে</text>
+    </g>
+    <g transform="translate(520 95)">
+      <rect width="390" height="270" rx="24" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+      <rect x="140" y="108" width="110" height="62" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="4"/>
+      <text x="195" y="146" text-anchor="middle" font-size="20" font-weight="800" fill="#15803d">Device-2</text>
+      <g stroke="#cbd5e1" stroke-width="4" stroke-linecap="round">
+        <path d="M140 139H58"/>
+        <path d="M250 139h82"/>
+        <path d="M168 108 98 55"/>
+        <path d="M222 108 292 55"/>
+        <path d="M168 170 98 220"/>
+      </g>
+      <path d="M222 170 292 220" fill="none" stroke="#16a34a" stroke-width="6" stroke-linecap="round"/>
+      <g fill="#dcfce7" stroke="#16a34a" stroke-width="3">
+        <circle cx="302" cy="228" r="15"/>
+      </g>
+      <g fill="#e2e8f0" stroke="#94a3b8" stroke-width="3">
+        <circle cx="48" cy="139" r="15"/>
+        <circle cx="342" cy="139" r="15"/>
+        <circle cx="88" cy="47" r="15"/>
+        <circle cx="302" cy="47" r="15"/>
+        <circle cx="88" cy="228" r="15"/>
+      </g>
+      <text x="195" y="250" text-anchor="middle" font-size="17" font-weight="800" fill="#475569">MAC address দেখে নির্দিষ্ট port</text>
+    </g>
+  </g>
+</svg>

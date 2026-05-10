@@ -10,7 +10,7 @@ export const notes = `
       <div class="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-emerald-100 font-semibold text-sm mb-4 border border-white/30 truncate">
         অধ্যায় ২: কমিউনিকেশন সিস্টেমস ও নেটওয়ার্কিং
       </div>
-      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">তার মাধ্যম (Wired Medium) 🔌</h2>
+      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">তার মাধ্যম (Wired Medium) <span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-slate-100 px-1.5 text-xs font-black text-slate-700 dark:bg-slate-900/40 dark:text-slate-200">Cable</span></h2>
       <p class="text-emerald-100 leading-relaxed text-lg md:text-xl font-medium max-w-3xl mb-6">
         ডেটা আদান-প্রদানের জন্য প্রেরক ও প্রাপকের মধ্যে সংযোগ স্থাপনের প্রয়োজন হয়। এই মাধ্যমকে চ্যানেল বলে। তার (Wired/Guided) মাধ্যম হলো এমন মাধ্যম যেখানে ফিজিক্যাল ক্যাবলের মাধ্যমে ডেটা পরিবাহিত হয়। এর প্রধান তিনটি প্রকার হলো: টুইস্টেড পেয়ার, কো-এক্সিয়াল এবং ফাইবার অপটিক ক্যাবল।
       </p>
@@ -20,7 +20,7 @@ export const notes = `
   <!-- Twisted Pair Cable -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-emerald-200/50 dark:border-emerald-700/50">
     <h3 class="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-6 flex items-center gap-3 border-b border-emerald-100 dark:border-emerald-900/50 pb-4">
-      <span class="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl">🧶</span> টুইস্টেড পেয়ার ক্যাবল (Twisted Pair Cable)
+      <span class="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-indigo-100 px-1.5 text-xs font-black text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">Wire</span></span> টুইস্টেড পেয়ার ক্যাবল (Twisted Pair Cable)
     </h3>
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -29,9 +29,9 @@ export const notes = `
           দুটি পরিবাহী কপার বা তামার তারকে একই অক্ষে পরস্পর সমভাবে পেঁচিয়ে টুইস্টেড পেয়ার ক্যাবল তৈরি করা হয়। তারদুটির মধ্যে একটি তথ্য প্রেরণে ব্যবহৃত হয় এবং অন্যটি গ্রাউন্ড রেফারেন্স।
         </p>
         <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-          <li>🔹 <strong>রং:</strong> মোট ৪ জোড়া তার। প্রতি জোড়ায় একটি কমন (সাদা) ও একটি ভিন্ন রঙের (কমলা, সবুজ, নীল, বাদামী) তার থাকে।</li>
-          <li>🔹 <strong>পেঁচানোর কারণ:</strong> নয়েজ (Noise), তড়িৎ চৌম্বকীয় প্রভাব (EMI) এবং ক্রসটক কমানোর জন্য। প্রতি ইঞ্চিতে ৩টি পূর্ণ প্যাচ থাকে।</li>
-          <li>🔹 <strong>কানেক্টর:</strong> RJ-45 কানেক্টর।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-sky-100 px-1.5 text-xs font-black text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">?</span> <strong>রং:</strong> মোট ৪ জোড়া তার। প্রতি জোড়ায় একটি কমন (সাদা) ও একটি ভিন্ন রঙের (কমলা, সবুজ, নীল, বাদামী) তার থাকে।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-sky-100 px-1.5 text-xs font-black text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">?</span> <strong>পেঁচানোর কারণ:</strong> নয়েজ (Noise), তড়িৎ চৌম্বকীয় প্রভাব (EMI) এবং ক্রসটক কমানোর জন্য। প্রতি ইঞ্চিতে ৩টি পূর্ণ প্যাচ থাকে।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-sky-100 px-1.5 text-xs font-black text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">?</span> <strong>কানেক্টর:</strong> RJ-45 কানেক্টর।</li>
         </ul>
       </div>
       
@@ -54,7 +54,7 @@ export const notes = `
     <!-- Pros Cons -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
       <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-100 dark:border-green-800/30">
-        <strong class="text-green-700 dark:text-green-400 flex items-center gap-2 mb-2"><span class="text-lg">✅</span> সুবিধা</strong>
+        <strong class="text-green-700 dark:text-green-400 flex items-center gap-2 mb-2"><span class="text-lg"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">OK</span></span> সুবিধা</strong>
         <ul class="list-disc ml-5 text-slate-600 dark:text-slate-400">
           <li>দামে খুব সস্তা ও ইনস্টল সহজ।</li>
           <li>অ্যানালগ ও ডিজিটাল উভয় ট্রান্সমিশনে ব্যবহৃত হয়।</li>
@@ -62,7 +62,7 @@ export const notes = `
         </ul>
       </div>
       <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-800/30">
-        <strong class="text-red-700 dark:text-red-400 flex items-center gap-2 mb-2"><span class="text-lg">❌</span> অসুবিধা</strong>
+        <strong class="text-red-700 dark:text-red-400 flex items-center gap-2 mb-2"><span class="text-lg"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-rose-100 px-1.5 text-xs font-black text-rose-700 dark:bg-rose-900/40 dark:text-rose-200">X</span></span> অসুবিধা</strong>
         <ul class="list-disc ml-5 text-slate-600 dark:text-slate-400">
           <li>১০০ মিটারের বেশি দূরত্বে ডেটা পাঠানো কষ্টকর।</li>
           <li>ট্রান্সমিশন লস বেশি।</li>
@@ -75,7 +75,7 @@ export const notes = `
   <!-- Co-axial Cable -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-sky-200/50 dark:border-sky-700/50 mt-8">
     <h3 class="text-2xl font-bold text-sky-700 dark:text-sky-400 mb-6 flex items-center gap-3 border-b border-sky-100 dark:border-sky-900/50 pb-4">
-      <span class="p-2 bg-sky-100 dark:bg-sky-900/50 rounded-xl">📺</span> কো-এক্সিয়াল ক্যাবল (Co-axial Cable)
+      <span class="p-2 bg-sky-100 dark:bg-sky-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-sky-100 px-1.5 text-xs font-black text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">TV</span></span> কো-এক্সিয়াল ক্যাবল (Co-axial Cable)
     </h3>
 
     <p class="text-slate-700 dark:text-slate-300 mb-6">
@@ -114,7 +114,7 @@ export const notes = `
   <!-- Fiber Optic Cable -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-fuchsia-200/50 dark:border-fuchsia-700/50 mt-8">
     <h3 class="text-2xl font-bold text-fuchsia-700 dark:text-fuchsia-400 mb-6 flex items-center gap-3 border-b border-fuchsia-100 dark:border-fuchsia-900/50 pb-4">
-      <span class="p-2 bg-fuchsia-100 dark:bg-fuchsia-900/50 rounded-xl">⚡</span> ফাইবার অপটিক ক্যাবল (Fiber Optic Cable)
+      <span class="p-2 bg-fuchsia-100 dark:bg-fuchsia-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-fuchsia-100 px-1.5 text-xs font-black text-fuchsia-700 dark:bg-fuchsia-900/40 dark:text-fuchsia-200">Light</span></span> ফাইবার অপটিক ক্যাবল (Fiber Optic Cable)
     </h3>
 
     <div class="bg-gradient-to-r from-fuchsia-900 to-purple-800 p-6 rounded-2xl text-white shadow-lg mb-8">
@@ -148,7 +148,7 @@ export const notes = `
     <!-- Pros Cons Fiber -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
       <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-100 dark:border-green-800/30">
-        <strong class="text-green-700 dark:text-green-400 flex items-center gap-2 mb-2"><span class="text-lg">✅</span> সুবিধা</strong>
+        <strong class="text-green-700 dark:text-green-400 flex items-center gap-2 mb-2"><span class="text-lg"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">OK</span></span> সুবিধা</strong>
         <ul class="list-disc ml-5 text-slate-600 dark:text-slate-400">
           <li>অধিক দূরত্বে গিগাবাইট রেঞ্জে ডেটা ট্রান্সমিট।</li>
           <li>বিদ্যুৎ চৌম্বক প্রভাব (EMI) হতে সম্পূর্ণ মুক্ত।</li>
@@ -156,7 +156,7 @@ export const notes = `
         </ul>
       </div>
       <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-800/30">
-        <strong class="text-red-700 dark:text-red-400 flex items-center gap-2 mb-2"><span class="text-lg">❌</span> অসুবিধা</strong>
+        <strong class="text-red-700 dark:text-red-400 flex items-center gap-2 mb-2"><span class="text-lg"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-rose-100 px-1.5 text-xs font-black text-rose-700 dark:bg-rose-900/40 dark:text-rose-200">X</span></span> অসুবিধা</strong>
         <ul class="list-disc ml-5 text-slate-600 dark:text-slate-400">
           <li>U-আকারে বাঁকানো যায় না।</li>
           <li>অত্যন্ত দামি এবং ইনস্টলেশন কঠিন।</li>
@@ -168,12 +168,12 @@ export const notes = `
   <!-- Exam Tips -->
   <div class="bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 p-6 md:p-8 rounded-3xl shadow-md border border-amber-200 dark:border-amber-800/50 mt-12">
     <h3 class="text-xl font-bold text-amber-700 dark:text-amber-400 mb-4 flex items-center gap-2">
-      <span class="animate-pulse">💡</span> Exam Master Tips
+      <span class="animate-pulse"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Tip</span></span> Exam Master Tips
     </h3>
     <ul class="space-y-3 text-slate-700 dark:text-slate-300 text-sm md:text-base">
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>টুইস্টেড পেয়ার:</strong> সাদাসহ ৪ জোড়া তার। স্বল্প দূরত্বে (LAN)।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>কো-এক্সিয়াল:</strong> ডিশ/টিভি ক্যাবল, BNC কানেক্টর।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>ফাইবার অপটিক:</strong> আলোর বেগে ডেটা, পূর্ণ অভ্যন্তরীণ প্রতিফলন, কোর ও ক্ল্যাডিং, EMI প্রভাবমুক্ত, সমুদ্রের তলদেশ (সাবমেরিন ক্যাবল), নেটওয়ার্ক ব্যাকবোন।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>টুইস্টেড পেয়ার:</strong> সাদাসহ ৪ জোড়া তার। স্বল্প দূরত্বে (LAN)।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>কো-এক্সিয়াল:</strong> ডিশ/টিভি ক্যাবল, BNC কানেক্টর।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>ফাইবার অপটিক:</strong> আলোর বেগে ডেটা, পূর্ণ অভ্যন্তরীণ প্রতিফলন, কোর ও ক্ল্যাডিং, EMI প্রভাবমুক্ত, সমুদ্রের তলদেশ (সাবমেরিন ক্যাবল), নেটওয়ার্ক ব্যাকবোন।</li>
     </ul>
   </div>
 

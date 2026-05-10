@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { ictSyllabus } from '../data/ict-syllabus';
+import { allSyllabusTopicIds, syllabusProgressSummary, syllabusSummaryStats } from '../data/syllabus-summary';
 import { useAuth } from './AuthContext';
 import { submitChallengeExam } from '../services/challengeExam';
 
@@ -130,19 +130,11 @@ const defaultChallenge = () => ({
   fee: 20,
 });
 
-const allTopics = ictSyllabus.flatMap(chapter =>
-  chapter.topics.map(topic => ({
-    ...topic,
-    chapterId: chapter.id,
-    chapterTitle: chapter.title,
-  }))
-);
-
 const countAdminStats = (): AdminStats => {
   const baseStats = {
-    chapters: ictSyllabus.length,
-    topics: allTopics.length,
-    mcqs: allTopics.reduce((sum, topic) => sum + topic.practiceMcqs.length + topic.quizMcqs.length, 0),
+    chapters: syllabusSummaryStats.chapters,
+    topics: syllabusSummaryStats.topics,
+    mcqs: syllabusSummaryStats.mcqs,
   };
 
   const keys = Object.keys(localStorage);
@@ -384,8 +376,8 @@ export function LmsProvider({ children }: { children: React.ReactNode }) {
   const analytics = useMemo<LearningAnalytics>(() => {
     const completedSet = new Set(completedTopicIds);
     const visitedSet = new Set(topicVisits.map(visit => visit.topicId));
-    const chaptersRead = ictSyllabus.filter(chapter =>
-      chapter.topics.some(topic => completedSet.has(topic.id) || visitedSet.has(topic.id))
+    const chaptersRead = syllabusProgressSummary.filter(chapter =>
+      chapter.topicIds.some(topicId => completedSet.has(topicId) || visitedSet.has(topicId))
     ).length;
     const averageAccuracy = quizResults.length
       ? Math.round(quizResults.reduce((sum, result) => sum + result.accuracy, 0) / quizResults.length)
@@ -396,9 +388,9 @@ export function LmsProvider({ children }: { children: React.ReactNode }) {
 
     return {
       totalChaptersRead: chaptersRead,
-      totalTopics: allTopics.length,
+      totalTopics: allSyllabusTopicIds.length,
       completedTopics: completedTopicIds.length,
-      completionRate: allTopics.length ? Math.round((completedTopicIds.length / allTopics.length) * 100) : 0,
+      completionRate: allSyllabusTopicIds.length ? Math.round((completedTopicIds.length / allSyllabusTopicIds.length) * 100) : 0,
       quizAttempts: quizResults.length,
       averageAccuracy,
       bestAccuracy,

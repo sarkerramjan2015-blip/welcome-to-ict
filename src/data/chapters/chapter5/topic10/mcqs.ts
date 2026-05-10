@@ -1,4 +1,4 @@
-import { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "C ভাষায় সমজাতীয় data সংরক্ষণ করে কোনটি? [কুমিল্লা বোর্ড ২০২৪]", options: ["ফাংশন", "অ্যারে", "পয়েন্টার", "স্ট্রাকচার"], correct: "অ্যারে", explanation: "Array একই data type-এর একাধিক element সংরক্ষণ করে।" },

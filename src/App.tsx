@@ -10,8 +10,8 @@ import AdminRoute from './components/routes/AdminRoute';
 import PrivateRoute from './components/routes/PrivateRoute';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import Home from './pages/Home';
 
+const Home = lazy(() => import('./pages/Home'));
 const ChapterList = lazy(() => import('./pages/ChapterList'));
 const Courses = lazy(() => import('./pages/Courses'));
 const CoursePlayer = lazy(() => import('./pages/CoursePlayer'));

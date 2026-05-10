@@ -10,7 +10,7 @@ export const notes = `
       <div class="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-indigo-100 font-semibold text-sm mb-4 border border-white/30 truncate">
         অধ্যায় ২: কমিউনিকেশন সিস্টেমস ও নেটওয়ার্কিং
       </div>
-      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">নেটওয়ার্ক ডিভাইসসমূহ 🔌</h2>
+      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">নেটওয়ার্ক ডিভাইসসমূহ <span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-slate-100 px-1.5 text-xs font-black text-slate-700 dark:bg-slate-900/40 dark:text-slate-200">Cable</span></h2>
       <p class="text-indigo-100 leading-relaxed text-lg md:text-xl font-medium max-w-3xl mb-6">
         কম্পিউটার, প্রিন্টার এবং অন্যান্য ডিভাইসকে একটি নেটওয়ার্কের সাথে যুক্ত করে ডেটা আদান-প্রদান করতে যেসব হার্ডওয়্যার ব্যবহার করা হয়, তাদের নেটওয়ার্ক ডিভাইস বলে। যেমন: মডেম, হাব, সুইচ, রাউটার ইত্যাদি।
       </p>
@@ -23,7 +23,7 @@ export const notes = `
     <!-- Modem -->
     <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-rose-200/50 dark:border-rose-700/50">
       <h3 class="text-2xl font-bold text-rose-700 dark:text-rose-400 mb-4 flex items-center gap-3">
-        <span class="p-2 bg-rose-100 dark:bg-rose-900/50 rounded-xl">📡</span> মডেম (Modem)
+        <span class="p-2 bg-rose-100 dark:bg-rose-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-cyan-100 px-1.5 text-xs font-black text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-200">RF</span></span> মডেম (Modem)
       </h3>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
         Modem শব্দটি Modulator ও Demodulator এর সংক্ষিপ্ত রূপ। এটি প্রেরক ও প্রাপক উভয় হিসেবেই কাজ করে।
@@ -37,7 +37,7 @@ export const notes = `
     <!-- NIC -->
     <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-emerald-200/50 dark:border-emerald-700/50">
       <h3 class="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-4 flex items-center gap-3">
-        <span class="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl">🎛️</span> নিক (NIC)
+        <span class="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">NIC</span></span> নিক (NIC)
       </h3>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
         NIC বা Network Interface Card। এটি কম্পিউটারকে নেটওয়ার্কের সাথে যুক্ত করে। একে ল্যান কার্ডও বলে।
@@ -82,7 +82,7 @@ export const notes = `
       
       <!-- Router -->
       <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 rounded-3xl shadow-xl border border-purple-200/50 dark:border-purple-700/50 flex flex-col md:flex-row gap-6 items-start">
-        <div class="bg-purple-100 dark:bg-purple-900/50 p-4 rounded-2xl text-3xl">🚥</div>
+        <div class="bg-purple-100 dark:bg-purple-900/50 p-4 rounded-2xl text-3xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-purple-100 px-1.5 text-xs font-black text-purple-700 dark:bg-purple-900/40 dark:text-purple-200">Router</span></div>
         <div>
           <h4 class="font-bold text-xl text-purple-700 dark:text-purple-400 mb-2">রাউটার (Router)</h4>
           <p class="text-sm text-slate-600 dark:text-slate-400 mb-2">
@@ -93,7 +93,7 @@ export const notes = `
 
       <!-- Gateway -->
       <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 rounded-3xl shadow-xl border border-amber-200/50 dark:border-amber-700/50 flex flex-col md:flex-row gap-6 items-start">
-        <div class="bg-amber-100 dark:bg-amber-900/50 p-4 rounded-2xl text-3xl">🚪</div>
+        <div class="bg-amber-100 dark:bg-amber-900/50 p-4 rounded-2xl text-3xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Gate</span></div>
         <div>
           <h4 class="font-bold text-xl text-amber-700 dark:text-amber-400 mb-2">গেটওয়ে (Gateway)</h4>
           <p class="text-sm text-slate-600 dark:text-slate-400 mb-2">
@@ -126,13 +126,13 @@ export const notes = `
   <!-- Exam Tips -->
   <div class="bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 p-6 md:p-8 rounded-3xl shadow-md border border-amber-200 dark:border-amber-800/50 mt-12">
     <h3 class="text-xl font-bold text-amber-700 dark:text-amber-400 mb-4 flex items-center gap-2">
-      <span class="animate-pulse">💡</span> Exam Master Tips
+      <span class="animate-pulse"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Tip</span></span> Exam Master Tips
     </h3>
     <ul class="space-y-3 text-slate-700 dark:text-slate-300 text-sm md:text-base">
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>মডেম:</strong> মডুলেশন (ডিজিটাল ➔ অ্যানালগ) + ডিমডুলেশন (অ্যানালগ ➔ ডিজিটাল)।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>হাব vs সুইচ:</strong> হাব ডেটা ব্রডকাস্ট করে (সবার কাছে পাঠায়)। সুইচ MAC অ্যাড্রেস চিনে নির্দিষ্ট নোডে পাঠায় (বুদ্ধিমান)।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>রাউটার vs গেটওয়ে:</strong> রাউটার একই প্রটোকলে কাজ করে, রাউটিং টেবিল দিয়ে পথ খোঁজে। গেটওয়ে ভিন্ন প্রটোকলের মাঝে অনুবাদ করে।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>রিপিটার:</strong> দুর্বল সিগন্যালকে সবল (Boost) করে।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>মডেম:</strong> মডুলেশন (ডিজিটাল -> অ্যানালগ) + ডিমডুলেশন (অ্যানালগ -> ডিজিটাল)।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>হাব vs সুইচ:</strong> হাব ডেটা ব্রডকাস্ট করে (সবার কাছে পাঠায়)। সুইচ MAC অ্যাড্রেস চিনে নির্দিষ্ট নোডে পাঠায় (বুদ্ধিমান)।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>রাউটার vs গেটওয়ে:</strong> রাউটার একই প্রটোকলে কাজ করে, রাউটিং টেবিল দিয়ে পথ খোঁজে। গেটওয়ে ভিন্ন প্রটোকলের মাঝে অনুবাদ করে।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>রিপিটার:</strong> দুর্বল সিগন্যালকে সবল (Boost) করে।</li>
     </ul>
   </div>
 

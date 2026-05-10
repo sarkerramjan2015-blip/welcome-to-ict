@@ -1,4 +1,4 @@
-import { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "তালিকা তৈরির জন্য ব্যবহৃত আবশ্যক ট্যাগ হচ্ছে- [ঢাকা বোর্ড ২০২৪]\ni. <ol>\nii. <ul>\niii. <li>", options: ["i ও ii", "i ও iii", "ii ও iii", "i, ii ও iii"], correct: "i, ii ও iii", explanation: "তালিকার জন্য <ol>, <ul> ও <li> — তিনটিই প্রয়োজন।" },

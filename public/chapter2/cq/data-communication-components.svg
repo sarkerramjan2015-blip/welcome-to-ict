@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 360" role="img" aria-labelledby="title desc">
+  <title id="title">Data communication components</title>
+  <desc id="desc">Source, transmitter, medium, receiver and destination in a communication system</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M1 1 9 5 1 9Z" fill="#0f766e"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="360" rx="28" fill="#f8fafc"/>
+  <text x="500" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="900" fill="#0f172a">Data Communication System</text>
+  <g font-family="Arial, sans-serif" font-weight="800" text-anchor="middle">
+    <g fill="#ecfdf5" stroke="#0f766e" stroke-width="4">
+      <rect x="50" y="132" width="145" height="86" rx="18"/>
+      <rect x="238" y="132" width="145" height="86" rx="18"/>
+      <rect x="426" y="132" width="145" height="86" rx="18"/>
+      <rect x="614" y="132" width="145" height="86" rx="18"/>
+      <rect x="802" y="132" width="145" height="86" rx="18"/>
+    </g>
+    <g font-size="20" fill="#0f172a">
+      <text x="122" y="170">Source</text><text x="122" y="195" font-size="14">Data origin</text>
+      <text x="310" y="170">Transmitter</text><text x="310" y="195" font-size="14">Encode</text>
+      <text x="498" y="170">Medium</text><text x="498" y="195" font-size="14">Channel</text>
+      <text x="686" y="170">Receiver</text><text x="686" y="195" font-size="14">Decode</text>
+      <text x="874" y="170">Destination</text><text x="874" y="195" font-size="14">User/device</text>
+    </g>
+  </g>
+  <g stroke="#0f766e" stroke-width="6" marker-end="url(#arrow)">
+    <path d="M196 175h40"/><path d="M384 175h40"/><path d="M572 175h40"/><path d="M760 175h40"/>
+  </g>
+  <path d="M498 118V82" stroke="#ef4444" stroke-width="5" stroke-dasharray="8 8"/>
+  <text x="498" y="78" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" font-weight="900" fill="#ef4444">Noise may affect medium</text>
+</svg>

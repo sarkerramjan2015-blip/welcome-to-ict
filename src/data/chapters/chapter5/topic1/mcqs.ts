@@ -1,4 +1,4 @@
-import { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "প্রসেসরের সবচেয়ে কাছে থাকে কোনটি? [রা.বো.'২৪; চ.বো.'২৪]", options: ["রেজিস্টার", "ক্যাশ মেমোরি", "র‍্যাম", "ভার্চুয়াল মেমোরি"], correct: "রেজিস্টার", explanation: "প্রসেসরের সবচেয়ে কাছে রেজিস্টার, তারপর ক্যাশ মেমোরি, তারপর র‍্যাম।" },

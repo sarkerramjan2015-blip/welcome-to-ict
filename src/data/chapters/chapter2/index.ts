@@ -1,4 +1,4 @@
-import { Chapter } from "../../ict-syllabus";
+import type { Chapter } from "../../ict-syllabus";
 import { topic1 } from "./topic1";
 import { topic2 } from "./topic2";
 import { topic3 } from "./topic3";
@@ -10,6 +10,7 @@ import { topic8 } from "./topic8";
 import { topic9 } from "./topic9";
 import { topic10 } from "./topic10";
 import { topic11 } from "./topic11";
+import { enhanceChapter2Topic } from "./enhancements";
 
 export const chapter2: Chapter = {
   id: "chap-2",
@@ -28,5 +29,5 @@ export const chapter2: Chapter = {
     topic9,
     topic10,
     topic11,
-  ],
+  ].map(enhanceChapter2Topic),
 };

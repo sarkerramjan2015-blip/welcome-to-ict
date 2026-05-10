@@ -10,7 +10,7 @@ export const notes = `
       <div class="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-indigo-100 font-semibold text-sm mb-4 border border-white/30 truncate">
         অধ্যায় ২: কমিউনিকেশন সিস্টেমস ও নেটওয়ার্কিং
       </div>
-      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">নেটওয়ার্ক টপোলজি 🕸️</h2>
+      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">নেটওয়ার্ক টপোলজি <span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-purple-100 px-1.5 text-xs font-black text-purple-700 dark:bg-purple-900/40 dark:text-purple-200">Mesh</span></h2>
       <p class="text-indigo-100 leading-relaxed text-lg md:text-xl font-medium max-w-3xl mb-6">
         একটি নেটওয়ার্কের কম্পিউটার ও ডিভাইসসমূহ একে অপরের সাথে কীভাবে যুক্ত, তার জ্যামিতিক উপস্থাপনাকেই নেটওয়ার্ক টপোলজি বলে। এটি মূলত ৬ প্রকার।
       </p>
@@ -23,7 +23,7 @@ export const notes = `
     <!-- Bus Topology -->
     <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-sky-200/50 dark:border-sky-700/50">
       <div class="flex items-center gap-3 mb-4">
-        <span class="p-3 bg-sky-100 dark:bg-sky-900/50 rounded-2xl text-2xl">🚌</span>
+        <span class="p-3 bg-sky-100 dark:bg-sky-900/50 rounded-2xl text-2xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-sky-100 px-1.5 text-xs font-black text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">Bus</span></span>
         <h3 class="text-2xl font-bold text-sky-700 dark:text-sky-400">বাস টপোলজি (Bus Topology)</h3>
       </div>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
@@ -51,7 +51,7 @@ export const notes = `
     <!-- Ring Topology -->
     <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-amber-200/50 dark:border-amber-700/50">
       <div class="flex items-center gap-3 mb-4">
-        <span class="p-3 bg-amber-100 dark:bg-amber-900/50 rounded-2xl text-2xl">💍</span>
+        <span class="p-3 bg-amber-100 dark:bg-amber-900/50 rounded-2xl text-2xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Ring</span></span>
         <h3 class="text-2xl font-bold text-amber-700 dark:text-amber-400">রিং টপোলজি (Ring Topology)</h3>
       </div>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
@@ -78,7 +78,7 @@ export const notes = `
     <!-- Star Topology -->
     <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-emerald-200/50 dark:border-emerald-700/50">
       <div class="flex items-center gap-3 mb-4">
-        <span class="p-3 bg-emerald-100 dark:bg-emerald-900/50 rounded-2xl text-2xl">⭐</span>
+        <span class="p-3 bg-emerald-100 dark:bg-emerald-900/50 rounded-2xl text-2xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-yellow-100 px-1.5 text-xs font-black text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-200">Star</span></span>
         <h3 class="text-2xl font-bold text-emerald-700 dark:text-emerald-400">স্টার টপোলজি (Star Topology)</h3>
       </div>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
@@ -106,7 +106,7 @@ export const notes = `
     <!-- Tree Topology -->
     <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-teal-200/50 dark:border-teal-700/50">
       <div class="flex items-center gap-3 mb-4">
-        <span class="p-3 bg-teal-100 dark:bg-teal-900/50 rounded-2xl text-2xl">🌳</span>
+        <span class="p-3 bg-teal-100 dark:bg-teal-900/50 rounded-2xl text-2xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-teal-100 px-1.5 text-xs font-black text-teal-700 dark:bg-teal-900/40 dark:text-teal-200">Tree</span></span>
         <h3 class="text-2xl font-bold text-teal-700 dark:text-teal-400">ট্রি টপোলজি (Tree Topology)</h3>
       </div>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
@@ -133,7 +133,7 @@ export const notes = `
     <!-- Mesh Topology -->
     <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-purple-200/50 dark:border-purple-700/50">
       <div class="flex items-center gap-3 mb-4">
-        <span class="p-3 bg-purple-100 dark:bg-purple-900/50 rounded-2xl text-2xl">🕸️</span>
+        <span class="p-3 bg-purple-100 dark:bg-purple-900/50 rounded-2xl text-2xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-purple-100 px-1.5 text-xs font-black text-purple-700 dark:bg-purple-900/40 dark:text-purple-200">Mesh</span></span>
         <h3 class="text-2xl font-bold text-purple-700 dark:text-purple-400">মেশ টপোলজি (Mesh Topology)</h3>
       </div>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
@@ -161,7 +161,7 @@ export const notes = `
     <!-- Hybrid Topology -->
     <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-pink-200/50 dark:border-pink-700/50">
       <div class="flex items-center gap-3 mb-4">
-        <span class="p-3 bg-pink-100 dark:bg-pink-900/50 rounded-2xl text-2xl">🔗</span>
+        <span class="p-3 bg-pink-100 dark:bg-pink-900/50 rounded-2xl text-2xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-indigo-100 px-1.5 text-xs font-black text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">Link</span></span>
         <h3 class="text-2xl font-bold text-pink-700 dark:text-pink-400">হাইব্রিড টপোলজি (Hybrid Topology)</h3>
       </div>
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
@@ -174,15 +174,15 @@ export const notes = `
   <!-- Exam Tips -->
   <div class="bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 p-6 md:p-8 rounded-3xl shadow-md border border-amber-200 dark:border-amber-800/50 mt-12">
     <h3 class="text-xl font-bold text-amber-700 dark:text-amber-400 mb-4 flex items-center gap-2">
-      <span class="animate-pulse">💡</span> Exam Master Tips
+      <span class="animate-pulse"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Tip</span></span> Exam Master Tips
     </h3>
     <ul class="space-y-3 text-slate-700 dark:text-slate-300 text-sm md:text-base">
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>সবচেয়ে নির্ভরযোগ্য:</strong> মেশ টপোলজি (কারণ বিকল্প পথ থাকে)।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>সবচেয়ে জনপ্রিয়:</strong> স্টার টপোলজি।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>একটি নষ্ট হলে পুরো নেটওয়ার্ক অচল:</strong> রিং টপোলজি।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>কেন্দ্রীয় ডিভাইস নষ্ট হলে পুরো নেটওয়ার্ক অচল:</strong> স্টার টপোলজি।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>ব্যাকবোন ক্যাবল নষ্ট হলে পুরো নেটওয়ার্ক অচল:</strong> বাস টপোলজি।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>রিং থেকে মেশ বানাতে:</strong> রিং টপোলজিতে n টি ডিভাইস থাকলে, তাকে মেশ বানাতে n(n-3)/2 টি অতিরিক্ত তার লাগে।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>সবচেয়ে নির্ভরযোগ্য:</strong> মেশ টপোলজি (কারণ বিকল্প পথ থাকে)।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>সবচেয়ে জনপ্রিয়:</strong> স্টার টপোলজি।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>একটি নষ্ট হলে পুরো নেটওয়ার্ক অচল:</strong> রিং টপোলজি।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>কেন্দ্রীয় ডিভাইস নষ্ট হলে পুরো নেটওয়ার্ক অচল:</strong> স্টার টপোলজি।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>ব্যাকবোন ক্যাবল নষ্ট হলে পুরো নেটওয়ার্ক অচল:</strong> বাস টপোলজি।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>রিং থেকে মেশ বানাতে:</strong> রিং টপোলজিতে n টি ডিভাইস থাকলে, তাকে মেশ বানাতে n(n-3)/2 টি অতিরিক্ত তার লাগে।</li>
     </ul>
   </div>
 

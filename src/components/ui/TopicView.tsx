@@ -1,5 +1,5 @@
 import React from 'react';
-import { Topic } from '../../data/ict-syllabus';
+import type { Topic } from '../../data/ict-syllabus';
 import { motion } from 'motion/react';
 import { BarChart3, Building2, Code2, Database, KeyRound, Layers3, Network, PlayCircle, ShieldCheck } from 'lucide-react';
 
@@ -18,6 +18,9 @@ const topicVisuals = [
   { match: ['কর্পোরেট', 'সরকারি'], Icon: Building2, label: 'Institutional database' },
   { match: ['সিকিউরিটি', 'এনক্রিপশন'], Icon: ShieldCheck, label: 'Secure data vault' },
 ];
+
+const removeNoteEmojis = (html: string) =>
+  html.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '');
 
 function TopicAnimatedVisual({ topic }: { topic: Topic }) {
   const visual = topicVisuals.find(item => item.match.some(key => topic.title.includes(key))) || {
@@ -57,6 +60,8 @@ function TopicAnimatedVisual({ topic }: { topic: Topic }) {
 }
 
 export default function TopicView({ topic, onTakeQuiz }: TopicViewProps) {
+  const noteHtml = removeNoteEmojis(topic.board_notes);
+
   return (
     <div className="relative w-full pb-32">
       <TopicAnimatedVisual topic={topic} />
@@ -70,7 +75,7 @@ export default function TopicView({ topic, onTakeQuiz }: TopicViewProps) {
       >
         <div 
           className="topic-notes prose prose-sm md:prose-lg prose-slate dark:prose-invert max-w-none prose-headings:text-teal-800 dark:prose-headings:text-teal-400 prose-a:text-emerald-600 hover:prose-a:text-emerald-500 prose-img:rounded-2xl prose-img:shadow-xl"
-          dangerouslySetInnerHTML={{ __html: topic.board_notes }}
+          dangerouslySetInnerHTML={{ __html: noteHtml }}
         />
       </motion.div>
 

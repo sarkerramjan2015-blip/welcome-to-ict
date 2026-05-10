@@ -1,4 +1,4 @@
-import { CQ } from "../../../ict-syllabus";
+import type { CQ } from "../../../ict-syllabus";
 
 export const cqs: CQ[] = [
   {

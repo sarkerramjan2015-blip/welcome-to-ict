@@ -3,7 +3,7 @@ import { notes } from './notes';
 import { practiceMcqs } from './mcqs';
 import { questions } from './questions';
 import { cqs } from './cqs';
-import { Topic } from '../../../ict-syllabus';
+import type { Topic } from '../../../ict-syllabus';
 
 export const topic7: Topic = {
   ...meta,

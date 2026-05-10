@@ -10,7 +10,7 @@ export const notes = `
       <div class="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-indigo-100 font-semibold text-sm mb-4 border border-white/30 truncate">
         অধ্যায় ২: কমিউনিকেশন সিস্টেমস ও নেটওয়ার্কিং
       </div>
-      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">ডেটা ট্রান্সমিশন মেথড 🔄</h2>
+      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">ডেটা ট্রান্সমিশন মেথড <span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-violet-100 px-1.5 text-xs font-black text-violet-700 dark:bg-violet-900/40 dark:text-violet-200">Sync</span></h2>
       <p class="text-indigo-100 leading-relaxed text-lg md:text-xl font-medium max-w-3xl mb-6">
         ডেটা ট্রান্সমিশন বলতে ডেটা পরিবহন বা ডেটার স্থানান্তরকে বুঝায়। ডেটা কমিউনিকেশন সিস্টেমে বিভিন্ন ডিভাইসের সাথে লিঙ্ক স্থাপনের জন্য ব্যবহৃত পদ্ধতি এবং ডেটা ট্রান্সমিশনের জন্য সময়ের সাথে বিট সিনক্রোনাইজেশনকে <strong>ডেটা ট্রান্সমিশন মেথড</strong> বলা হয়।
       </p>
@@ -20,7 +20,7 @@ export const notes = `
   <!-- Parallel & Serial -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-indigo-200/50 dark:border-indigo-700/50">
     <h3 class="text-2xl font-bold text-indigo-700 dark:text-indigo-400 mb-6 flex items-center gap-3 border-b border-indigo-100 dark:border-indigo-900/50 pb-4">
-      <span class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl">🔌</span> ট্রান্সমিশন পদ্ধতির প্রকারভেদ
+      <span class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-slate-100 px-1.5 text-xs font-black text-slate-700 dark:bg-slate-900/40 dark:text-slate-200">Cable</span></span> ট্রান্সমিশন পদ্ধতির প্রকারভেদ
     </h3>
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
@@ -29,9 +29,9 @@ export const notes = `
         <h4 class="text-lg font-bold text-indigo-700 dark:text-indigo-400 mb-3">১. সমান্তরাল (Parallel) ট্রান্সমিশন</h4>
         <p class="text-slate-700 dark:text-slate-300 mb-3">প্রেরক ও প্রাপকের মধ্যে সমান্তরালে ডেটা চলাচল করলে তাকে সমান্তরাল ডেটা ট্রান্সমিশন বলে।</p>
         <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-          <li>✅ <strong>সুবিধা:</strong> দ্রুত গতি সম্পন্ন পদ্ধতি।</li>
-          <li>❌ <strong>অসুবিধা:</strong> ব্যয় সাপেক্ষ, কারণ n বিট ডেটার জন্য n টি লাইন বা চ্যানেল প্রয়োজন।</li>
-          <li>🎯 <strong>ব্যবহার:</strong> ভিডিও স্ট্রিমিং, প্যারালাল প্রিন্টার পোর্ট ও ক্যাবল।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">OK</span> <strong>সুবিধা:</strong> দ্রুত গতি সম্পন্ন পদ্ধতি।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-rose-100 px-1.5 text-xs font-black text-rose-700 dark:bg-rose-900/40 dark:text-rose-200">X</span> <strong>অসুবিধা:</strong> ব্যয় সাপেক্ষ, কারণ n বিট ডেটার জন্য n টি লাইন বা চ্যানেল প্রয়োজন।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-indigo-100 px-1.5 text-xs font-black text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">Use</span> <strong>ব্যবহার:</strong> ভিডিও স্ট্রিমিং, প্যারালাল প্রিন্টার পোর্ট ও ক্যাবল।</li>
         </ul>
       </div>
 
@@ -40,9 +40,9 @@ export const notes = `
         <h4 class="text-lg font-bold text-indigo-700 dark:text-indigo-400 mb-3">২. অনুক্রম (Serial) ট্রান্সমিশন</h4>
         <p class="text-slate-700 dark:text-slate-300 mb-3">প্রেরক ও প্রাপকের মধ্যে ধারাবাহিক ভাবে একটি বিটের পর অপর বিট চলাচল করলে তাকে সিরিয়াল ট্রান্সমিশন বলে।</p>
         <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-          <li>✅ <strong>সুবিধা:</strong> ব্যয় কম, ডেটা চলাচলের জন্য একটি লাইন প্রয়োজন।</li>
-          <li>❌ <strong>অসুবিধা:</strong> একই সময়ে একটি বিট স্থানান্তরিত হয়, ফলে ধীর গতি।</li>
-          <li>🎯 <strong>ব্যবহার:</strong> মডেম, মাউস, USB ইত্যাদি।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">OK</span> <strong>সুবিধা:</strong> ব্যয় কম, ডেটা চলাচলের জন্য একটি লাইন প্রয়োজন।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-rose-100 px-1.5 text-xs font-black text-rose-700 dark:bg-rose-900/40 dark:text-rose-200">X</span> <strong>অসুবিধা:</strong> একই সময়ে একটি বিট স্থানান্তরিত হয়, ফলে ধীর গতি।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-indigo-100 px-1.5 text-xs font-black text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">Use</span> <strong>ব্যবহার:</strong> মডেম, মাউস, USB ইত্যাদি।</li>
         </ul>
       </div>
     </div>
@@ -51,7 +51,7 @@ export const notes = `
   <!-- Bit Synchronization & Serial Methods -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-blue-200/50 dark:border-blue-700/50">
     <div class="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl border border-blue-100 dark:border-blue-800/30 mb-8">
-      <h4 class="text-xl font-bold text-blue-700 dark:text-blue-400 mb-3 flex items-center gap-2"><span class="text-2xl">⏱️</span> বিট সিনক্রোনাইজেশন (Bit Synchronization)</h4>
+      <h4 class="text-xl font-bold text-blue-700 dark:text-blue-400 mb-3 flex items-center gap-2"><span class="text-2xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-blue-100 px-1.5 text-xs font-black text-blue-700 dark:bg-blue-900/40 dark:text-blue-200">Time</span></span> বিট সিনক্রোনাইজেশন (Bit Synchronization)</h4>
       <p class="text-slate-700 dark:text-slate-300">
         সিরিয়াল ডেটা ট্রান্সমিশন পদ্ধতিতে সিগন্যাল পাঠানোর সময় বিভিন্ন বিটের মধ্যে সমন্বয়ের জন্য ব্যবহৃত পদ্ধতিকে <strong>বিট সিনক্রোনাইজেশন</strong> বলে। বিট সিনক্রোনাইজেশনের উপর ভিত্তি করে সিরিয়াল ট্রান্সমিশন <strong>তিন</strong> প্রকার:
       </p>
@@ -66,11 +66,11 @@ export const notes = `
           ডেটা <strong>ক্যারেক্টার বাই ক্যারেক্টার</strong> পাঠানো হয়। প্রেরক যেকোন সময় ডেটা পাঠাতে পারে।
         </p>
         <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300">
-          <li>🔹 প্রতিটি ক্যারেক্টারের মাঝে সময়ের ব্যবধান অসমান।</li>
-          <li>🔹 শুরুতে Start Bit এবং শেষে Stop Bit থাকে।</li>
-          <li>✅ প্রাইমারি মেমোরি প্রয়োজন হয় না। খরচ কম।</li>
-          <li>❌ দক্ষতা ও গতি কম।</li>
-          <li>🎯 <strong>ব্যবহার:</strong> কীবোর্ড থেকে কম্পিউটার, কার্ড রিডার।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-sky-100 px-1.5 text-xs font-black text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">?</span> প্রতিটি ক্যারেক্টারের মাঝে সময়ের ব্যবধান অসমান।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-sky-100 px-1.5 text-xs font-black text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">?</span> শুরুতে Start Bit এবং শেষে Stop Bit থাকে।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">OK</span> প্রাইমারি মেমোরি প্রয়োজন হয় না। খরচ কম।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-rose-100 px-1.5 text-xs font-black text-rose-700 dark:bg-rose-900/40 dark:text-rose-200">X</span> দক্ষতা ও গতি কম।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-indigo-100 px-1.5 text-xs font-black text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">Use</span> <strong>ব্যবহার:</strong> কীবোর্ড থেকে কম্পিউটার, কার্ড রিডার।</li>
         </ul>
       </div>
 
@@ -81,11 +81,11 @@ export const notes = `
           ডেটা <strong>ব্লক বা প্যাকেট আকারে</strong> (৮০-১৩২ ক্যারেক্টার) পাঠানো হয়।
         </p>
         <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300">
-          <li>🔹 দুটি ব্লকের মাঝখানে সময় বিরতি <strong>সমান</strong> হয়।</li>
-          <li>🔹 ব্লকের শুরুতে হেডার এবং শেষে ট্রেইলর থাকে।</li>
-          <li>✅ দক্ষতা ও গতি অনেক বেশি।</li>
-          <li>❌ প্রাইমারি স্টোরেজ প্রয়োজন। ব্যয়বহুল।</li>
-          <li>🎯 <strong>ব্যবহার:</strong> কম্পিউটার টু কম্পিউটার, দূরবর্তী স্থান।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-sky-100 px-1.5 text-xs font-black text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">?</span> দুটি ব্লকের মাঝখানে সময় বিরতি <strong>সমান</strong> হয়।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-sky-100 px-1.5 text-xs font-black text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">?</span> ব্লকের শুরুতে হেডার এবং শেষে ট্রেইলর থাকে।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">OK</span> দক্ষতা ও গতি অনেক বেশি।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-rose-100 px-1.5 text-xs font-black text-rose-700 dark:bg-rose-900/40 dark:text-rose-200">X</span> প্রাইমারি স্টোরেজ প্রয়োজন। ব্যয়বহুল।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-indigo-100 px-1.5 text-xs font-black text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">Use</span> <strong>ব্যবহার:</strong> কম্পিউটার টু কম্পিউটার, দূরবর্তী স্থান।</li>
         </ul>
       </div>
 
@@ -96,10 +96,10 @@ export const notes = `
           এটি সিনক্রোনাসের একটি উন্নত ভার্সন। ডেটা <strong>ব্লক আকারে</strong> পাঠানো হয়।
         </p>
         <ul class="space-y-2 text-sm text-slate-700 dark:text-slate-300">
-          <li>🔹 দুটি ব্লকের মধ্যে সময়ের পার্থক্য <strong>০ (শূন্য)</strong> করার চেষ্টা করা হয়।</li>
-          <li>✅ ট্রান্সমিশন গতি সবচেয়ে বেশি।</li>
-          <li>❌ ভুল সংশোধন করার ব্যবস্থা নেই। ব্যয়বহুল।</li>
-          <li>🎯 <strong>ব্যবহার:</strong> রিয়েল টাইম অ্যাপ্লিকেশন, অডিও/ভিডিও কল।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-sky-100 px-1.5 text-xs font-black text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">?</span> দুটি ব্লকের মধ্যে সময়ের পার্থক্য <strong>০ (শূন্য)</strong> করার চেষ্টা করা হয়।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">OK</span> ট্রান্সমিশন গতি সবচেয়ে বেশি।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-rose-100 px-1.5 text-xs font-black text-rose-700 dark:bg-rose-900/40 dark:text-rose-200">X</span> ভুল সংশোধন করার ব্যবস্থা নেই। ব্যয়বহুল।</li>
+          <li><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-indigo-100 px-1.5 text-xs font-black text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">Use</span> <strong>ব্যবহার:</strong> রিয়েল টাইম অ্যাপ্লিকেশন, অডিও/ভিডিও কল।</li>
         </ul>
       </div>
     </div>
@@ -108,11 +108,11 @@ export const notes = `
   <!-- Exam Tips -->
   <div class="bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 p-6 md:p-8 rounded-3xl shadow-md border border-amber-200 dark:border-amber-800/50 mt-12">
     <h3 class="text-xl font-bold text-amber-700 dark:text-amber-400 mb-4 flex items-center gap-2">
-      <span class="animate-pulse">💡</span> Exam Master Tips
+      <span class="animate-pulse"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Tip</span></span> Exam Master Tips
     </h3>
     <ul class="space-y-3 text-slate-700 dark:text-slate-300 text-sm md:text-base">
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>MCQ হ্যাক:</strong> কীবোর্ড থেকে সিপিইউ = অ্যাসিনক্রোনাস। রিয়েল টাইম/লাইভ স্ট্রিমিং/ভিডিও কল = আইসোক্রোনাস।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>CQ হ্যাক:</strong> উদ্দীপকে যদি "স্টার্ট ও স্টপ বিট" বা "ক্যারেক্টার বাই ক্যারেক্টার" বলা হয় তবে সেটি অ্যাসিনক্রোনাস। আর যদি "সমান বিরতি", "হেডার ও ট্রেইলর", "ব্লক আকারে" বলা হয় তবে সেটি সিনক্রোনাস।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>MCQ হ্যাক:</strong> কীবোর্ড থেকে সিপিইউ = অ্যাসিনক্রোনাস। রিয়েল টাইম/লাইভ স্ট্রিমিং/ভিডিও কল = আইসোক্রোনাস।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>CQ হ্যাক:</strong> উদ্দীপকে যদি "স্টার্ট ও স্টপ বিট" বা "ক্যারেক্টার বাই ক্যারেক্টার" বলা হয় তবে সেটি অ্যাসিনক্রোনাস। আর যদি "সমান বিরতি", "হেডার ও ট্রেইলর", "ব্লক আকারে" বলা হয় তবে সেটি সিনক্রোনাস।</li>
     </ul>
   </div>
 

@@ -1,4 +1,4 @@
-import { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "HTML ফর্মে ব্যবহারকারীর কাছ থেকে তথ্য সংগ্রহ করার ট্যাগ কোনটি?", options: ["<form>", "<input>", "<table>", "<select>"], correct: "<form>", explanation: "<form> ট্যাগ ব্যবহারকারীর কাছ থেকে তথ্য সংগ্রহের জন্য।" },

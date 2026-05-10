@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 430" role="img" aria-labelledby="title desc">
+  <title id="title">Dinajpur 2025 TV and mobile communication modes</title>
+  <desc id="desc">TV broadcast is simplex and broadcast, mobile call is full duplex</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M1 1 9 5 1 9Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M1 1 9 5 1 9Z" fill="#16a34a"/>
+    </marker>
+  </defs>
+  <rect width="980" height="430" rx="32" fill="#f8fafc"/>
+  <text x="490" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="900" fill="#0f172a">Scene-1 and Scene-2</text>
+  <g font-family="Arial, sans-serif">
+    <g transform="translate(55 92)">
+      <rect width="410" height="280" rx="24" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+      <text x="205" y="42" text-anchor="middle" font-size="22" font-weight="900" fill="#1e3a8a">Scene-1: TV broadcast</text>
+      <rect x="44" y="118" width="120" height="72" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="4"/>
+      <text x="104" y="160" text-anchor="middle" font-size="20" font-weight="900" fill="#1e3a8a">TV Station</text>
+      <path d="M166 154h120" stroke="#2563eb" stroke-width="6" marker-end="url(#arrow)"/>
+      <g fill="#bfdbfe" stroke="#2563eb" stroke-width="3">
+        <circle cx="306" cy="112" r="20"/><circle cx="336" cy="154" r="20"/><circle cx="306" cy="196" r="20"/>
+      </g>
+      <text x="205" y="245" text-anchor="middle" font-size="17" font-weight="900" fill="#334155">Simplex + Broadcast</text>
+    </g>
+    <g transform="translate(515 92)">
+      <rect width="410" height="280" rx="24" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+      <text x="205" y="42" text-anchor="middle" font-size="22" font-weight="900" fill="#166534">Scene-2: Mobile call</text>
+      <rect x="60" y="104" width="82" height="130" rx="22" fill="#dcfce7" stroke="#16a34a" stroke-width="4"/>
+      <rect x="268" y="104" width="82" height="130" rx="22" fill="#dcfce7" stroke="#16a34a" stroke-width="4"/>
+      <text x="101" y="172" text-anchor="middle" font-size="18" font-weight="900" fill="#166534">Phone A</text>
+      <text x="309" y="172" text-anchor="middle" font-size="18" font-weight="900" fill="#166534">Phone B</text>
+      <path d="M146 142h118" stroke="#16a34a" stroke-width="6" marker-end="url(#arrow-green)"/>
+      <path d="M264 198H146" stroke="#16a34a" stroke-width="6" marker-end="url(#arrow-green)"/>
+      <text x="205" y="255" text-anchor="middle" font-size="17" font-weight="900" fill="#334155">Full-duplex</text>
+    </g>
+  </g>
+</svg>

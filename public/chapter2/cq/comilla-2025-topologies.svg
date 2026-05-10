@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 430" role="img" aria-labelledby="title desc">
+  <title id="title">কুমিল্লা বোর্ড ২০২৫ টপোলজি চিত্র</title>
+  <desc id="desc">চিত্র-১ বাস, চিত্র-২ স্টার এবং চিত্র-৩ মেশ টপোলজি</desc>
+  <rect width="980" height="430" rx="32" fill="#f8fafc"/>
+  <text x="490" y="52" text-anchor="middle" font-family="Noto Sans Bengali, Arial, sans-serif" font-size="28" font-weight="800" fill="#0f172a">নেটওয়ার্ক টপোলজি তুলনা</text>
+  <g font-family="Noto Sans Bengali, Arial, sans-serif" font-size="16" fill="#0f172a" stroke="#0f766e" stroke-width="5" stroke-linecap="round">
+    <g transform="translate(62 95)">
+      <rect width="260" height="270" rx="24" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+      <line x1="45" y1="140" x2="215" y2="140"/>
+      <line x1="65" y1="140" x2="65" y2="90"/>
+      <line x1="115" y1="140" x2="115" y2="190"/>
+      <line x1="165" y1="140" x2="165" y2="90"/>
+      <line x1="205" y1="140" x2="205" y2="190"/>
+      <g fill="#dbeafe" stroke="#2563eb" stroke-width="3">
+        <rect x="42" y="58" width="46" height="32" rx="6"/>
+        <rect x="92" y="190" width="46" height="32" rx="6"/>
+        <rect x="142" y="58" width="46" height="32" rx="6"/>
+        <rect x="182" y="190" width="46" height="32" rx="6"/>
+      </g>
+      <text x="130" y="246" text-anchor="middle" font-weight="800" fill="#1e293b" stroke="none">চিত্র-১: বাস</text>
+    </g>
+    <g transform="translate(360 95)">
+      <rect width="260" height="270" rx="24" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+      <circle cx="130" cy="138" r="28" fill="#ccfbf1" stroke="#0f766e"/>
+      <g stroke="#0f766e">
+        <line x1="130" y1="110" x2="130" y2="62"/>
+        <line x1="105" y1="124" x2="64" y2="92"/>
+        <line x1="155" y1="124" x2="196" y2="92"/>
+        <line x1="105" y1="153" x2="64" y2="187"/>
+        <line x1="155" y1="153" x2="196" y2="187"/>
+      </g>
+      <g fill="#ede9fe" stroke="#7c3aed" stroke-width="3">
+        <rect x="107" y="30" width="46" height="32" rx="6"/>
+        <rect x="40" y="68" width="46" height="32" rx="6"/>
+        <rect x="174" y="68" width="46" height="32" rx="6"/>
+        <rect x="40" y="188" width="46" height="32" rx="6"/>
+        <rect x="174" y="188" width="46" height="32" rx="6"/>
+      </g>
+      <text x="130" y="246" text-anchor="middle" font-weight="800" fill="#1e293b" stroke="none">চিত্র-২: স্টার</text>
+    </g>
+    <g transform="translate(658 95)">
+      <rect width="260" height="270" rx="24" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+      <g stroke="#0f766e" opacity=".85">
+        <line x1="130" y1="42" x2="60" y2="102"/>
+        <line x1="130" y1="42" x2="200" y2="102"/>
+        <line x1="130" y1="42" x2="85" y2="190"/>
+        <line x1="130" y1="42" x2="175" y2="190"/>
+        <line x1="60" y1="102" x2="200" y2="102"/>
+        <line x1="60" y1="102" x2="85" y2="190"/>
+        <line x1="60" y1="102" x2="175" y2="190"/>
+        <line x1="200" y1="102" x2="85" y2="190"/>
+        <line x1="200" y1="102" x2="175" y2="190"/>
+        <line x1="85" y1="190" x2="175" y2="190"/>
+      </g>
+      <g fill="#fee2e2" stroke="#dc2626" stroke-width="3">
+        <circle cx="130" cy="42" r="16"/>
+        <circle cx="60" cy="102" r="16"/>
+        <circle cx="200" cy="102" r="16"/>
+        <circle cx="85" cy="190" r="16"/>
+        <circle cx="175" cy="190" r="16"/>
+      </g>
+      <text x="130" y="246" text-anchor="middle" font-weight="800" fill="#1e293b" stroke="none">চিত্র-৩: মেশ</text>
+    </g>
+  </g>
+</svg>

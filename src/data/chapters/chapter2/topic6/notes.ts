@@ -11,7 +11,7 @@ export const notes = `
       <div class="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-indigo-100 font-semibold text-sm mb-4 border border-white/30 truncate">
         অধ্যায় ২: কমিউনিকেশন সিস্টেমস ও নেটওয়ার্কিং
       </div>
-      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">ওয়্যারলেস কমিউনিকেশন ও হটস্পট 🛜</h2>
+      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">ওয়্যারলেস কমিউনিকেশন ও হটস্পট <span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-sky-100 px-1.5 text-xs font-black text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">WiFi</span></h2>
       <p class="text-indigo-100 leading-relaxed text-lg md:text-xl font-medium max-w-3xl mb-6">
         কোনো ফিজিক্যাল ক্যাবল ছাড়াই রেডিও ফ্রিকোয়েন্সি ব্যবহার করে ডেটা ট্রান্সফার করার পদ্ধতি। এর মাধ্যমে মোবিলিটি বা গতিশীলতা পাওয়া যায়, তবে ডেটার নিরাপত্তা ঝুঁকি থেকে যায়।
       </p>
@@ -21,7 +21,7 @@ export const notes = `
   <!-- Hotspot & Access Points -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-indigo-200/50 dark:border-indigo-700/50">
     <h3 class="text-2xl font-bold text-indigo-700 dark:text-indigo-400 mb-4 border-b border-indigo-100 dark:border-indigo-900/50 pb-4">
-      হটস্পট (Hotspot) কী?
+      হটস্পট (Hotspot) কী<span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-fuchsia-100 px-1.5 text-xs font-black text-fuchsia-700 dark:bg-fuchsia-900/40 dark:text-fuchsia-200">Light</span>
     </h3>
     <div class="text-slate-700 dark:text-slate-300">
       <p class="mb-4">
@@ -33,7 +33,7 @@ export const notes = `
   <!-- Bluetooth -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-blue-200/50 dark:border-blue-700/50 mt-8">
     <h3 class="text-2xl font-bold text-blue-700 dark:text-blue-400 mb-6 flex items-center gap-3 border-b border-blue-100 dark:border-blue-900/50 pb-4">
-      <span class="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-xl">🦷</span> ব্লুটুথ (Bluetooth)
+      <span class="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-blue-100 px-1.5 text-xs font-black text-blue-700 dark:bg-blue-900/40 dark:text-blue-200">BT</span></span> ব্লুটুথ (Bluetooth)
     </h3>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
       <div class="text-slate-700 dark:text-slate-300">
@@ -57,7 +57,7 @@ export const notes = `
   <!-- Wi-Fi -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-sky-200/50 dark:border-sky-700/50 mt-8">
     <h3 class="text-2xl font-bold text-sky-700 dark:text-sky-400 mb-6 flex items-center gap-3 border-b border-sky-100 dark:border-sky-900/50 pb-4">
-      <span class="p-2 bg-sky-100 dark:bg-sky-900/50 rounded-xl">📶</span> ওয়াই-ফাই (Wi-Fi)
+      <span class="p-2 bg-sky-100 dark:bg-sky-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-sky-100 px-1.5 text-xs font-black text-sky-700 dark:bg-sky-900/40 dark:text-sky-200">WiFi</span></span> ওয়াই-ফাই (Wi-Fi)
     </h3>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
       <div class="text-slate-700 dark:text-slate-300">
@@ -79,7 +79,7 @@ export const notes = `
   <!-- WiMAX -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-teal-200/50 dark:border-teal-700/50 mt-8">
     <h3 class="text-2xl font-bold text-teal-700 dark:text-teal-400 mb-6 flex items-center gap-3 border-b border-teal-100 dark:border-teal-900/50 pb-4">
-      <span class="p-2 bg-teal-100 dark:bg-teal-900/50 rounded-xl">🗼</span> ওয়াইম্যাক্স (WiMAX)
+      <span class="p-2 bg-teal-100 dark:bg-teal-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-teal-100 px-1.5 text-xs font-black text-teal-700 dark:bg-teal-900/40 dark:text-teal-200">Tower</span></span> ওয়াইম্যাক্স (WiMAX)
     </h3>
     <div class="text-slate-700 dark:text-slate-300 mb-6">
       <p class="mb-4">
@@ -108,12 +108,12 @@ export const notes = `
   <!-- Exam Tips -->
   <div class="bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 p-6 md:p-8 rounded-3xl shadow-md border border-amber-200 dark:border-amber-800/50 mt-12">
     <h3 class="text-xl font-bold text-amber-700 dark:text-amber-400 mb-4 flex items-center gap-2">
-      <span class="animate-pulse">💡</span> Exam Master Tips
+      <span class="animate-pulse"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Tip</span></span> Exam Master Tips
     </h3>
     <ul class="space-y-3 text-slate-700 dark:text-slate-300 text-sm md:text-base">
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>IEEE 802.15 (Bluetooth):</strong> রিমোট, মাউস, হেডফোন, মোবাইল থেকে মোবাইলে ডেটা বা ছবি ট্রান্সফার। এটি WPAN (Personal)।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>IEEE 802.11 (Wi-Fi):</strong> রাউটারের মাধ্যমে বাসায়, অফিসে, স্কুলে ইন্টারনেট শেয়ারিং। এটি WLAN (Local)।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>IEEE 802.16 (WiMAX):</strong> পুরো একটি শহর বা বিস্তৃত এলাকায় টাওয়ারের মাধ্যমে ব্রডব্যান্ড ইন্টারনেট। এটি WMAN (Metropolitan)।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>IEEE 802.15 (Bluetooth):</strong> রিমোট, মাউস, হেডফোন, মোবাইল থেকে মোবাইলে ডেটা বা ছবি ট্রান্সফার। এটি WPAN (Personal)।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>IEEE 802.11 (Wi-Fi):</strong> রাউটারের মাধ্যমে বাসায়, অফিসে, স্কুলে ইন্টারনেট শেয়ারিং। এটি WLAN (Local)।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>IEEE 802.16 (WiMAX):</strong> পুরো একটি শহর বা বিস্তৃত এলাকায় টাওয়ারের মাধ্যমে ব্রডব্যান্ড ইন্টারনেট। এটি WMAN (Metropolitan)।</li>
     </ul>
   </div>
 

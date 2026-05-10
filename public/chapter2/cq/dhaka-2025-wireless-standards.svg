@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 440" role="img" aria-labelledby="title desc">
+  <title id="title">Dhaka 2025 wireless standards</title>
+  <desc id="desc">LTE mobile, Wi-Fi office LAN and WiMAX long distance office connection</desc>
+  <rect width="980" height="440" rx="32" fill="#f8fafc"/>
+  <text x="490" y="54" text-anchor="middle" font-family="Arial, sans-serif" font-size="29" font-weight="900" fill="#0f172a">LTE, IEEE 802.11 and IEEE 802.16</text>
+  <g font-family="Arial, sans-serif" font-weight="900" text-anchor="middle">
+    <rect x="80" y="130" width="150" height="210" rx="30" fill="#dbeafe" stroke="#2563eb" stroke-width="5"/>
+    <text x="155" y="210" font-size="24" fill="#1e3a8a">LTE</text>
+    <text x="155" y="242" font-size="16" fill="#334155">Mobile phone</text>
+    <rect x="360" y="155" width="210" height="150" rx="24" fill="#ecfdf5" stroke="#16a34a" stroke-width="5"/>
+    <text x="465" y="218" font-size="24" fill="#166534">Office LAN</text>
+    <text x="465" y="250" font-size="16" fill="#334155">IEEE 802.11 Wi-Fi</text>
+    <rect x="725" y="120" width="90" height="210" rx="14" fill="#475569"/>
+    <path d="M770 120 705 330M770 120l65 210" stroke="#475569" stroke-width="8"/>
+    <path d="M650 110a170 170 0 0 1 240 0M610 82a235 235 0 0 1 320 0" fill="none" stroke="#0f766e" stroke-width="9" stroke-linecap="round"/>
+    <text x="770" y="366" font-size="22" fill="#0f766e">New office 60 km</text>
+    <text x="770" y="392" font-size="16" fill="#334155">IEEE 802.16 WiMAX</text>
+  </g>
+</svg>

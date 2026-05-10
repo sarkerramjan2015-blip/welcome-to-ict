@@ -1,4 +1,4 @@
-import { Topic } from "../../../ict-syllabus";
+import type { Topic } from "../../../ict-syllabus";
 // @ts-ignore
 import { generateQuiz } from "../../../utils";
 import { meta } from "./meta";

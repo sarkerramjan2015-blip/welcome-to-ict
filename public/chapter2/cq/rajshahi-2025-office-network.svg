@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 440" role="img" aria-labelledby="title desc">
+  <title id="title">Rajshahi 2025 office network media and wireless standards</title>
+  <desc id="desc">Main office uses EMI free fiber, branch uses Wi-Fi and offices are connected by WiMAX</desc>
+  <rect width="980" height="440" rx="32" fill="#f8fafc"/>
+  <text x="490" y="54" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="900" fill="#0f172a">Office Network Diagram</text>
+  <g font-family="Arial, sans-serif" font-weight="900" text-anchor="middle">
+    <rect x="78" y="116" width="310" height="230" rx="26" fill="#fff" stroke="#cbd5e1" stroke-width="3"/>
+    <text x="233" y="150" font-size="23" fill="#0f172a">Main Office</text>
+    <text x="233" y="178" font-size="16" fill="#334155">20 computers</text>
+    <rect x="120" y="226" width="226" height="44" rx="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="5"/>
+    <path d="M136 248 174 232 212 264 250 232 288 264 330 248" fill="none" stroke="#f97316" stroke-width="5"/>
+    <text x="233" y="307" font-size="17" fill="#0369a1">EMI-free optical fiber</text>
+    <rect x="592" y="116" width="310" height="230" rx="26" fill="#fff" stroke="#cbd5e1" stroke-width="3"/>
+    <text x="747" y="150" font-size="23" fill="#0f172a">Branch Office</text>
+    <path d="M704 228a55 55 0 0 1 86 0M680 198a90 90 0 0 1 134 0" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round"/>
+    <rect x="708" y="232" width="78" height="44" rx="12" fill="#1e3a8a"/>
+    <text x="747" y="307" font-size="17" fill="#1e3a8a">IEEE 802.11 Wi-Fi</text>
+    <path d="M390 230h200" stroke="#0f766e" stroke-width="8" stroke-dasharray="16 12"/>
+    <text x="490" y="214" font-size="17" fill="#0f766e">IEEE 802.16 WiMAX link</text>
+  </g>
+</svg>

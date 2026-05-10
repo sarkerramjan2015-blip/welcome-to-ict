@@ -10,7 +10,7 @@ export const notes = `
       <div class="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-blue-100 font-semibold text-sm mb-4 border border-white/30 truncate">
         অধ্যায় ২: কমিউনিকেশন সিস্টেমস ও নেটওয়ার্কিং
       </div>
-      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">ক্লাউড কম্পিউটিং ☁️</h2>
+      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">ক্লাউড কম্পিউটিং <span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-blue-100 px-1.5 text-xs font-black text-blue-700 dark:bg-blue-900/40 dark:text-blue-200">Cloud</span></h2>
       <p class="text-blue-100 leading-relaxed text-lg md:text-xl font-medium max-w-3xl mb-6">
         ক্লাউড কম্পিউটিং হলো ইন্টারনেট ভিত্তিক একটি বিশেষ পরিসেবা, যেখানে কম্পিউটিং সেবা, সার্ভার, স্টোরেজ, সফটওয়্যার প্রভৃতি সেবা ক্রেতার চাহিদামাত্র ও সুবিধা অনুযায়ী ভাড়া দেওয়া হয়। উদাহরণ: AWS, Google Drive, Dropbox।
       </p>
@@ -20,7 +20,7 @@ export const notes = `
   <!-- Key Features -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-blue-200/50 dark:border-blue-700/50">
     <h3 class="text-2xl font-bold text-blue-700 dark:text-blue-400 mb-6 flex items-center gap-3 border-b border-blue-100 dark:border-blue-900/50 pb-4">
-      <span class="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-xl">✨</span> ক্লাউড কম্পিউটিং-এর মূল বৈশিষ্ট্য
+      <span class="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-blue-100 px-1.5 text-xs font-black text-blue-700 dark:bg-blue-900/40 dark:text-blue-200">Core</span></span> ক্লাউড কম্পিউটিং-এর মূল বৈশিষ্ট্য
     </h3>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-2xl border border-blue-100 dark:border-blue-800/30">
@@ -47,7 +47,7 @@ export const notes = `
   <!-- Service Models -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-indigo-200/50 dark:border-indigo-700/50">
     <h3 class="text-2xl font-bold text-indigo-700 dark:text-indigo-400 mb-6 flex items-center gap-3 border-b border-indigo-100 dark:border-indigo-900/50 pb-4">
-      <span class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl">🛠️</span> ক্লাউড কম্পিউটিং এর সার্ভিস মডেল (Service Models)
+      <span class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-indigo-100 px-1.5 text-xs font-black text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">Tool</span></span> ক্লাউড কম্পিউটিং এর সার্ভিস মডেল (Service Models)
     </h3>
     <div class="space-y-6">
       
@@ -90,7 +90,7 @@ export const notes = `
   <!-- Deployment Models -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-teal-200/50 dark:border-teal-700/50">
     <h3 class="text-2xl font-bold text-teal-700 dark:text-teal-400 mb-6 flex items-center gap-3 border-b border-teal-100 dark:border-teal-900/50 pb-4">
-      <span class="p-2 bg-teal-100 dark:bg-teal-900/50 rounded-xl">🌐</span> ক্লাউড স্থাপনা মডেল (Deployment Models)
+      <span class="p-2 bg-teal-100 dark:bg-teal-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">Net</span></span> ক্লাউড স্থাপনা মডেল (Deployment Models)
     </h3>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       
@@ -129,7 +129,7 @@ export const notes = `
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <div class="bg-green-50 dark:bg-green-900/10 p-6 rounded-3xl border border-green-200 dark:border-green-800/50">
       <h4 class="font-bold text-xl text-green-700 dark:text-green-400 mb-4 flex items-center gap-2">
-        <span>✅</span> সুবিধা
+        <span><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">OK</span></span> সুবিধা
       </h4>
       <ul class="list-disc ml-5 space-y-2 text-sm text-slate-700 dark:text-slate-300">
         <li>যেকোনো স্থান থেকে যেকোনো সময় ব্যবহারযোগ্য।</li>
@@ -141,7 +141,7 @@ export const notes = `
     
     <div class="bg-red-50 dark:bg-red-900/10 p-6 rounded-3xl border border-red-200 dark:border-red-800/50">
       <h4 class="font-bold text-xl text-red-700 dark:text-red-400 mb-4 flex items-center gap-2">
-        <span>❌</span> অসুবিধা
+        <span><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-rose-100 px-1.5 text-xs font-black text-rose-700 dark:bg-rose-900/40 dark:text-rose-200">X</span></span> অসুবিধা
       </h4>
       <ul class="list-disc ml-5 space-y-2 text-sm text-slate-700 dark:text-slate-300">
         <li>তথ্যের উপর ব্যবহারকারীর নিয়ন্ত্রণ থাকে না।</li>

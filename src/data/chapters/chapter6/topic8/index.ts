@@ -1,4 +1,4 @@
-import { Topic } from "../../../ict-syllabus";
+import type { Topic } from "../../../ict-syllabus";
 import { generateQuiz } from "../../../utils";
 import { meta } from "./meta";
 import { notes } from "./notes";

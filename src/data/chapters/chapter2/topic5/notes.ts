@@ -10,7 +10,7 @@ export const notes = `
       <div class="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-blue-100 font-semibold text-sm mb-4 border border-white/30 truncate">
         অধ্যায় ২: কমিউনিকেশন সিস্টেমস ও নেটওয়ার্কিং
       </div>
-      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">তারবিহীন মাধ্যম (Wireless Medium) 📡</h2>
+      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">তারবিহীন মাধ্যম (Wireless Medium) <span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-cyan-100 px-1.5 text-xs font-black text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-200">RF</span></h2>
       <p class="text-blue-100 leading-relaxed text-lg md:text-xl font-medium max-w-3xl mb-6">
         তারবিহীন যোগাযোগ ব্যবস্থায় তড়িৎ চৌম্বকীয় তরঙ্গের সাহায্যে দূরবর্তী স্থানে তথ্যের আদান-প্রদান করা হয়। একে আনগাইডেড মিডিয়াও বলে। অ্যান্টেনা (Antenna) ডেটা আদান-প্রদানে বিশেষ ভূমিকা পালন করে।
       </p>
@@ -39,7 +39,7 @@ export const notes = `
   <!-- Radio Wave -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-cyan-200/50 dark:border-cyan-700/50 mt-8">
     <h3 class="text-2xl font-bold text-cyan-700 dark:text-cyan-400 mb-6 flex items-center gap-3 border-b border-cyan-100 dark:border-cyan-900/50 pb-4">
-      <span class="p-2 bg-cyan-100 dark:bg-cyan-900/50 rounded-xl">📻</span> রেডিও ওয়েভ (Radio Wave)
+      <span class="p-2 bg-cyan-100 dark:bg-cyan-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-cyan-100 px-1.5 text-xs font-black text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-200">Radio</span></span> রেডিও ওয়েভ (Radio Wave)
     </h3>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
       <div class="text-slate-700 dark:text-slate-300">
@@ -64,7 +64,7 @@ export const notes = `
   <!-- Microwave -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-violet-200/50 dark:border-violet-700/50 mt-8">
     <h3 class="text-2xl font-bold text-violet-700 dark:text-violet-400 mb-6 flex items-center gap-3 border-b border-violet-100 dark:border-violet-900/50 pb-4">
-      <span class="p-2 bg-violet-100 dark:bg-violet-900/50 rounded-xl">🛰️</span> মাইক্রোওয়েভ (Microwave)
+      <span class="p-2 bg-violet-100 dark:bg-violet-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-violet-100 px-1.5 text-xs font-black text-violet-700 dark:bg-violet-900/40 dark:text-violet-200">Sat</span></span> মাইক্রোওয়েভ (Microwave)
     </h3>
     <div class="text-slate-700 dark:text-slate-300 mb-6">
       <p class="mb-4">
@@ -94,7 +94,7 @@ export const notes = `
   <!-- Infrared -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-rose-200/50 dark:border-rose-700/50 mt-8">
     <h3 class="text-2xl font-bold text-rose-700 dark:text-rose-400 mb-6 flex items-center gap-3 border-b border-rose-100 dark:border-rose-900/50 pb-4">
-      <span class="p-2 bg-rose-100 dark:bg-rose-900/50 rounded-xl">🕹️</span> ইনফ্রারেড (Infrared)
+      <span class="p-2 bg-rose-100 dark:bg-rose-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-rose-100 px-1.5 text-xs font-black text-rose-700 dark:bg-rose-900/40 dark:text-rose-200">IR</span></span> ইনফ্রারেড (Infrared)
     </h3>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
       <div class="text-slate-700 dark:text-slate-300">
@@ -107,10 +107,10 @@ export const notes = `
       </div>
       <div class="flex flex-col gap-3 text-sm">
         <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-100 dark:border-green-800/30">
-          <strong class="text-green-700 dark:text-green-400">✅ সুবিধা:</strong> দামে সস্তা, বিদ্যুৎ খরচ কম।
+          <strong class="text-green-700 dark:text-green-400"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">OK</span> সুবিধা:</strong> দামে সস্তা, বিদ্যুৎ খরচ কম।
         </div>
         <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-800/30">
-          <strong class="text-red-700 dark:text-red-400">❌ অসুবিধা:</strong> বেশি দূরে বা কোনো প্রতিবন্ধক (দেয়াল) থাকলে কাজ করে না।
+          <strong class="text-red-700 dark:text-red-400"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-rose-100 px-1.5 text-xs font-black text-rose-700 dark:bg-rose-900/40 dark:text-rose-200">X</span> অসুবিধা:</strong> বেশি দূরে বা কোনো প্রতিবন্ধক (দেয়াল) থাকলে কাজ করে না।
         </div>
       </div>
     </div>
@@ -119,12 +119,12 @@ export const notes = `
   <!-- Exam Tips -->
   <div class="bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 p-6 md:p-8 rounded-3xl shadow-md border border-amber-200 dark:border-amber-800/50 mt-12">
     <h3 class="text-xl font-bold text-amber-700 dark:text-amber-400 mb-4 flex items-center gap-2">
-      <span class="animate-pulse">💡</span> Exam Master Tips
+      <span class="animate-pulse"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Tip</span></span> Exam Master Tips
     </h3>
     <ul class="space-y-3 text-slate-700 dark:text-slate-300 text-sm md:text-base">
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>রেডিও ওয়েভ:</strong> দেয়াল ভেদ করতে পারে (TV, Radio, Mobile)। দিকহীন ট্রান্সমিশন।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>মাইক্রোওয়েভ:</strong> দেয়াল ভেদ করতে পারে না, সরল রেখায় চলে। টাওয়ার বসাতে হয় (টেরেস্ট্রিয়াল)। মহাসাগর বা মহাদেশ পাড়ি দিতে স্যাটেলাইট ব্যবহৃত হয় (Geo-Satellite: 36,000 km)।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>ইনফ্রারেড:</strong> রিমোট কন্ট্রোল। রেঞ্জ ১০ মিটার। বাধা পেলে কাজ করে না।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>রেডিও ওয়েভ:</strong> দেয়াল ভেদ করতে পারে (TV, Radio, Mobile)। দিকহীন ট্রান্সমিশন।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>মাইক্রোওয়েভ:</strong> দেয়াল ভেদ করতে পারে না, সরল রেখায় চলে। টাওয়ার বসাতে হয় (টেরেস্ট্রিয়াল)। মহাসাগর বা মহাদেশ পাড়ি দিতে স্যাটেলাইট ব্যবহৃত হয় (Geo-Satellite: 36,000 km)।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>ইনফ্রারেড:</strong> রিমোট কন্ট্রোল। রেঞ্জ ১০ মিটার। বাধা পেলে কাজ করে না।</li>
     </ul>
   </div>
 

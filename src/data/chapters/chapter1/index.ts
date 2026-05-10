@@ -1,4 +1,4 @@
-import { Chapter } from "../../ict-syllabus";
+import type { Chapter } from "../../ict-syllabus";
 import { topic1 } from "./topic1";
 import { topic2 } from "./topic2";
 import { topic3 } from "./topic3";

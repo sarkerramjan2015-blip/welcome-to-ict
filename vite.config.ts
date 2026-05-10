@@ -49,8 +49,20 @@ export default defineConfig(({mode}) => {
               if (id.includes('html2canvas')) return 'canvas';
             }
 
-            if (normalizedId.includes('/src/data/chapters/') || normalizedId.endsWith('/src/data/ict-syllabus.ts')) {
-              return 'study-data';
+            const chapterDataMatch = normalizedId.match(/\/src\/data\/chapters\/chapter([1-6])(?:\/|\.ts$)/);
+            if (chapterDataMatch) {
+              return `chapter-${chapterDataMatch[1]}-data`;
+            }
+
+            if (normalizedId.endsWith('/src/data/utils.ts')) {
+              return 'study-utils';
+            }
+
+            if (
+              normalizedId.endsWith('/src/data/ict-syllabus.ts') ||
+              normalizedId.endsWith('/src/data/syllabus-summary.ts')
+            ) {
+              return 'study-data-core';
             }
           },
         },

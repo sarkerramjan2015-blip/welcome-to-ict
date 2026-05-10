@@ -1,4 +1,4 @@
-import { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "ওয়েবপেজে ছবি যোগ করার ট্যাগ কোনটি?", options: ["<img>", "<pic>", "<src>", "<image>"], correct: "<img>", explanation: "<img> ট্যাগ ওয়েবপেজে ছবি যোগ করতে ব্যবহৃত হয়।" },

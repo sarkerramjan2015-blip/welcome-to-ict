@@ -10,7 +10,7 @@ export const notes = `
       <div class="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-indigo-100 font-semibold text-sm mb-4 border border-white/30 truncate">
         অধ্যায় ২: কমিউনিকেশন সিস্টেমস ও নেটওয়ার্কিং
       </div>
-      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">মোবাইল যোগাযোগ ও প্রজন্ম 📱</h2>
+      <h2 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">মোবাইল যোগাযোগ ও প্রজন্ম <span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-teal-100 px-1.5 text-xs font-black text-teal-700 dark:bg-teal-900/40 dark:text-teal-200">Mobile</span></h2>
       <p class="text-indigo-100 leading-relaxed text-lg md:text-xl font-medium max-w-3xl mb-6">
         চলমান অবস্থায় তারবিহীন যে ফোন ব্যবহার করা হয় তাকে মোবাইল ফোন বলে। এটি সেলুলার নেটওয়ার্ক প্রযুক্তি ব্যবহার করে। আধুনিক মোবাইল ফোনের জনক হলেন মার্টিন কুপার।
       </p>
@@ -58,7 +58,7 @@ export const notes = `
   <!-- Mobile Generations -->
   <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-fuchsia-200/50 dark:border-fuchsia-700/50 mt-8">
     <h3 class="text-2xl font-bold text-fuchsia-700 dark:text-fuchsia-400 mb-6 flex items-center gap-3 border-b border-fuchsia-100 dark:border-fuchsia-900/50 pb-4">
-      <span class="p-2 bg-fuchsia-100 dark:bg-fuchsia-900/50 rounded-xl">🚀</span> মোবাইল ফোনের বিভিন্ন প্রজন্ম
+      <span class="p-2 bg-fuchsia-100 dark:bg-fuchsia-900/50 rounded-xl"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-emerald-100 px-1.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">Fast</span></span> মোবাইল ফোনের বিভিন্ন প্রজন্ম
     </h3>
     
     <div class="space-y-6">
@@ -99,13 +99,13 @@ export const notes = `
   <!-- Exam Tips -->
   <div class="bg-gradient-to-r from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 p-6 md:p-8 rounded-3xl shadow-md border border-amber-200 dark:border-amber-800/50 mt-12">
     <h3 class="text-xl font-bold text-amber-700 dark:text-amber-400 mb-4 flex items-center gap-2">
-      <span class="animate-pulse">💡</span> Exam Master Tips
+      <span class="animate-pulse"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Tip</span></span> Exam Master Tips
     </h3>
     <ul class="space-y-3 text-slate-700 dark:text-slate-300 text-sm md:text-base">
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>1G:</strong> এনালগ সিগন্যাল, কল ড্রপ হতো।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>2G:</strong> ডিজিটাল সিগন্যাল, SMS/MMS শুরু, প্রিপেইড শুরু।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>3G:</strong> ইন্টারনেট ব্রাউজিং, ভিডিও কল, মোবাইল ব্যাংকিং।</li>
-      <li class="flex items-start gap-2"><span class="mt-1">📌</span> <strong>4G:</strong> IP ভিত্তিক নেটওয়ার্ক, আল্ট্রা ব্রডব্যান্ড গতি, সার্কিট সুইচিং নেই, কেবল প্যাকেট সুইচিং।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>1G:</strong> এনালগ সিগন্যাল, কল ড্রপ হতো।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>2G:</strong> ডিজিটাল সিগন্যাল, SMS/MMS শুরু, প্রিপেইড শুরু।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>3G:</strong> ইন্টারনেট ব্রাউজিং, ভিডিও কল, মোবাইল ব্যাংকিং।</li>
+      <li class="flex items-start gap-2"><span class="mt-1"><span class="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-amber-100 px-1.5 text-xs font-black text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">Pin</span></span> <strong>4G:</strong> IP ভিত্তিক নেটওয়ার্ক, আল্ট্রা ব্রডব্যান্ড গতি, সার্কিট সুইচিং নেই, কেবল প্যাকেট সুইচিং।</li>
     </ul>
   </div>
 

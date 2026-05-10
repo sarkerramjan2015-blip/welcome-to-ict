@@ -1,4 +1,4 @@
-import { Chapter } from "../ict-syllabus";
+import type { Chapter } from "../ict-syllabus";
 import { generateQuiz } from "../utils";
 
 export const chapter1: Chapter = {
