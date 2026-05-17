@@ -43,6 +43,9 @@ export interface ManualPaymentRecord {
   approvedAt?: string | null;
   rejectedAt?: string | null;
   reviewedAt?: string | null;
+  reminderCount?: number | null;
+  lastReminderAt?: string | null;
+  lastReminderBy?: string | null;
 }
 
 const cleanPathPart = (value: string) =>
@@ -187,6 +190,17 @@ export const rejectManualPayment = async (paymentId: string) => {
     method: 'POST',
     headers: await getManualPaymentAuthHeaders(),
     body: JSON.stringify({ action: 'reject', paymentId }),
+  });
+
+  const data = await parseManualPaymentApiResponse<{ success: true; payment: ManualPaymentRecord }>(response);
+  return data.payment;
+};
+
+export const recordManualPaymentReminder = async (paymentId: string) => {
+  const response = await fetch('/api/manualPayments', {
+    method: 'POST',
+    headers: await getManualPaymentAuthHeaders(),
+    body: JSON.stringify({ action: 'remind', paymentId }),
   });
 
   const data = await parseManualPaymentApiResponse<{ success: true; payment: ManualPaymentRecord }>(response);

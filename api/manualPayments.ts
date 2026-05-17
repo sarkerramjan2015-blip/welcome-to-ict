@@ -253,6 +253,31 @@ const rejectManualPayment = async (paymentId: string, decoded: DecodedIdToken) =
   };
 };
 
+const remindManualPayment = async (paymentId: string, decoded: DecodedIdToken) => {
+  const admin = await requireAdmin(decoded);
+  if (!paymentId) throw httpError(400, 'Payment ID is required.');
+
+  const paymentRef = getAdminDb().collection('payments').doc(paymentId);
+  const paymentSnap = await paymentRef.get();
+  if (!paymentSnap.exists) throw httpError(404, 'Payment request was not found.');
+
+  if (cleanString(paymentSnap.data()?.status) !== 'pending') {
+    throw httpError(400, 'Only pending payments can receive reminder follow-ups.');
+  }
+
+  await paymentRef.set({
+    reminderCount: FieldValue.increment(1),
+    lastReminderAt: FieldValue.serverTimestamp(),
+    lastReminderBy: admin.email,
+    updatedAt: FieldValue.serverTimestamp(),
+  }, { merge: true });
+
+  const updated = await paymentRef.get();
+  return {
+    payment: serializePaymentDoc(updated),
+  };
+};
+
 export default async function manualPayments(req: any, res: any) {
   try {
     if (req.method === 'GET') {
@@ -280,6 +305,10 @@ export default async function manualPayments(req: any, res: any) {
 
     if (action === 'reject') {
       return json(res, 200, { success: true, ...(await rejectManualPayment(paymentId, decoded)) });
+    }
+
+    if (action === 'remind') {
+      return json(res, 200, { success: true, ...(await remindManualPayment(paymentId, decoded)) });
     }
 
     return json(res, 400, { success: false, error: 'Unknown manual payment action.' });

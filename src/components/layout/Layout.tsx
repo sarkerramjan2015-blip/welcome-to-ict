@@ -482,7 +482,7 @@ export default function Layout() {
           href="https://www.facebook.com/ramjansarker02/"
           target="_blank"
           rel="noopener noreferrer"
-          className={`fixed right-5 z-40 hidden md:block md:bottom-8 group ${isHomePage ? 'md:bottom-28 lg:bottom-8' : ''}`}
+          className={`fixed right-5 z-40 bottom-5 md:bottom-8 group ${isHomePage ? 'md:bottom-28 lg:bottom-8' : ''}`}
           aria-label="ICT Toppers Facebook page"
         >
           <div className="absolute -inset-2 rounded-full border-2 border-dotted border-sky-400 opacity-70 transition-opacity duration-500 animate-spin-slow group-hover:opacity-100" />
@@ -494,11 +494,9 @@ export default function Layout() {
       )}
 
       {deferredUiReady && !isBoardQuestionPage && (
-        <div className="hidden md:block">
-          <Suspense fallback={null}>
-            <AIChatbot />
-          </Suspense>
-        </div>
+        <Suspense fallback={null}>
+          <AIChatbot />
+        </Suspense>
       )}
 
       {deferredUiReady && (

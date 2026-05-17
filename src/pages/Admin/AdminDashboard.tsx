@@ -5,6 +5,7 @@ import {
   Activity,
   BadgeCheck,
   Ban,
+  BellRing,
   BookOpen,
   CalendarDays,
   ChevronDown,
@@ -22,10 +23,12 @@ import {
   Lightbulb,
   Loader2,
   LogOut,
+  MessageCircle,
   Medal,
   Plus,
   Pencil,
   Save,
+  Search,
   Sparkles,
   ReceiptText,
   RefreshCw,
@@ -41,6 +44,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  increment,
   onSnapshot,
   serverTimestamp,
   setDoc,
@@ -53,6 +57,7 @@ import { getFirebaseDb } from '../../lib/firebase';
 import {
   approveManualPayment,
   fetchManualPayments,
+  recordManualPaymentReminder,
   rejectManualPayment,
   type ManualPaymentRecord,
 } from '../../services/manualPayment';
@@ -76,7 +81,7 @@ import {
   type AdminQuizQuestion,
 } from '../../services/adminQuizQuestions';
 
-type ActionType = 'chapter' | 'topic' | 'mcq' | 'cq' | 'course' | 'suggestion' | 'challenge';
+type ActionType = 'chapter' | 'topic' | 'mcq' | 'cq' | 'quizQuestion' | 'course' | 'suggestion' | 'challenge';
 type Notice = { type: 'success' | 'error'; text: string } | null;
 
 const DEFAULT_ANALYTICS_DASHBOARD_URL = 'https://analytics.google.com/analytics/web/';
@@ -122,6 +127,19 @@ interface FormState {
     topicId: string;
     answerGuide: string;
   };
+  quizQuestion: {
+    challengeId: string;
+    question: string;
+    optionA: string;
+    optionB: string;
+    optionC: string;
+    optionD: string;
+    correctOption: string;
+    explanation: string;
+    chapterId: string;
+    topicId: string;
+    order: string;
+  };
   course: {
     title: string;
     type: string;
@@ -164,6 +182,33 @@ interface MegaChallengeQuestion {
   chapterId: string;
 }
 
+interface AdminChapterRecord {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  order: number;
+  level: string;
+  status: string;
+}
+
+interface AdminTopicRecord {
+  id: string;
+  title: string;
+  slug: string;
+  chapterId: string;
+  importance: string;
+  order: number;
+  board_notes: string;
+  video_url: string;
+}
+
+interface AdminContentQuestionRecord {
+  id: string;
+  chapterId: string;
+  topicId: string;
+}
+
 const actionConfig: Record<ActionType, {
   label: string;
   title: string;
@@ -203,6 +248,14 @@ const actionConfig: Record<ActionType, {
     collectionName: 'cqs',
     icon: Layers,
     accentClass: 'text-amber-400 bg-amber-500/15',
+  },
+  quizQuestion: {
+    label: 'Add Quiz Q',
+    title: 'Add Quiz Question',
+    description: 'Create a question directly inside a published monthly quiz set.',
+    collectionName: 'megaChallenges/{id}/questions',
+    icon: Pencil,
+    accentClass: 'text-cyan-400 bg-cyan-500/15',
   },
   course: {
     label: 'Manage Courses',
@@ -270,6 +323,19 @@ const makeInitialForms = (): FormState => ({
     chapterId: '',
     topicId: '',
     answerGuide: '',
+  },
+  quizQuestion: {
+    challengeId: '',
+    question: '',
+    optionA: '',
+    optionB: '',
+    optionC: '',
+    optionD: '',
+    correctOption: 'A',
+    explanation: '',
+    chapterId: '',
+    topicId: '',
+    order: '',
   },
   course: {
     title: '',
@@ -464,6 +530,31 @@ const buildFirestorePayload = (action: ActionType, forms: FormState) => {
     };
   }
 
+  if (action === 'quizQuestion') {
+    const form = forms.quizQuestion;
+    const options = [form.optionA, form.optionB, form.optionC, form.optionD].map(option => option.trim());
+    const correctIndex = ['A', 'B', 'C', 'D'].indexOf(form.correctOption);
+    const correctAnswer = options[correctIndex];
+
+    if (!form.challengeId.trim()) throw new Error('Quiz set is required.');
+    if (!form.question.trim()) throw new Error('Quiz question is required.');
+    if (options.some(option => !option)) throw new Error('All four quiz options are required.');
+    if (!correctAnswer) throw new Error('Correct option is required.');
+
+    return {
+      challengeId: form.challengeId.trim(),
+      question: form.question.trim(),
+      q: form.question.trim(),
+      options,
+      correctAnswer,
+      correct: correctAnswer,
+      explanation: form.explanation.trim(),
+      chapterId: form.chapterId.trim(),
+      topicId: form.topicId.trim(),
+      order: Math.max(1, toNumber(form.order, 1)),
+    };
+  }
+
   if (action === 'course') {
     const form = forms.course;
     if (!form.title.trim()) throw new Error('Course title is required.');
@@ -568,6 +659,33 @@ const formatActivityDate = (value?: string | null) => {
 const formatCurrency = (value?: number | null) =>
   `BDT ${Number(value || 0).toLocaleString('en-US')}`;
 
+const compareByOrderThenTitle = <T extends { order?: number; title?: string }>(a: T, b: T) => {
+  const orderDiff = Number(a.order || 0) - Number(b.order || 0);
+  if (orderDiff !== 0) return orderDiff;
+  return String(a.title || '').localeCompare(String(b.title || ''));
+};
+
+const normalizeBdWhatsAppNumber = (value: string) => {
+  const digits = value.replace(/\D/g, '');
+  if (/^8801\d{9}$/.test(digits)) return digits;
+  if (/^01\d{9}$/.test(digits)) return `88${digits}`;
+  return '';
+};
+
+const buildPendingPaymentReminderUrl = (payment: ManualPaymentRecord) => {
+  const phone = normalizeBdWhatsAppNumber(payment.senderNumber);
+  if (!phone) return '';
+
+  const message = [
+    'Assalamu Alaikum,',
+    `Your payment for ${getManualPaymentLabel(payment)} is still pending review.`,
+    `Reference: ${payment.id}.`,
+    'If any payment detail needs correction, please reply here. - ICT Toppers',
+  ].join(' ');
+
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+};
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
@@ -600,6 +718,15 @@ export default function AdminDashboard() {
   const [quizQuestionsLoading, setQuizQuestionsLoading] = useState(false);
   const [quizQuestionsError, setQuizQuestionsError] = useState('');
   const [savingQuestionId, setSavingQuestionId] = useState('');
+  const [chapters, setChapters] = useState<AdminChapterRecord[]>([]);
+  const [topics, setTopics] = useState<AdminTopicRecord[]>([]);
+  const [contentMcqs, setContentMcqs] = useState<AdminContentQuestionRecord[]>([]);
+  const [contentCqs, setContentCqs] = useState<AdminContentQuestionRecord[]>([]);
+  const [contentLoading, setContentLoading] = useState(false);
+  const [contentError, setContentError] = useState('');
+  const [contentSearch, setContentSearch] = useState('');
+  const [selectedContentChapterId, setSelectedContentChapterId] = useState('');
+  const [selectedContentTopicId, setSelectedContentTopicId] = useState('');
   const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
@@ -645,6 +772,87 @@ export default function AdminDashboard() {
     { label: 'Completed Topics', value: adminStats.completedTopics, icon: CheckCircle, iconClass: 'bg-green-500/20 text-green-400', delay: 0.7 },
   ]), [adminStats, trafficTotal]);
 
+  const selectedContentChapter = useMemo(
+    () => chapters.find(chapter => chapter.id === selectedContentChapterId) || null,
+    [chapters, selectedContentChapterId]
+  );
+
+  const selectedContentTopic = useMemo(
+    () => topics.find(topic => topic.id === selectedContentTopicId) || null,
+    [selectedContentTopicId, topics]
+  );
+
+  const chapterScopedTopics = useMemo(
+    () => topics.filter(topic => !selectedContentChapterId || topic.chapterId === selectedContentChapterId),
+    [selectedContentChapterId, topics]
+  );
+
+  const visibleContentTopics = useMemo(() => {
+    const query = contentSearch.trim().toLowerCase();
+    if (!query) return chapterScopedTopics;
+
+    return chapterScopedTopics.filter(topic =>
+      [topic.title, topic.slug, topic.id]
+        .some(value => value.toLowerCase().includes(query))
+    );
+  }, [chapterScopedTopics, contentSearch]);
+
+  const topicQuestionStats = useMemo(() => {
+    const stats = new Map<string, { mcqs: number; cqs: number }>();
+
+    const touch = (topicId: string) => {
+      if (!topicId) return null;
+      const current = stats.get(topicId) || { mcqs: 0, cqs: 0 };
+      stats.set(topicId, current);
+      return current;
+    };
+
+    contentMcqs.forEach(question => {
+      const current = touch(question.topicId);
+      if (current) current.mcqs += 1;
+    });
+
+    contentCqs.forEach(question => {
+      const current = touch(question.topicId);
+      if (current) current.cqs += 1;
+    });
+
+    return stats;
+  }, [contentCqs, contentMcqs]);
+
+  const scopedContentStats = useMemo(() => {
+    const scopedTopicIds = new Set(chapterScopedTopics.map(topic => topic.id));
+    const scopedTopics = selectedContentTopicId
+      ? chapterScopedTopics.filter(topic => topic.id === selectedContentTopicId)
+      : chapterScopedTopics;
+    const filteredMcqs = contentMcqs.filter(question => (
+      selectedContentTopicId
+        ? question.topicId === selectedContentTopicId
+        : scopedTopicIds.has(question.topicId) || (!question.topicId && question.chapterId === selectedContentChapterId)
+    ));
+    const filteredCqs = contentCqs.filter(question => (
+      selectedContentTopicId
+        ? question.topicId === selectedContentTopicId
+        : scopedTopicIds.has(question.topicId) || (!question.topicId && question.chapterId === selectedContentChapterId)
+    ));
+
+    return {
+      chapters: chapters.length,
+      topics: scopedTopics.length,
+      mcqs: selectedContentChapterId || selectedContentTopicId ? filteredMcqs.length : contentMcqs.length,
+      cqs: selectedContentChapterId || selectedContentTopicId ? filteredCqs.length : contentCqs.length,
+      notesReady: scopedTopics.filter(topic => topic.board_notes.trim()).length,
+      videosReady: scopedTopics.filter(topic => topic.video_url.trim()).length,
+    };
+  }, [
+    chapterScopedTopics,
+    chapters.length,
+    contentCqs,
+    contentMcqs,
+    selectedContentChapterId,
+    selectedContentTopicId,
+  ]);
+
   const activityCards = useMemo(() => ([
     {
       label: 'Total Users',
@@ -684,6 +892,99 @@ export default function AdminDashboard() {
     }
     return true;
   };
+
+  const loadContentLibrary = useCallback(async () => {
+    if (!isAdmin || firebaseDb === undefined) {
+      return;
+    }
+
+    if (!firebaseDb) {
+      setChapters([]);
+      setTopics([]);
+      setContentMcqs([]);
+      setContentCqs([]);
+      return;
+    }
+
+    setContentLoading(true);
+    try {
+      const [chapterSnapshot, topicSnapshot, mcqSnapshot, cqSnapshot] = await Promise.all([
+        getDocs(collection(firebaseDb, 'chapters')),
+        getDocs(collection(firebaseDb, 'topics')),
+        getDocs(collection(firebaseDb, 'mcqs')),
+        getDocs(collection(firebaseDb, 'cqs')),
+      ]);
+
+      const nextChapters = chapterSnapshot.docs
+        .map(item => {
+          const data = item.data() || {};
+          return {
+            id: item.id,
+            title: String(data.title || ''),
+            slug: String(data.slug || ''),
+            description: String(data.description || ''),
+            order: Number(data.order || 0),
+            level: String(data.level || ''),
+            status: String(data.status || ''),
+          };
+        })
+        .sort(compareByOrderThenTitle);
+
+      const nextTopics = topicSnapshot.docs
+        .map(item => {
+          const data = item.data() || {};
+          return {
+            id: item.id,
+            title: String(data.title || ''),
+            slug: String(data.slug || ''),
+            chapterId: String(data.chapterId || ''),
+            importance: String(data.importance || ''),
+            order: Number(data.order || 0),
+            board_notes: String(data.board_notes || ''),
+            video_url: String(data.video_url || ''),
+          };
+        })
+        .sort(compareByOrderThenTitle);
+
+      const mapQuestion = (id: string, data: Record<string, any>) => ({
+        id,
+        chapterId: String(data.chapterId || ''),
+        topicId: String(data.topicId || ''),
+      });
+
+      setChapters(nextChapters);
+      setTopics(nextTopics);
+      setContentMcqs(mcqSnapshot.docs.map(item => mapQuestion(item.id, item.data())));
+      setContentCqs(cqSnapshot.docs.map(item => mapQuestion(item.id, item.data())));
+      setSelectedContentChapterId(current => (
+        current && nextChapters.some(item => item.id === current)
+          ? current
+          : nextChapters[0]?.id || ''
+      ));
+      setContentError('');
+    } catch (error: any) {
+      setContentError(error?.message || 'Failed to load chapter/topic content inventory.');
+      setChapters([]);
+      setTopics([]);
+      setContentMcqs([]);
+      setContentCqs([]);
+    } finally {
+      setContentLoading(false);
+    }
+  }, [firebaseDb, isAdmin]);
+
+  useEffect(() => {
+    void loadContentLibrary();
+  }, [loadContentLibrary]);
+
+  useEffect(() => {
+    if (!selectedContentTopicId) return;
+
+    const selectedTopic = topics.find(topic => topic.id === selectedContentTopicId);
+    if (selectedTopic && selectedContentChapterId && selectedTopic.chapterId !== selectedContentChapterId) {
+      setSelectedContentTopicId('');
+    }
+  }, [selectedContentChapterId, selectedContentTopicId, topics]);
 
   const loadManualPayments = useCallback(async () => {
     if (!isAdmin) {
@@ -930,6 +1231,35 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleManualPaymentReminder = async (payment: ManualPaymentRecord) => {
+    if (!requireAdminSession()) return;
+
+    const reminderUrl = buildPendingPaymentReminderUrl(payment);
+    if (!reminderUrl) {
+      setNotice({
+        type: 'error',
+        text: 'This payment does not have a valid Bangladeshi WhatsApp number.',
+      });
+      return;
+    }
+
+    window.open(reminderUrl, '_blank', 'noopener,noreferrer');
+
+    try {
+      const updatedPayment = await recordManualPaymentReminder(payment.id);
+      setManualPayments(prev => prev.map(item => item.id === updatedPayment.id ? updatedPayment : item));
+      setNotice({
+        type: 'success',
+        text: 'WhatsApp reminder opened and follow-up was logged.',
+      });
+    } catch (error: any) {
+      setNotice({
+        type: 'error',
+        text: error?.message || 'WhatsApp opened, but the reminder log could not be saved.',
+      });
+    }
+  };
+
   const updateForm = (action: ActionType, field: string, value: string) => {
     setForms(prev => ({
       ...prev,
@@ -942,7 +1272,63 @@ export default function AdminDashboard() {
 
   const openAction = (action: ActionType) => {
     setNotice(null);
+    if (action === 'quizQuestion') {
+      setForms(prev => ({
+        ...prev,
+        quizQuestion: {
+          ...prev.quizQuestion,
+          challengeId: prev.quizQuestion.challengeId || selectedQuestionChallengeId || challengeSets[0]?.id || '',
+          chapterId: prev.quizQuestion.chapterId || selectedContentChapterId,
+          topicId: prev.quizQuestion.topicId || selectedContentTopicId,
+          order: prev.quizQuestion.order || String(quizQuestions.length + 1 || 1),
+        },
+      }));
+    }
     setActiveAction(action);
+  };
+
+  const openScopedAction = (action: Extract<ActionType, 'topic' | 'mcq' | 'cq' | 'quizQuestion'>) => {
+    setForms(prev => ({
+      ...prev,
+      ...(action === 'topic'
+        ? {
+            topic: {
+              ...prev.topic,
+              chapterId: selectedContentChapterId,
+            },
+          }
+        : {}),
+      ...(action === 'mcq'
+        ? {
+            mcq: {
+              ...prev.mcq,
+              chapterId: selectedContentChapterId,
+              topicId: selectedContentTopicId,
+            },
+          }
+        : {}),
+      ...(action === 'cq'
+        ? {
+            cq: {
+              ...prev.cq,
+              chapterId: selectedContentChapterId,
+              topicId: selectedContentTopicId,
+            },
+          }
+        : {}),
+      ...(action === 'quizQuestion'
+        ? {
+            quizQuestion: {
+              ...prev.quizQuestion,
+              challengeId: selectedQuestionChallengeId || challengeSets[0]?.id || '',
+              chapterId: selectedContentChapterId,
+              topicId: selectedContentTopicId,
+              order: String(quizQuestions.length + 1 || 1),
+            },
+          }
+        : {}),
+    }));
+    openAction(action);
   };
 
   const closeAction = () => {
@@ -972,8 +1358,81 @@ export default function AdminDashboard() {
       const payload = buildFirestorePayload(submittedAction, forms);
       const collectionName = actionConfig[submittedAction].collectionName;
       let savedId = '';
+      let quizChallengeId = '';
 
-      if (submittedAction === 'challenge') {
+      if (submittedAction === 'quizQuestion') {
+        const quizPayload = payload as ReturnType<typeof buildFirestorePayload> & {
+          challengeId: string;
+          question: string;
+          q: string;
+          options: string[];
+          correctAnswer: string;
+          correct: string;
+          explanation: string;
+          chapterId: string;
+          topicId: string;
+          order: number;
+        };
+        quizChallengeId = quizPayload.challengeId;
+        const challengeRef = doc(firebaseDb, 'megaChallenges', quizPayload.challengeId);
+        const challengeSnap = await getDoc(challengeRef);
+
+        if (!challengeSnap.exists()) {
+          throw new Error('Choose an existing quiz routine before adding quiz questions.');
+        }
+
+        const questionRef = doc(collection(firebaseDb, 'megaChallenges', quizPayload.challengeId, 'questions'));
+        savedId = questionRef.id;
+        const embeddedQuestion = {
+          id: savedId,
+          question: quizPayload.question,
+          q: quizPayload.q,
+          options: quizPayload.options,
+          correctAnswer: quizPayload.correctAnswer,
+          correct: quizPayload.correct,
+          explanation: quizPayload.explanation,
+          chapterId: quizPayload.chapterId,
+          topicId: quizPayload.topicId,
+          order: quizPayload.order,
+        };
+
+        await setDoc(questionRef, {
+          ...embeddedQuestion,
+          challengeId: quizPayload.challengeId,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+
+        const challengeData = challengeSnap.data() || {};
+        await setDoc(challengeRef, {
+          questionCount: Array.isArray(challengeData.questions)
+            ? challengeData.questions.length + 1
+            : increment(1),
+          ...(Array.isArray(challengeData.questions)
+            ? { questions: [...challengeData.questions, embeddedQuestion] }
+            : {}),
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+
+        const currentRef = doc(firebaseDb, 'megaChallenges', 'current');
+        const currentSnap = await getDoc(currentRef);
+        if (
+          currentSnap.exists() &&
+          currentSnap.data()?.currentChallengeId === quizPayload.challengeId &&
+          Array.isArray(currentSnap.data()?.questions)
+        ) {
+          await setDoc(currentRef, {
+            questions: [...currentSnap.data()?.questions, embeddedQuestion],
+            questionCount: currentSnap.data()?.questions.length + 1,
+            updatedAt: serverTimestamp(),
+          }, { merge: true });
+        }
+
+        await loadQuizQuestionSets();
+        if (selectedQuestionChallengeId === quizPayload.challengeId) {
+          await loadQuizQuestions();
+        }
+      } else if (submittedAction === 'challenge') {
         savedId = String((payload as { id: string }).id);
         await setDoc(doc(firebaseDb, collectionName, savedId), payload, { merge: true });
         if ((payload as { status?: string }).status === 'LIVE') {
@@ -991,6 +1450,13 @@ export default function AdminDashboard() {
         savedId = saved.id;
       }
 
+      if (['chapter', 'topic', 'mcq', 'cq'].includes(submittedAction)) {
+        await loadContentLibrary();
+      }
+      if (submittedAction === 'challenge') {
+        await loadQuizQuestionSets();
+      }
+
       const resetForms = makeInitialForms();
 
       setForms(prev => ({
@@ -1000,7 +1466,9 @@ export default function AdminDashboard() {
       setActiveAction(null);
       setNotice({
         type: 'success',
-        text: `${actionConfig[submittedAction].label} saved to Firestore/${collectionName} with ID ${savedId}.`,
+        text: submittedAction === 'quizQuestion'
+          ? `Quiz question saved to ${quizChallengeId} with ID ${savedId}.`
+          : `${actionConfig[submittedAction].label} saved to Firestore/${collectionName} with ID ${savedId}.`,
       });
     } catch (error: any) {
       setNotice({
@@ -1137,7 +1605,7 @@ export default function AdminDashboard() {
         <>
           <TextInput label="Topic Title" value={form.title} onChange={value => updateForm(action, 'title', value)} placeholder="Logic Gates" required />
           <div className="grid gap-4 md:grid-cols-2">
-            <TextInput label="Chapter ID" value={form.chapterId} onChange={value => updateForm(action, 'chapterId', value)} placeholder="chap-3" required />
+            <TextInput label="Chapter ID" value={form.chapterId} onChange={value => updateForm(action, 'chapterId', value)} placeholder="chap-3" listId="admin-chapter-options" required />
             <TextInput label="Order" type="number" value={form.order} onChange={value => updateForm(action, 'order', value)} required />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
@@ -1167,8 +1635,8 @@ export default function AdminDashboard() {
             <TextInput label="Source" value={form.source} onChange={value => updateForm(action, 'source', value)} />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <TextInput label="Chapter ID" value={form.chapterId} onChange={value => updateForm(action, 'chapterId', value)} placeholder="chap-2" />
-            <TextInput label="Topic ID" value={form.topicId} onChange={value => updateForm(action, 'topicId', value)} placeholder="topic-2-1" />
+            <TextInput label="Chapter ID" value={form.chapterId} onChange={value => updateForm(action, 'chapterId', value)} placeholder="chap-2" listId="admin-chapter-options" />
+            <TextInput label="Topic ID" value={form.topicId} onChange={value => updateForm(action, 'topicId', value)} placeholder="topic-2-1" listId="admin-topic-options" />
           </div>
           <TextAreaInput label="Explanation" value={form.explanation} onChange={value => updateForm(action, 'explanation', value)} placeholder="Why this answer is correct." rows={4} />
         </>
@@ -1181,14 +1649,54 @@ export default function AdminDashboard() {
         <>
           <TextAreaInput label="Stem" value={form.stem} onChange={value => updateForm(action, 'stem', value)} placeholder="Creative question scenario / uddipok." required rows={5} />
           <div className="grid gap-4 md:grid-cols-2">
-            <TextInput label="Chapter ID" value={form.chapterId} onChange={value => updateForm(action, 'chapterId', value)} placeholder="chap-4" />
-            <TextInput label="Topic ID" value={form.topicId} onChange={value => updateForm(action, 'topicId', value)} placeholder="topic-4-1" />
+            <TextInput label="Chapter ID" value={form.chapterId} onChange={value => updateForm(action, 'chapterId', value)} placeholder="chap-4" listId="admin-chapter-options" />
+            <TextInput label="Topic ID" value={form.topicId} onChange={value => updateForm(action, 'topicId', value)} placeholder="topic-4-1" listId="admin-topic-options" />
           </div>
           <TextInput label="Question A" value={form.qA} onChange={value => updateForm(action, 'qA', value)} placeholder="Knowledge question" />
           <TextInput label="Question B" value={form.qB} onChange={value => updateForm(action, 'qB', value)} placeholder="Comprehension question" />
           <TextInput label="Question C" value={form.qC} onChange={value => updateForm(action, 'qC', value)} placeholder="Application question" required />
           <TextInput label="Question D" value={form.qD} onChange={value => updateForm(action, 'qD', value)} placeholder="Higher-order question" required />
           <TextAreaInput label="Answer Guide" value={form.answerGuide} onChange={value => updateForm(action, 'answerGuide', value)} placeholder="Optional answer hints or marking guide." rows={4} />
+        </>
+      );
+    }
+
+    if (action === 'quizQuestion') {
+      const form = forms.quizQuestion;
+      return (
+        <>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-slate-600 dark:text-gray-300">Quiz Set</span>
+            <select
+              value={form.challengeId}
+              onChange={event => updateForm(action, 'challengeId', event.target.value)}
+              required
+              className="w-full rounded-xl border border-slate-900/10 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 dark:border-white/10 dark:bg-slate-900/70 dark:text-white"
+            >
+              <option value="">Select published quiz set</option>
+              {challengeSets.map(item => (
+                <option key={item.id} value={item.id}>
+                  {item.title} - {item.id}
+                </option>
+              ))}
+            </select>
+          </label>
+          <TextAreaInput label="Question" value={form.question} onChange={value => updateForm(action, 'question', value)} placeholder="Write the monthly quiz question." required rows={4} />
+          <div className="grid gap-4 md:grid-cols-2">
+            <TextInput label="Option A" value={form.optionA} onChange={value => updateForm(action, 'optionA', value)} required />
+            <TextInput label="Option B" value={form.optionB} onChange={value => updateForm(action, 'optionB', value)} required />
+            <TextInput label="Option C" value={form.optionC} onChange={value => updateForm(action, 'optionC', value)} required />
+            <TextInput label="Option D" value={form.optionD} onChange={value => updateForm(action, 'optionD', value)} required />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <SelectInput label="Correct Option" value={form.correctOption} onChange={value => updateForm(action, 'correctOption', value)} options={['A', 'B', 'C', 'D']} />
+            <TextInput label="Question Order" type="number" value={form.order} onChange={value => updateForm(action, 'order', value)} placeholder="1" required />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <TextInput label="Chapter ID" value={form.chapterId} onChange={value => updateForm(action, 'chapterId', value)} placeholder="chap-2" listId="admin-chapter-options" />
+            <TextInput label="Topic ID" value={form.topicId} onChange={value => updateForm(action, 'topicId', value)} placeholder="topic-2-1" listId="admin-topic-options" />
+          </div>
+          <TextAreaInput label="Explanation" value={form.explanation} onChange={value => updateForm(action, 'explanation', value)} placeholder="Why the answer is correct." rows={4} />
         </>
       );
     }
@@ -1284,6 +1792,17 @@ export default function AdminDashboard() {
           {notice.text}
         </div>
       )}
+
+      <datalist id="admin-chapter-options">
+        {chapters.map(chapter => (
+          <option key={chapter.id} value={chapter.id} label={`${chapter.title} (${chapter.id})`} />
+        ))}
+      </datalist>
+      <datalist id="admin-topic-options">
+        {topics.map(topic => (
+          <option key={topic.id} value={topic.id} label={`${topic.title} (${topic.id})`} />
+        ))}
+      </datalist>
 
       <section className="mb-12">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1626,7 +2145,7 @@ export default function AdminDashboard() {
       </div>
 
       <h2 className="text-xl font-bold mb-6">Quick Actions</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 mb-12">
+      <div className="grid grid-cols-1 gap-4 mb-12 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-8">
         {(Object.keys(actionConfig) as ActionType[]).map((action) => {
           const config = actionConfig[action];
           const Icon = config.icon;
@@ -1646,6 +2165,209 @@ export default function AdminDashboard() {
           );
         })}
       </div>
+
+      <section className="mb-12">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-indigo-400">Content Studio</h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Work chapter-wise or topic-wise, then jump straight into notes, MCQs, CQs, or quiz questions with the selected scope prefilled.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={loadContentLibrary}
+            disabled={contentLoading}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-900/10 bg-slate-900/5 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-900/10 disabled:cursor-wait disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+          >
+            {contentLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Refresh
+          </button>
+        </div>
+
+        {contentError && (
+          <div className="mb-4 rounded-2xl border border-rose-400/30 bg-rose-400/10 px-5 py-4 text-sm font-semibold text-rose-300">
+            {contentError}
+          </div>
+        )}
+
+        <div className="rounded-3xl border border-slate-900/10 bg-slate-900/5 p-5 dark:border-white/10 dark:bg-white/5 md:p-6">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(240px,0.8fr)]">
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-slate-600 dark:text-gray-300">Chapter</span>
+              <select
+                value={selectedContentChapterId}
+                onChange={event => setSelectedContentChapterId(event.target.value)}
+                className="w-full rounded-xl border border-slate-900/10 bg-white px-4 py-3 font-semibold text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-slate-900/70 dark:text-white"
+              >
+                <option value="">All chapters</option>
+                {chapters.map(chapter => (
+                  <option key={chapter.id} value={chapter.id}>
+                    {chapter.title || chapter.id}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-slate-600 dark:text-gray-300">Topic</span>
+              <select
+                value={selectedContentTopicId}
+                onChange={event => setSelectedContentTopicId(event.target.value)}
+                className="w-full rounded-xl border border-slate-900/10 bg-white px-4 py-3 font-semibold text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-slate-900/70 dark:text-white"
+              >
+                <option value="">All topics in scope</option>
+                {chapterScopedTopics.map(topic => (
+                  <option key={topic.id} value={topic.id}>
+                    {topic.title || topic.id}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-slate-600 dark:text-gray-300">Search Topic</span>
+              <span className="relative block">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  value={contentSearch}
+                  onChange={event => setContentSearch(event.target.value)}
+                  placeholder="Title, slug, or ID"
+                  className="w-full rounded-xl border border-slate-900/10 bg-white py-3 pl-10 pr-4 font-semibold text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-slate-900/70 dark:text-white"
+                />
+              </span>
+            </label>
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+            {[
+              { label: 'Firestore Chapters', value: scopedContentStats.chapters, tone: 'text-indigo-500 dark:text-indigo-300' },
+              { label: 'Topics in Scope', value: scopedContentStats.topics, tone: 'text-sky-500 dark:text-sky-300' },
+              { label: 'MCQs in Scope', value: scopedContentStats.mcqs, tone: 'text-emerald-500 dark:text-emerald-300' },
+              { label: 'CQs in Scope', value: scopedContentStats.cqs, tone: 'text-amber-500 dark:text-amber-300' },
+              { label: 'Notes Ready', value: scopedContentStats.notesReady, tone: 'text-violet-500 dark:text-violet-300' },
+              { label: 'Videos Ready', value: scopedContentStats.videosReady, tone: 'text-cyan-500 dark:text-cyan-300' },
+            ].map(item => (
+              <div key={item.label} className="rounded-2xl border border-slate-900/10 bg-white/70 p-4 dark:border-white/10 dark:bg-slate-950/55">
+                <div className={`text-2xl font-black ${item.tone}`}>{contentLoading ? '...' : item.value}</div>
+                <div className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{item.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => openScopedAction('topic')}
+              className="inline-flex items-center gap-2 rounded-xl border border-sky-400/20 bg-sky-400/10 px-4 py-2.5 text-sm font-black text-sky-500 transition hover:bg-sky-400/15 dark:text-sky-300"
+            >
+              <FileText className="h-4 w-4" />
+              Add Topic Here
+            </button>
+            <button
+              type="button"
+              onClick={() => openScopedAction('mcq')}
+              className="inline-flex items-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-2.5 text-sm font-black text-emerald-500 transition hover:bg-emerald-400/15 dark:text-emerald-300"
+            >
+              <HelpCircle className="h-4 w-4" />
+              Add MCQ Here
+            </button>
+            <button
+              type="button"
+              onClick={() => openScopedAction('cq')}
+              className="inline-flex items-center gap-2 rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-2.5 text-sm font-black text-amber-500 transition hover:bg-amber-400/15 dark:text-amber-300"
+            >
+              <Layers className="h-4 w-4" />
+              Add CQ Here
+            </button>
+            <button
+              type="button"
+              onClick={() => openScopedAction('quizQuestion')}
+              className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-2.5 text-sm font-black text-cyan-500 transition hover:bg-cyan-400/15 dark:text-cyan-300"
+            >
+              <Pencil className="h-4 w-4" />
+              Add Quiz Q Here
+            </button>
+          </div>
+
+          <div className="mt-6 overflow-hidden rounded-2xl border border-slate-900/10 dark:border-white/10">
+            <div className="border-b border-slate-900/10 bg-slate-900/5 px-4 py-3 text-sm font-black text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+              {selectedContentTopic
+                ? `Selected Topic: ${selectedContentTopic.title || selectedContentTopic.id}`
+                : selectedContentChapter
+                  ? `Topics in ${selectedContentChapter.title || selectedContentChapter.id}`
+                  : 'All Topics'}
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px] text-left text-sm">
+                <thead className="bg-white/60 text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:bg-slate-950/40 dark:text-slate-400">
+                  <tr>
+                    <th className="px-4 py-3">Topic</th>
+                    <th className="px-4 py-3">Importance</th>
+                    <th className="px-4 py-3">Notes</th>
+                    <th className="px-4 py-3">Video</th>
+                    <th className="px-4 py-3">MCQ</th>
+                    <th className="px-4 py-3">CQ</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-900/10 dark:divide-white/10">
+                  {contentLoading && visibleContentTopics.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center font-bold text-slate-500 dark:text-slate-400">
+                        <span className="inline-flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Loading content inventory...
+                        </span>
+                      </td>
+                    </tr>
+                  ) : visibleContentTopics.length ? (
+                    visibleContentTopics
+                      .filter(topic => !selectedContentTopicId || topic.id === selectedContentTopicId)
+                      .map(topic => {
+                        const stats = topicQuestionStats.get(topic.id) || { mcqs: 0, cqs: 0 };
+                        return (
+                          <tr key={topic.id} className="text-slate-700 dark:text-slate-200">
+                            <td className="px-4 py-4">
+                              <div className="font-black">{topic.title || topic.id}</div>
+                              <div className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">{topic.id}</div>
+                            </td>
+                            <td className="px-4 py-4 font-bold">{topic.importance || '-'}</td>
+                            <td className="px-4 py-4">
+                              <span className={`rounded-full px-3 py-1 text-xs font-black ${
+                                topic.board_notes.trim()
+                                  ? 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-300'
+                                  : 'bg-slate-500/10 text-slate-500 dark:text-slate-400'
+                              }`}>
+                                {topic.board_notes.trim() ? 'Ready' : 'Missing'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-4">
+                              <span className={`rounded-full px-3 py-1 text-xs font-black ${
+                                topic.video_url.trim()
+                                  ? 'bg-cyan-500/10 text-cyan-500 dark:text-cyan-300'
+                                  : 'bg-slate-500/10 text-slate-500 dark:text-slate-400'
+                              }`}>
+                                {topic.video_url.trim() ? 'Ready' : 'Missing'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-4 font-black text-emerald-500 dark:text-emerald-300">{stats.mcqs}</td>
+                            <td className="px-4 py-4 font-black text-amber-500 dark:text-amber-300">{stats.cqs}</td>
+                          </tr>
+                        );
+                      })
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center font-bold text-slate-500 dark:text-slate-400">
+                        No topics found for this filter.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="mb-12">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1718,6 +2440,13 @@ export default function AdminDashboard() {
                       <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
                         Submitted: {formatPaymentDate(payment.createdAt)} - Ref: {payment.id}
                       </p>
+                      {payment.lastReminderAt && (
+                        <p className="mt-1 inline-flex items-center gap-2 text-xs font-semibold text-cyan-600 dark:text-cyan-300">
+                          <BellRing className="h-3.5 w-3.5" />
+                          Last reminder: {formatPaymentDate(payment.lastReminderAt)}
+                          {payment.reminderCount ? ` (${payment.reminderCount})` : ''}
+                        </p>
+                      )}
 
                       <div className="mt-4 grid gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 sm:grid-cols-2 xl:grid-cols-4">
                         <span className="inline-flex min-w-0 items-center gap-2">
@@ -1739,6 +2468,14 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-stretch lg:justify-center">
+                      <button
+                        type="button"
+                        onClick={() => void handleManualPaymentReminder(payment)}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-400/25 bg-cyan-500/10 px-4 py-3 text-sm font-black text-cyan-500 transition hover:bg-cyan-500/15 dark:text-cyan-300"
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        WhatsApp
+                      </button>
                       <button
                         type="button"
                         onClick={() => handleManualPaymentDecision(payment.id, 'approve')}
@@ -2036,6 +2773,7 @@ function TextInput({
   onChange,
   placeholder,
   type = 'text',
+  listId,
   required = false,
 }: {
   label: string;
@@ -2043,6 +2781,7 @@ function TextInput({
   onChange: (value: string) => void;
   placeholder?: string;
   type?: string;
+  listId?: string;
   required?: boolean;
 }) {
   return (
@@ -2053,6 +2792,7 @@ function TextInput({
         value={value}
         onChange={event => onChange(event.target.value)}
         placeholder={placeholder}
+        list={listId}
         required={required}
         className="w-full bg-white dark:bg-slate-900/70 border border-slate-900/10 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all"
       />

@@ -1,121 +1,67 @@
 import React, { useState } from 'react';
-import { Mail, KeyRound, MessageSquare, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getFirebaseAuth } from '../../lib/firebase';
+import { getFirebaseAuth, getGoogleProvider } from '../../lib/firebase';
 import { verifyFirebaseAdminUser } from '../../services/adminAuth';
-import emailjs from '@emailjs/browser';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-const ADMIN_EMAIL_HINT = 'sarkerramjan2015@gmail.com';
+function GoogleLogo() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+    </svg>
+  );
+}
 
-// ─── Component ────────────────────────────────────────────────────────────────
 export default function AdminLogin() {
   const navigate = useNavigate();
-
-  // Step tracking: 'credentials' | 'otp'
-  const [step, setStep] = useState<'credentials' | 'otp'>('credentials');
-
-  // Credential fields
-  const [email,    setEmail]    = useState('');
-  const [password, setPassword] = useState('');
-  const [showPass, setShowPass] = useState(false);
-
-  // OTP fields
-  const [otp, setOtp] = useState('');
-  const [generatedOtp, setGeneratedOtp] = useState('');
-  const [verifiedAdminEmail, setVerifiedAdminEmail] = useState(ADMIN_EMAIL_HINT);
-
-  // Error / loading
-  const [error,   setError]   = useState('');
   const [loading, setLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState('');
+  const [error, setError] = useState('');
 
-  // ── Step 1: Validate credentials ──────────────────────────────────────────
-  async function handleCredentialSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const handleGoogleAdminLogin = async () => {
     setError('');
-
-    const trimmedEmail = email.trim();
-
-    if (!trimmedEmail || !password) {
-      setError('Please enter the admin email and password.');
-      return;
-    }
-
-    const firebaseAuth = await getFirebaseAuth();
-
-    if (!firebaseAuth) {
-      setError('Firebase Auth কনফিগার করা নেই।');
-      return;
-    }
-
     setLoading(true);
-    setLoadingText('OTP পাঠানো হচ্ছে, দয়া করে অপেক্ষা করুন...');
-    
-    try {
-      const { signInWithEmailAndPassword, signOut } = await import('firebase/auth');
-      const credential = await signInWithEmailAndPassword(firebaseAuth, trimmedEmail, password);
-      const adminRecord = await verifyFirebaseAdminUser(credential.user, { throwOnFailure: true });
 
-      if (!adminRecord) {
-        await signOut(firebaseAuth).catch(() => undefined);
-        setError('This Firebase account is not verified in Firestore admin/{uid}. Check the uid, email, and role fields.');
+    try {
+      const [{ signInWithPopup, signOut }, auth, provider] = await Promise.all([
+        import('firebase/auth'),
+        getFirebaseAuth(),
+        getGoogleProvider(),
+      ]);
+
+      if (!auth || !provider) {
+        setError('Firebase Auth is not configured. Check the VITE_FIREBASE_* environment variables.');
         return;
       }
 
-      setVerifiedAdminEmail(adminRecord.email);
+      const credential = await signInWithPopup(auth, provider);
+      const adminRecord = await verifyFirebaseAdminUser(credential.user, { throwOnFailure: true });
 
-      // Generate a random 6-digit numeric code
-      const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      setGeneratedOtp(newOtp);
-
-      try {
-        await emailjs.send(
-          'service_efeim7l',
-          'template_fit0rsq',
-          {
-            otp_code: newOtp,
-            email: adminRecord.email,
-            time: '15 minutes'
-          },
-          'fXPRXq1rMmhQ2KrLF'
-        );
-        setStep('otp');
-      } catch (emailErr) {
-        setError('ইমেইল পাঠাতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।');
+      if (!adminRecord) {
+        await signOut(auth).catch(() => undefined);
+        setError('This Google account is not approved in Firestore admin/{uid}.');
+        return;
       }
-    } catch (err: any) {
-      setError(err.message || 'Firebase অথেনটিকেশন ব্যর্থ হয়েছে।');
-    } finally {
-      setLoading(false);
-      setLoadingText('');
-    }
-  }
 
-  // ── Step 2: Validate OTP ──────────────────────────────────────────────────
-  function handleOtpSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError('');
-
-    if (otp.trim() !== generatedOtp) {
-      setError('ভুল OTP প্রদান করা হয়েছে। দয়া করে আবার চেষ্টা করুন।');
-      return;
-    }
-
-    setLoading(true);
-    setTimeout(() => {
       localStorage.removeItem('isAdmin');
       navigate('/admin/dashboard', { replace: true });
-    }, 600);
-  }
+    } catch (loginError: any) {
+      if (loginError?.code === 'auth/popup-closed-by-user') {
+        return;
+      }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+      setError(loginError?.message || 'Google admin verification failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex-1 flex items-center justify-center px-8 py-12 relative z-20">
+    <div className="relative z-20 flex flex-1 items-center justify-center px-8 py-12">
       <div className="w-full max-w-md">
-        <div className="bg-slate-950/8 dark:bg-white/[0.055] backdrop-blur-xl border border-slate-900/10 dark:border-white/10 rounded-3xl p-10 shadow-2xl shadow-black/25">
-
-          {/* Brand logo */}
+        <div className="rounded-3xl border border-slate-900/10 bg-slate-950/8 p-10 shadow-2xl shadow-black/25 backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.055]">
           <div className="relative mx-auto mb-6 h-28 w-28 overflow-hidden rounded-2xl border border-white/50 bg-white p-2 shadow-xl shadow-indigo-500/20">
             <img
               src="/ict_toppers_logo.jpeg"
@@ -125,162 +71,37 @@ export default function AdminLogin() {
             <span className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/70" />
           </div>
 
-          {/* Title */}
-          <h1 className="text-3xl font-black text-center mb-2">অ্যাডমিন পোর্টাল</h1>
-
-          {/* Step indicator */}
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <StepDot active={step === 'credentials'} done={step === 'otp'} label="১" />
-            <div className="w-8 h-px bg-slate-400/30" />
-            <StepDot active={step === 'otp'} done={false} label="২" />
+          <div className="mb-6 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/15 text-indigo-400">
+              <ShieldCheck className="h-6 w-6" />
+            </div>
+            <h1 className="text-3xl font-black">Admin Portal</h1>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              Sign in with the approved Google account to continue.
+            </p>
           </div>
 
-            {/* ── STEP 1: Credentials ── */}
-            {step === 'credentials' && (
-              <form
-                key="credentials"
-                onSubmit={handleCredentialSubmit}
-                className="space-y-4"
-              >
-                <p className="text-slate-500 dark:text-slate-400 text-center text-sm mb-4">
-                  অ্যাডমিন পোর্টালে প্রবেশ করতে আপনার ইমেইল ও পাসওয়ার্ড প্রদান করুন।
-                </p>
+          <button
+            id="admin-google-submit"
+            type="button"
+            onClick={() => void handleGoogleAdminLogin()}
+            disabled={loading}
+            className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-900/10 bg-white px-4 py-3 font-bold text-slate-800 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60 dark:border-white/10"
+          >
+            {loading ? <Spinner /> : <GoogleLogo />}
+            {loading ? 'Verifying Google account...' : 'Continue with Google'}
+          </button>
 
-                {/* Email */}
-                <div className="relative">
-                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                  <input
-                    id="admin-email"
-                    type="email"
-                    autoComplete="username"
-                    placeholder="ইমেইল"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                    className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-900/10 dark:border-white/10 bg-slate-900/5 dark:bg-white/5 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                  />
-                </div>
-
-                {/* Password */}
-                <div className="relative">
-                  <KeyRound size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                  <input
-                    id="admin-password"
-                    type={showPass ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    placeholder="পাসওয়ার্ড"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                    className="w-full pl-9 pr-10 py-3 rounded-xl border border-slate-900/10 dark:border-white/10 bg-slate-900/5 dark:bg-white/5 text-sm font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-                    aria-label={showPass ? 'Hide password' : 'Show password'}
-                  >
-                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-
-                {/* Error */}
-                {error && <ErrorBox message={error} />}
-
-                {/* Submit */}
-                <button
-                  id="admin-credentials-submit"
-                  type="submit"
-                  disabled={loading}
-                  className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white px-4 py-3 font-bold shadow-sm transition-colors flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Spinner />
-                      <span className="ml-2 font-normal text-sm">{loadingText || 'অপেক্ষা করুন...'}</span>
-                    </>
-                  ) : (
-                    <>চালিয়ে যান <ArrowRight size={16} /></>
-                  )}
-                </button>
-              </form>
-            )}
-
-            {/* ── STEP 2: OTP ── */}
-            {step === 'otp' && (
-              <form
-                key="otp"
-                onSubmit={handleOtpSubmit}
-                className="space-y-4"
-              >
-                <p className="text-slate-500 dark:text-slate-400 text-center text-sm mb-4">
-                  আপনার ইমেইল (<span className="font-semibold text-indigo-400">{verifiedAdminEmail}</span>)-এ একটি OTP পাঠানো হয়েছে। নিচে সেটি প্রদান করুন।
-                </p>
-
-                {/* OTP input */}
-                <div className="relative">
-                  <MessageSquare size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                  <input
-                    id="admin-otp"
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={6}
-                    placeholder="৬-ডিজিটের OTP"
-                    value={otp}
-                    onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
-                    required
-                    autoFocus
-                    className="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-900/10 dark:border-white/10 bg-slate-900/5 dark:bg-white/5 text-sm font-medium tracking-[0.3em] placeholder:tracking-normal placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                  />
-                </div>
-
-                {/* Error */}
-                {error && <ErrorBox message={error} />}
-
-                {/* Submit */}
-                <button
-                  id="admin-otp-submit"
-                  type="submit"
-                  disabled={loading || otp.length < 6}
-                  className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white px-4 py-3 font-bold shadow-sm transition-colors flex items-center justify-center gap-2"
-                >
-                  {loading ? <Spinner /> : <><CheckCircle2 size={16} /> যাচাই করুন এবং লগইন করুন</>}
-                </button>
-
-                {/* Back link */}
-                <button
-                  type="button"
-                  onClick={() => { setStep('credentials'); setError(''); setOtp(''); setGeneratedOtp(''); }}
-                  className="w-full text-center text-xs text-slate-500 dark:text-slate-400 hover:text-indigo-400 transition-colors pt-1"
-                >
-                  ← লগইন পেজে ফিরে যান
-                </button>
-              </form>
-            )}
+          {error && <ErrorBox message={error} />}
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function StepDot({ active, done, label }: { active: boolean; done: boolean; label: string }) {
-  return (
-    <div
-      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition-all duration-300
-        ${done   ? 'bg-indigo-500 border-indigo-500 text-white' :
-          active ? 'bg-indigo-500/20 border-indigo-500 text-indigo-400' :
-                   'bg-slate-500/10 border-slate-400/30 text-slate-400'}`}
-    >
-      {done ? <CheckCircle2 size={14} /> : label}
-    </div>
-  );
-}
-
 function ErrorBox({ message }: { message: string }) {
   return (
-    <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-3 rounded-xl text-sm text-left font-medium break-words">
+    <div className="mt-5 break-words rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-left text-sm font-medium text-rose-400">
       {message}
     </div>
   );
@@ -288,7 +109,7 @@ function ErrorBox({ message }: { message: string }) {
 
 function Spinner() {
   return (
-    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+    <svg className="h-4 w-4 animate-spin text-slate-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
     </svg>
