@@ -8,6 +8,7 @@ import {
   BellRing,
   BookOpen,
   CalendarDays,
+  CalendarClock,
   ChevronDown,
   CheckCircle,
   CreditCard,
@@ -23,6 +24,7 @@ import {
   Lightbulb,
   Loader2,
   LogOut,
+  Mail,
   MessageCircle,
   Medal,
   Plus,
@@ -30,6 +32,7 @@ import {
   Save,
   Search,
   Sparkles,
+  ShieldCheck,
   ReceiptText,
   RefreshCw,
   Smartphone,
@@ -74,9 +77,16 @@ import {
   type AdminPaymentSummary,
 } from '../../services/adminLeaderboard';
 import {
-  fetchAdminChallengeQuestions,
+  fetchAdminFreeAccessGrants,
+  grantAdminFreeAccess,
+  revokeAdminFreeAccess,
+  type AdminFreeAccessGrant,
+} from '../../services/adminAccess';
+import {
+  fetchAdminChallengeDetails,
   fetchAdminChallengeSets,
   saveAdminQuizQuestion,
+  type AdminChallengeDetails,
   type AdminChallengeSet,
   type AdminQuizQuestion,
 } from '../../services/adminQuizQuestions';
@@ -659,6 +669,22 @@ const formatActivityDate = (value?: string | null) => {
 const formatCurrency = (value?: number | null) =>
   `BDT ${Number(value || 0).toLocaleString('en-US')}`;
 
+const getFreeAccessGrantKey = (grant: Pick<AdminFreeAccessGrant, 'uid' | 'email' | 'pending'>) =>
+  grant.pending ? `invite:${grant.email}` : `student:${grant.uid}`;
+
+const toDateTimeLocal = (value?: string | null) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const pad = (part: number) => String(part).padStart(2, '0');
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate()),
+  ].join('-') + `T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
 const compareByOrderThenTitle = <T extends { order?: number; title?: string }>(a: T, b: T) => {
   const orderDiff = Number(a.order || 0) - Number(b.order || 0);
   if (orderDiff !== 0) return orderDiff;
@@ -715,9 +741,18 @@ export default function AdminDashboard() {
   const [challengeSets, setChallengeSets] = useState<AdminChallengeSet[]>([]);
   const [selectedQuestionChallengeId, setSelectedQuestionChallengeId] = useState('');
   const [quizQuestions, setQuizQuestions] = useState<AdminQuizQuestion[]>([]);
+  const [selectedChallengeDetails, setSelectedChallengeDetails] = useState<AdminChallengeDetails | null>(null);
+  const [nextChallengeDetails, setNextChallengeDetails] = useState<AdminChallengeDetails | null>(null);
+  const [nextChallengeQuestions, setNextChallengeQuestions] = useState<AdminQuizQuestion[]>([]);
   const [quizQuestionsLoading, setQuizQuestionsLoading] = useState(false);
   const [quizQuestionsError, setQuizQuestionsError] = useState('');
   const [savingQuestionId, setSavingQuestionId] = useState('');
+  const [freeAccessGrants, setFreeAccessGrants] = useState<AdminFreeAccessGrant[]>([]);
+  const [freeAccessEmail, setFreeAccessEmail] = useState('');
+  const [freeAccessReason, setFreeAccessReason] = useState('');
+  const [freeAccessLoading, setFreeAccessLoading] = useState(false);
+  const [freeAccessActionId, setFreeAccessActionId] = useState('');
+  const [freeAccessError, setFreeAccessError] = useState('');
   const [chapters, setChapters] = useState<AdminChapterRecord[]>([]);
   const [topics, setTopics] = useState<AdminTopicRecord[]>([]);
   const [contentMcqs, setContentMcqs] = useState<AdminContentQuestionRecord[]>([]);
@@ -877,6 +912,15 @@ export default function AdminDashboard() {
     },
   ]), [activityLoading, activitySummary]);
 
+  const nextChallengeSet = useMemo(() => {
+    const now = Date.now();
+    const upcoming = challengeSets
+      .filter(item => item.startsAt && new Date(item.startsAt).getTime() >= now)
+      .sort((a, b) => new Date(a.startsAt || 0).getTime() - new Date(b.startsAt || 0).getTime());
+
+    return upcoming[0] || challengeSets[0] || null;
+  }, [challengeSets]);
+
   const analyticsDashboardUrl = activitySummary?.analyticsDashboardUrl || DEFAULT_ANALYTICS_DASHBOARD_URL;
 
   const handleLogout = () => {
@@ -1034,6 +1078,29 @@ export default function AdminDashboard() {
     void loadAdminActivity();
   }, [loadAdminActivity]);
 
+  const loadFreeAccessGrants = useCallback(async () => {
+    if (!isAdmin) {
+      setFreeAccessGrants([]);
+      return;
+    }
+
+    setFreeAccessLoading(true);
+    try {
+      const grants = await fetchAdminFreeAccessGrants();
+      setFreeAccessGrants(grants);
+      setFreeAccessError('');
+    } catch (error: any) {
+      setFreeAccessGrants([]);
+      setFreeAccessError(error?.message || 'Failed to load free-access grants.');
+    } finally {
+      setFreeAccessLoading(false);
+    }
+  }, [isAdmin]);
+
+  useEffect(() => {
+    void loadFreeAccessGrants();
+  }, [loadFreeAccessGrants]);
+
   const loadAdminLeaderboard = useCallback(async (challengeId = selectedLeaderboardChallengeId) => {
     if (!isAdmin) {
       setLeaderboardSets([]);
@@ -1103,6 +1170,47 @@ export default function AdminDashboard() {
     }
   };
 
+  const grantFreeAccess = async () => {
+    if (!requireAdminSession()) return;
+
+    const email = freeAccessEmail.trim();
+    if (!email) {
+      setFreeAccessError('Student Gmail is required.');
+      return;
+    }
+
+    setFreeAccessActionId('grant');
+    try {
+      const grant = await grantAdminFreeAccess(email, freeAccessReason);
+      const grantKey = getFreeAccessGrantKey(grant);
+      setFreeAccessGrants(prev => [grant, ...prev.filter(item => getFreeAccessGrantKey(item) !== grantKey)]);
+      setFreeAccessEmail('');
+      setFreeAccessReason('');
+      setFreeAccessError('');
+      setNotice({ type: 'success', text: `Free full access granted to ${grant.email}.` });
+    } catch (error: any) {
+      setFreeAccessError(error?.message || 'Failed to grant free access.');
+    } finally {
+      setFreeAccessActionId('');
+    }
+  };
+
+  const revokeFreeAccess = async (grant: AdminFreeAccessGrant) => {
+    if (!requireAdminSession()) return;
+
+    const grantKey = getFreeAccessGrantKey(grant);
+    setFreeAccessActionId(grantKey);
+    try {
+      await revokeAdminFreeAccess(grant);
+      setFreeAccessGrants(prev => prev.filter(item => getFreeAccessGrantKey(item) !== grantKey));
+      setNotice({ type: 'success', text: `Free full access revoked for ${grant.email}.` });
+    } catch (error: any) {
+      setFreeAccessError(error?.message || 'Failed to revoke free access.');
+    } finally {
+      setFreeAccessActionId('');
+    }
+  };
+
   const loadQuizQuestionSets = useCallback(async () => {
     if (!isAdmin) {
       setChallengeSets([]);
@@ -1118,7 +1226,13 @@ export default function AdminDashboard() {
       setSelectedQuestionChallengeId(current => (
         current && sets.some(item => item.id === current)
           ? current
-          : sets[0]?.id || ''
+          : (() => {
+              const now = Date.now();
+              const upcoming = sets
+                .filter(item => item.startsAt && new Date(item.startsAt).getTime() >= now)
+                .sort((a, b) => new Date(a.startsAt || 0).getTime() - new Date(b.startsAt || 0).getTime());
+              return upcoming[0]?.id || sets[0]?.id || '';
+            })()
       ));
       setQuizQuestionsError('');
     } catch (error: any) {
@@ -1138,16 +1252,19 @@ export default function AdminDashboard() {
   const loadQuizQuestions = useCallback(async () => {
     if (!isAdmin || !selectedQuestionChallengeId) {
       setQuizQuestions([]);
+      setSelectedChallengeDetails(null);
       return;
     }
 
     setQuizQuestionsLoading(true);
     try {
-      const questions = await fetchAdminChallengeQuestions(selectedQuestionChallengeId);
-      setQuizQuestions(questions);
+      const data = await fetchAdminChallengeDetails(selectedQuestionChallengeId);
+      setQuizQuestions(data.questions);
+      setSelectedChallengeDetails(data.challenge);
       setQuizQuestionsError('');
     } catch (error: any) {
       setQuizQuestions([]);
+      setSelectedChallengeDetails(null);
       setQuizQuestionsError(error?.message || 'Failed to load quiz questions.');
     } finally {
       setQuizQuestionsLoading(false);
@@ -1157,6 +1274,27 @@ export default function AdminDashboard() {
   useEffect(() => {
     void loadQuizQuestions();
   }, [loadQuizQuestions]);
+
+  const loadNextChallengeOverview = useCallback(async () => {
+    if (!isAdmin || !nextChallengeSet?.id) {
+      setNextChallengeDetails(null);
+      setNextChallengeQuestions([]);
+      return;
+    }
+
+    try {
+      const data = await fetchAdminChallengeDetails(nextChallengeSet.id);
+      setNextChallengeDetails(data.challenge);
+      setNextChallengeQuestions(data.questions);
+    } catch {
+      setNextChallengeDetails(null);
+      setNextChallengeQuestions([]);
+    }
+  }, [isAdmin, nextChallengeSet?.id]);
+
+  useEffect(() => {
+    void loadNextChallengeOverview();
+  }, [loadNextChallengeOverview]);
 
   const updateQuizQuestion = (questionId: string, updates: Partial<AdminQuizQuestion>) => {
     setQuizQuestions(prev => prev.map(question =>
@@ -1195,6 +1333,9 @@ export default function AdminDashboard() {
         type: 'success',
         text: `Question ${question.order || question.id} saved successfully.`,
       });
+      if (nextChallengeSet?.id === selectedQuestionChallengeId) {
+        await loadNextChallengeOverview();
+      }
     } catch (error: any) {
       setNotice({
         type: 'error',
@@ -1285,6 +1426,29 @@ export default function AdminDashboard() {
       }));
     }
     setActiveAction(action);
+  };
+
+  const openChallengeEditor = (challenge: AdminChallengeDetails | null) => {
+    if (!challenge) {
+      openAction('challenge');
+      return;
+    }
+
+    setForms(prev => ({
+      ...prev,
+      challenge: {
+        title: challenge.title,
+        challengeId: challenge.id,
+        startsAt: toDateTimeLocal(challenge.startsAt),
+        endsAt: toDateTimeLocal(challenge.endsAt),
+        fee: String(challenge.fee || 0),
+        totalMarks: String(challenge.totalMarks || 0),
+        durationMinutes: String(challenge.durationMinutes || 30),
+        status: challenge.status,
+        syllabus: challenge.syllabus.join('\n'),
+      },
+    }));
+    openAction('challenge');
   };
 
   const openScopedAction = (action: Extract<ActionType, 'topic' | 'mcq' | 'cq' | 'quizQuestion'>) => {
@@ -1432,6 +1596,9 @@ export default function AdminDashboard() {
         if (selectedQuestionChallengeId === quizPayload.challengeId) {
           await loadQuizQuestions();
         }
+        if (nextChallengeSet?.id === quizPayload.challengeId) {
+          await loadNextChallengeOverview();
+        }
       } else if (submittedAction === 'challenge') {
         savedId = String((payload as { id: string }).id);
         await setDoc(doc(firebaseDb, collectionName, savedId), payload, { merge: true });
@@ -1455,6 +1622,7 @@ export default function AdminDashboard() {
       }
       if (submittedAction === 'challenge') {
         await loadQuizQuestionSets();
+        await loadNextChallengeOverview();
       }
 
       const resetForms = makeInitialForms();
@@ -1939,6 +2107,145 @@ export default function AdminDashboard() {
       <section className="mb-12">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
+            <h2 className="flex items-center gap-2 text-xl font-bold text-cyan-400">
+              <CalendarClock className="h-5 w-5" />
+              Next Quiz Exam Control
+            </h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              See the next exam date, syllabus, published questions, and edit the routine from one place.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void loadNextChallengeOverview()}
+            disabled={!nextChallengeSet}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-900/10 bg-slate-900/5 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-900/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </button>
+        </div>
+
+        <div className="rounded-3xl border border-slate-900/10 bg-slate-900/5 p-5 dark:border-white/10 dark:bg-white/5 md:p-6">
+          {!nextChallengeDetails ? (
+            <div className="py-10 text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-300">
+                <CalendarDays className="h-6 w-6" />
+              </div>
+              <p className="font-bold text-slate-700 dark:text-slate-200">No quiz routine found yet.</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Use the Quiz Routine action to publish the next exam.</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+                <div className="rounded-2xl border border-slate-900/10 bg-white/75 p-5 dark:border-white/10 dark:bg-slate-950/55">
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-500 dark:text-cyan-300">Upcoming Routine</p>
+                      <h3 className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{nextChallengeDetails.title}</h3>
+                      <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">ID: {nextChallengeDetails.id}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => openChallengeEditor(nextChallengeDetails)}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-black text-white transition hover:bg-cyan-400"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Edit Routine
+                    </button>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {[
+                      { label: 'Starts', value: formatActivityDate(nextChallengeDetails.startsAt) },
+                      { label: 'Ends', value: formatActivityDate(nextChallengeDetails.endsAt) },
+                      { label: 'Fee', value: formatCurrency(nextChallengeDetails.fee) },
+                      { label: 'Duration', value: `${nextChallengeDetails.durationMinutes} minutes` },
+                      { label: 'Marks', value: String(nextChallengeDetails.totalMarks) },
+                      { label: 'Questions', value: String(nextChallengeQuestions.length || nextChallengeDetails.questionCount) },
+                    ].map(item => (
+                      <div key={item.label} className="rounded-2xl border border-slate-900/10 bg-slate-900/5 p-4 dark:border-white/10 dark:bg-white/5">
+                        <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{item.label}</div>
+                        <div className="mt-1 font-black text-slate-900 dark:text-white">{item.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-900/10 bg-white/75 p-5 dark:border-white/10 dark:bg-slate-950/55">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-500 dark:text-violet-300">Syllabus</p>
+                      <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">What students will face</h3>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-xs font-black ${
+                      nextChallengeDetails.status === 'LIVE'
+                        ? 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-300'
+                        : 'bg-amber-500/10 text-amber-500 dark:text-amber-300'
+                    }`}>
+                      {nextChallengeDetails.status}
+                    </span>
+                  </div>
+
+                  {nextChallengeDetails.syllabus.length ? (
+                    <div className="grid gap-2">
+                      {nextChallengeDetails.syllabus.map(item => (
+                        <div key={item} className="rounded-xl border border-slate-900/10 bg-slate-900/5 px-4 py-3 text-sm font-semibold text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-4 text-sm font-semibold text-amber-600 dark:text-amber-300">
+                      No syllabus added yet. Edit the routine and add one topic per line.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-5 overflow-hidden rounded-2xl border border-slate-900/10 dark:border-white/10">
+                <div className="flex flex-col gap-3 border-b border-slate-900/10 bg-slate-900/5 px-4 py-3 dark:border-white/10 dark:bg-white/5 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-black text-slate-900 dark:text-white">Published Questions</p>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Preview of the next exam question set.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedQuestionChallengeId(nextChallengeDetails.id)}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-sm font-black text-cyan-500 transition hover:bg-cyan-400/15 dark:text-cyan-300"
+                  >
+                    <HelpCircle className="h-4 w-4" />
+                    Open Full Question Editor
+                  </button>
+                </div>
+                <div className="grid gap-3 p-4">
+                  {nextChallengeQuestions.length ? (
+                    nextChallengeQuestions.slice(0, 5).map((question, index) => (
+                      <div key={question.id} className="rounded-2xl border border-slate-900/10 bg-white/70 p-4 dark:border-white/10 dark:bg-slate-950/55">
+                        <div className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-cyan-500 dark:text-cyan-300">
+                          Question {question.order || index + 1}
+                        </div>
+                        <p className="font-bold text-slate-900 dark:text-white">{question.question}</p>
+                        <p className="mt-2 text-sm font-semibold text-emerald-600 dark:text-emerald-300">
+                          Answer: {question.correctAnswer}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-5 text-sm font-semibold text-amber-600 dark:text-amber-300">
+                      No questions published yet for the next exam.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+
+      <section className="mb-12">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
             <h2 className="flex items-center gap-2 text-xl font-bold text-amber-400">
               <Medal className="h-5 w-5" />
               Results, Leaderboard & Income
@@ -2165,6 +2472,143 @@ export default function AdminDashboard() {
           );
         })}
       </div>
+
+      <section className="mb-12">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-xl font-bold text-emerald-400">
+              <ShieldCheck className="h-5 w-5" />
+              Free Full Access
+            </h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Grant premium-level access to any Gmail without payment. Existing users get it now; new users receive it after first login.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void loadFreeAccessGrants()}
+            disabled={freeAccessLoading}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-900/10 bg-slate-900/5 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-900/10 disabled:cursor-wait disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+          >
+            {freeAccessLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Refresh
+          </button>
+        </div>
+
+        <div className="rounded-3xl border border-slate-900/10 bg-slate-900/5 p-5 dark:border-white/10 dark:bg-white/5 md:p-6">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-end">
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-slate-600 dark:text-gray-300">Student Gmail</span>
+              <span className="relative block">
+                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="email"
+                  value={freeAccessEmail}
+                  onChange={event => setFreeAccessEmail(event.target.value)}
+                  placeholder="student@gmail.com"
+                  className="w-full rounded-xl border border-slate-900/10 bg-white py-3 pl-10 pr-4 font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-white/10 dark:bg-slate-900/70 dark:text-white"
+                />
+              </span>
+            </label>
+            <TextInput
+              label="Reason / Note"
+              value={freeAccessReason}
+              onChange={setFreeAccessReason}
+              placeholder="Scholarship, mentor gift, special permission..."
+            />
+            <button
+              type="button"
+              onClick={() => void grantFreeAccess()}
+              disabled={freeAccessActionId === 'grant'}
+              className="inline-flex min-h-[50px] items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-950/20 transition hover:bg-emerald-400 disabled:cursor-wait disabled:opacity-60"
+            >
+              {freeAccessActionId === 'grant' ? <Loader2 className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />}
+              Grant Access
+            </button>
+          </div>
+
+          {freeAccessError && (
+            <div className="mt-4 rounded-2xl border border-rose-400/30 bg-rose-400/10 px-5 py-4 text-sm font-semibold text-rose-300">
+              {freeAccessError}
+            </div>
+          )}
+
+          <div className="mt-6 overflow-hidden rounded-2xl border border-slate-900/10 dark:border-white/10">
+            <div className="border-b border-slate-900/10 bg-slate-900/5 px-4 py-3 text-sm font-black text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+              Active Free Access Grants
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px] text-left text-sm">
+                <thead className="bg-white/60 text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:bg-slate-950/40 dark:text-slate-400">
+                  <tr>
+                    <th className="px-4 py-3">Gmail</th>
+                    <th className="px-4 py-3">Granted</th>
+                    <th className="px-4 py-3">By</th>
+                    <th className="px-4 py-3">Reason</th>
+                    <th className="px-4 py-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-900/10 dark:divide-white/10">
+                  {freeAccessLoading && freeAccessGrants.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center font-bold text-slate-500 dark:text-slate-400">
+                        <span className="inline-flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Loading grants...
+                        </span>
+                      </td>
+                    </tr>
+                  ) : freeAccessGrants.length ? (
+                    freeAccessGrants.map(grant => {
+                      const grantKey = getFreeAccessGrantKey(grant);
+
+                      return (
+                      <tr key={grantKey} className="text-slate-700 dark:text-slate-200">
+                        <td className="px-4 py-4">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-black">{grant.email}</span>
+                            <span className={`rounded-full px-2.5 py-1 text-[11px] font-black uppercase ${
+                              grant.pending
+                                ? 'bg-amber-400/15 text-amber-500 dark:text-amber-300'
+                                : 'bg-emerald-400/15 text-emerald-500 dark:text-emerald-300'
+                            }`}>
+                              {grant.pending ? 'Pending signup' : 'Active'}
+                            </span>
+                          </div>
+                          <div className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                            {grant.uid || 'Access will attach after first login'}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 font-semibold">{formatActivityDate(grant.freeAccessGrantedAt)}</td>
+                        <td className="px-4 py-4 font-semibold">{grant.freeAccessGrantedBy || '-'}</td>
+                        <td className="px-4 py-4 font-semibold">{grant.freeAccessGrantReason || '-'}</td>
+                        <td className="px-4 py-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() => void revokeFreeAccess(grant)}
+                            disabled={Boolean(freeAccessActionId)}
+                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-400/25 bg-rose-500/10 px-4 py-2.5 text-sm font-black text-rose-500 transition hover:bg-rose-500/15 disabled:cursor-wait disabled:opacity-60 dark:text-rose-300"
+                          >
+                            {freeAccessActionId === grantKey ? <Loader2 className="h-4 w-4 animate-spin" /> : <Ban className="h-4 w-4" />}
+                            Revoke
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center font-bold text-slate-500 dark:text-slate-400">
+                        No free-access grants yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="mb-12">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -2563,21 +3007,21 @@ export default function AdminDashboard() {
 
           {selectedQuestionChallengeId && (
             <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
-              {challengeSets
-                .filter(item => item.id === selectedQuestionChallengeId)
-                .map(item => (
-                  <React.Fragment key={item.id}>
-                    <span className="rounded-full border border-slate-900/10 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-slate-950/50">
-                      Status: {item.status}
-                    </span>
-                    <span className="rounded-full border border-slate-900/10 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-slate-950/50">
-                      Starts: {formatActivityDate(item.startsAt)}
-                    </span>
-                    <span className="rounded-full border border-slate-900/10 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-slate-950/50">
-                      ID: {item.id}
-                    </span>
-                  </React.Fragment>
-                ))}
+              <span className="rounded-full border border-slate-900/10 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-slate-950/50">
+                Status: {selectedChallengeDetails?.status || 'Unknown'}
+              </span>
+              <span className="rounded-full border border-slate-900/10 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-slate-950/50">
+                Starts: {formatActivityDate(selectedChallengeDetails?.startsAt)}
+              </span>
+              <span className="rounded-full border border-slate-900/10 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-slate-950/50">
+                Ends: {formatActivityDate(selectedChallengeDetails?.endsAt)}
+              </span>
+              <span className="rounded-full border border-slate-900/10 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-slate-950/50">
+                Syllabus: {selectedChallengeDetails?.syllabus.length || 0} topics
+              </span>
+              <span className="rounded-full border border-slate-900/10 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-slate-950/50">
+                ID: {selectedQuestionChallengeId}
+              </span>
             </div>
           )}
 

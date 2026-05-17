@@ -3,8 +3,10 @@ import type { User as FirebaseUser } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { getFirebaseAuth, getGoogleProvider } from '../lib/firebase';
 import { verifyFirebaseAdminUser } from '../services/adminAuth';
+import { fetchAccessProfile } from '../services/accessProfile';
 
 export type UserRole = 'admin' | 'student';
+export type PremiumPlan = 'monthly' | 'yearly' | 'granted' | null;
 
 export interface User {
   id: string;
@@ -12,7 +14,7 @@ export interface User {
   email: string;
   role: UserRole;
   isPremium: boolean;
-  premiumPlan?: 'monthly' | 'yearly' | null;
+  premiumPlan?: PremiumPlan;
   premiumSince?: string | null;
   profileImage?: string | null;
   bio?: string | null;
@@ -99,6 +101,7 @@ const buildFirebaseUser = async (firebaseUser: FirebaseUser): Promise<User> => {
   const email = firebaseUser.email || 'student@gmail.com';
   const adminRecord = await verifyFirebaseAdminUser(firebaseUser);
   const role: UserRole = adminRecord ? 'admin' : 'student';
+  const accessProfile = role === 'admin' ? null : await fetchAccessProfile(firebaseUser).catch(() => null);
   const existingUser = getStoredUsers().find(item =>
     item.id === firebaseUser.uid || item.email.toLowerCase() === email.toLowerCase()
   );
@@ -108,9 +111,9 @@ const buildFirebaseUser = async (firebaseUser: FirebaseUser): Promise<User> => {
     email,
     profileImage: firebaseUser.photoURL || existingUser?.profileImage || null,
     role,
-    isPremium: role === 'admin' || existingUser?.isPremium || false,
-    premiumPlan: existingUser?.premiumPlan || null,
-    premiumSince: existingUser?.premiumSince || null,
+    isPremium: role === 'admin' || accessProfile?.isPremium || existingUser?.isPremium || false,
+    premiumPlan: accessProfile?.premiumPlan || existingUser?.premiumPlan || null,
+    premiumSince: accessProfile?.premiumSince || existingUser?.premiumSince || null,
   };
 };
 

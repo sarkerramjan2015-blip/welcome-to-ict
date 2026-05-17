@@ -9,6 +9,20 @@ export type AdminChallengeSet = {
   questionCount: number;
 };
 
+export type AdminChallengeDetails = {
+  id: string;
+  title: string;
+  status: string;
+  startsAt: string | null;
+  endsAt: string | null;
+  updatedAt: string | null;
+  fee: number;
+  totalMarks: number;
+  durationMinutes: number;
+  syllabus: string[];
+  questionCount: number;
+};
+
 export type AdminQuizQuestion = {
   id: string;
   question: string;
@@ -58,6 +72,50 @@ export const fetchAdminChallengeQuestions = async (challengeId: string) => {
     `/api/adminQuizQuestions?challengeId=${encodeURIComponent(challengeId)}`
   );
   return data.questions || [];
+};
+
+const normalizeSyllabus = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.map(item => String(item || '').trim()).filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed.map(item => String(item || '').trim()).filter(Boolean);
+      }
+    } catch {}
+
+    return value.split(/\r?\n|,/).map(item => item.trim()).filter(Boolean);
+  }
+
+  return [];
+};
+
+const normalizeChallengeDetails = (value: Record<string, any>, questions: AdminQuizQuestion[]): AdminChallengeDetails => ({
+  id: String(value.id || ''),
+  title: String(value.title || 'HSC ICT Monthly Quiz Exam'),
+  status: String(value.status || 'DRAFT'),
+  startsAt: value.startsAt || null,
+  endsAt: value.endsAt || null,
+  updatedAt: value.updatedAt || null,
+  fee: Number(value.fee || 0),
+  totalMarks: Number(value.totalMarks || questions.length || 0),
+  durationMinutes: Number(value.durationMinutes || 30),
+  syllabus: normalizeSyllabus(value.syllabus),
+  questionCount: Number(value.questionCount || questions.length || 0),
+});
+
+export const fetchAdminChallengeDetails = async (challengeId: string) => {
+  const data = await requestAdminQuiz<{ challenge: Record<string, any>; questions: AdminQuizQuestion[] }>(
+    `/api/adminQuizQuestions?challengeId=${encodeURIComponent(challengeId)}`
+  );
+  const questions = data.questions || [];
+  return {
+    challenge: normalizeChallengeDetails(data.challenge || {}, questions),
+    questions,
+  };
 };
 
 export const saveAdminQuizQuestion = async (challengeId: string, question: AdminQuizQuestion) => {

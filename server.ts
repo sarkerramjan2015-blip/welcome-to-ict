@@ -8,7 +8,9 @@ import dotenv from "dotenv";
 import { createPayment, executePayment } from "./src/services/bkash";
 import paymentActionHandler from "./api/paymentAction";
 import manualPaymentsHandler from "./api/manualPayments";
+import accessProfileHandler from "./api/accessProfile";
 import adminAuthHandler from "./api/adminAuth";
+import adminAccessHandler from "./api/adminAccess";
 import adminActivityHandler from "./api/adminActivity";
 import adminLeaderboardHandler from "./api/adminLeaderboard";
 import adminQuizQuestionsHandler from "./api/adminQuizQuestions";
@@ -42,7 +44,9 @@ async function startServer() {
 
   app.all("/api/paymentAction", paymentActionHandler);
   app.all("/api/manualPayments", manualPaymentsHandler);
+  app.all("/api/accessProfile", accessProfileHandler);
   app.all("/api/adminAuth", adminAuthHandler);
+  app.all("/api/adminAccess", adminAccessHandler);
   app.all("/api/adminActivity", adminActivityHandler);
   app.all("/api/adminLeaderboard", adminLeaderboardHandler);
   app.all("/api/adminQuizQuestions", adminQuizQuestionsHandler);
