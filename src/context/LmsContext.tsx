@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { allSyllabusTopicIds, syllabusProgressSummary, syllabusSummaryStats } from '../data/syllabus-summary';
 import { useAuth } from './AuthContext';
 import { submitChallengeExam } from '../services/challengeExam';
+import { syncTopicCompletion, syncTopicVisit } from '../services/studyProgress';
 
 export interface StudyTask {
   id: string;
@@ -202,20 +203,23 @@ export function LmsProvider({ children }: { children: React.ReactNode }) {
       persistForUser('topicVisits', next);
       return next;
     });
-  }, [persistForUser, userId]);
+    void syncTopicVisit(topicId, user);
+  }, [persistForUser, user, userId]);
 
   const isTopicCompleted = useCallback((topicId: string) => completedTopicIds.includes(topicId), [completedTopicIds]);
 
   const toggleTopicCompletion = useCallback((topicId: string) => {
     if (!userId) return;
     setCompletedTopicIds(prev => {
+      const completed = !prev.includes(topicId);
       const next = prev.includes(topicId)
         ? prev.filter(id => id !== topicId)
         : [...prev, topicId];
       persistForUser('completedTopics', next);
+      void syncTopicCompletion(topicId, completed, user);
       return next;
     });
-  }, [persistForUser, userId]);
+  }, [persistForUser, user, userId]);
 
   const saveQuizResult = useCallback((result: Omit<QuizResult, 'id' | 'userId' | 'accuracy' | 'completedAt'>) => {
     if (!userId) return;

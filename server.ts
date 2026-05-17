@@ -13,12 +13,15 @@ import adminAuthHandler from "./api/adminAuth";
 import adminAccessHandler from "./api/adminAccess";
 import adminActivityHandler from "./api/adminActivity";
 import adminLeaderboardHandler from "./api/adminLeaderboard";
+import adminPracticeProgressHandler from "./api/adminPracticeProgress";
 import adminQuizQuestionsHandler from "./api/adminQuizQuestions";
 import challengeExamHandler from "./api/challengeExam";
 import firebaseConfigHandler from "./api/firebaseConfig";
 import leaderboardHandler from "./api/leaderboard";
+import practiceExamHandler from "./api/practiceExam";
 import rankCardImageHandler from "./api/rankCardImage";
 import rankShareHandler from "./api/rankShare";
+import studyProgressHandler from "./api/studyProgress";
 
 dotenv.config();
 
@@ -49,12 +52,15 @@ async function startServer() {
   app.all("/api/adminAccess", adminAccessHandler);
   app.all("/api/adminActivity", adminActivityHandler);
   app.all("/api/adminLeaderboard", adminLeaderboardHandler);
+  app.all("/api/adminPracticeProgress", adminPracticeProgressHandler);
   app.all("/api/adminQuizQuestions", adminQuizQuestionsHandler);
   app.all("/api/challengeExam", challengeExamHandler);
   app.all("/api/firebaseConfig", firebaseConfigHandler);
   app.all("/api/leaderboard", leaderboardHandler);
+  app.all("/api/practiceExam", practiceExamHandler);
   app.all("/api/rankCardImage", rankCardImageHandler);
   app.all("/api/rankShare", rankShareHandler);
+  app.all("/api/studyProgress", studyProgressHandler);
 
   // Get all Categories
   app.get("/api/categories", async (req, res) => {

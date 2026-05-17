@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import {
   Activity,
+  BarChart3,
   BadgeCheck,
   Ban,
   BellRing,
@@ -68,6 +69,11 @@ import {
   fetchAdminActivity,
   type AdminActivitySummary,
 } from '../../services/adminActivity';
+import {
+  fetchAdminPracticeProgress,
+  type AdminPracticeProgressSummary,
+  type AdminPracticeStudent,
+} from '../../services/adminPracticeProgress';
 import {
   fetchAdminLeaderboard,
   publishAdminLeaderboard,
@@ -712,6 +718,37 @@ const buildPendingPaymentReminderUrl = (payment: ManualPaymentRecord) => {
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 };
 
+const buildStudentProgressEmailHref = (student: AdminPracticeStudent) => {
+  const subject = `ICT Toppers study follow-up`;
+  const body = [
+    `Assalamu Alaikum ${student.name || 'ICT Student'},`,
+    '',
+    'We reviewed your ICT Toppers progress and wanted to help you move forward.',
+    student.weakestTopic
+      ? `Current weak topic: ${student.weakestTopic.title} (${student.weakestTopic.averageAccuracy}% average accuracy).`
+      : '',
+    'Please reply if you need support from the ICT Toppers team.',
+  ].filter(Boolean).join('\n');
+
+  return `mailto:${student.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+};
+
+const buildStudentProgressWhatsappUrl = (student: AdminPracticeStudent) => {
+  const phone = normalizeBdWhatsAppNumber(student.phone || '');
+  if (!phone) return '';
+
+  const message = [
+    `Assalamu Alaikum ${student.name || 'ICT Student'},`,
+    'ICT Toppers theke bolchi.',
+    student.weakestTopic
+      ? `Tomar weak topic ekhon ${student.weakestTopic.title} (${student.weakestTopic.averageAccuracy}% accuracy).`
+      : 'Tomar recent study progress niye follow-up kortesi.',
+    'Help lagle ekhanei reply dio.',
+  ].join(' ');
+
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+};
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
@@ -730,6 +767,11 @@ export default function AdminDashboard() {
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityError, setActivityError] = useState('');
   const [recentUsersExpanded, setRecentUsersExpanded] = useState(false);
+  const [studentProgressSummary, setStudentProgressSummary] = useState<AdminPracticeProgressSummary | null>(null);
+  const [studentProgressRows, setStudentProgressRows] = useState<AdminPracticeStudent[]>([]);
+  const [studentProgressLoading, setStudentProgressLoading] = useState(false);
+  const [studentProgressError, setStudentProgressError] = useState('');
+  const [studentProgressQuery, setStudentProgressQuery] = useState('');
   const [leaderboardSets, setLeaderboardSets] = useState<AdminLeaderboardChallengeSet[]>([]);
   const [selectedLeaderboardChallengeId, setSelectedLeaderboardChallengeId] = useState('');
   const [leaderboardResults, setLeaderboardResults] = useState<AdminLeaderboardResult[]>([]);
@@ -912,6 +954,20 @@ export default function AdminDashboard() {
     },
   ]), [activityLoading, activitySummary]);
 
+  const visibleStudentProgressRows = useMemo(() => {
+    const query = studentProgressQuery.trim().toLowerCase();
+    if (!query) return studentProgressRows;
+
+    return studentProgressRows.filter(student =>
+      [
+        student.name,
+        student.email,
+        student.lastTopicTitle || '',
+        student.weakestTopic?.title || '',
+      ].some(value => value.toLowerCase().includes(query))
+    );
+  }, [studentProgressQuery, studentProgressRows]);
+
   const nextChallengeSet = useMemo(() => {
     const now = Date.now();
     const upcoming = challengeSets
@@ -1077,6 +1133,32 @@ export default function AdminDashboard() {
   useEffect(() => {
     void loadAdminActivity();
   }, [loadAdminActivity]);
+
+  const loadStudentProgress = useCallback(async () => {
+    if (!isAdmin) {
+      setStudentProgressSummary(null);
+      setStudentProgressRows([]);
+      return;
+    }
+
+    setStudentProgressLoading(true);
+    try {
+      const data = await fetchAdminPracticeProgress();
+      setStudentProgressSummary(data.summary);
+      setStudentProgressRows(data.students);
+      setStudentProgressError('');
+    } catch (error: any) {
+      setStudentProgressSummary(null);
+      setStudentProgressRows([]);
+      setStudentProgressError(error?.message || 'Failed to load student progress.');
+    } finally {
+      setStudentProgressLoading(false);
+    }
+  }, [isAdmin]);
+
+  useEffect(() => {
+    void loadStudentProgress();
+  }, [loadStudentProgress]);
 
   const loadFreeAccessGrants = useCallback(async () => {
     if (!isAdmin) {
@@ -2101,6 +2183,159 @@ export default function AdminDashboard() {
             </table>
           </div>
           )}
+        </div>
+      </section>
+
+      <section className="mb-12">
+        <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-xl font-bold text-emerald-400">
+              <BarChart3 className="h-5 w-5" />
+              Student Progress
+            </h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Track reading activity, daily topic-exam results, weak topics, and reach students directly.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                value={studentProgressQuery}
+                onChange={event => setStudentProgressQuery(event.target.value)}
+                placeholder="Search student or topic..."
+                className="min-h-[42px] rounded-xl border border-slate-900/10 bg-white py-2 pl-10 pr-4 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-white/10 dark:bg-slate-900/70 dark:text-white"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => void loadStudentProgress()}
+              disabled={studentProgressLoading}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-900/10 bg-slate-900/5 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-900/10 disabled:cursor-wait disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+            >
+              {studentProgressLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {[
+            { label: 'Tracked Students', value: studentProgressSummary?.trackedStudents || 0 },
+            { label: 'Studied Topics', value: studentProgressSummary?.studiedTopics || 0 },
+            { label: 'Completed Topics', value: studentProgressSummary?.completedTopics || 0 },
+            { label: 'Practice Attempts', value: studentProgressSummary?.practiceAttempts || 0 },
+            { label: 'Avg Accuracy', value: `${studentProgressSummary?.averageAccuracy || 0}%` },
+          ].map(item => (
+            <div key={item.label} className="rounded-2xl border border-slate-900/10 bg-slate-900/5 p-4 dark:border-white/10 dark:bg-white/5">
+              <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{item.label}</div>
+              <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white">{item.value}</div>
+            </div>
+          ))}
+        </div>
+
+        {studentProgressError && (
+          <div className="mt-5 rounded-2xl border border-rose-400/30 bg-rose-400/10 px-5 py-4 text-sm font-semibold text-rose-300">
+            {studentProgressError}
+          </div>
+        )}
+
+        <div className="mt-5 overflow-hidden rounded-3xl border border-slate-900/10 dark:border-white/10">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1080px] text-left text-sm">
+              <thead className="bg-slate-900/5 text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:bg-white/5 dark:text-slate-400">
+                <tr>
+                  <th className="px-5 py-4">Student</th>
+                  <th className="px-5 py-4">Study</th>
+                  <th className="px-5 py-4">Exam Result</th>
+                  <th className="px-5 py-4">Weak Topic</th>
+                  <th className="px-5 py-4">Last Activity</th>
+                  <th className="px-5 py-4 text-right">Reach</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-900/10 dark:divide-white/10">
+                {studentProgressLoading && studentProgressRows.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-10 text-center font-bold text-slate-500 dark:text-slate-400">
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading student progress...
+                      </span>
+                    </td>
+                  </tr>
+                ) : visibleStudentProgressRows.length ? (
+                  visibleStudentProgressRows.map(student => {
+                    const whatsappUrl = buildStudentProgressWhatsappUrl(student);
+
+                    return (
+                      <tr key={student.uid} className="text-slate-700 dark:text-slate-200">
+                        <td className="px-5 py-4">
+                          <div className="font-black">{student.name}</div>
+                          <div className="mt-1 max-w-[260px] truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{student.email}</div>
+                        </td>
+                        <td className="px-5 py-4 font-semibold">
+                          <div>{student.topicsVisited} read / {student.topicsCompleted} completed</div>
+                          <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{student.totalVisits} total visits</div>
+                        </td>
+                        <td className="px-5 py-4 font-semibold">
+                          <div>{student.practiceAttempts} attempts</div>
+                          <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            Avg {student.averageAccuracy}% | Best {student.bestAccuracy}%
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 font-semibold">
+                          {student.weakestTopic ? (
+                            <>
+                              <div>{student.weakestTopic.title}</div>
+                              <div className="mt-1 text-xs text-rose-500 dark:text-rose-300">
+                                {student.weakestTopic.averageAccuracy}% avg accuracy
+                              </div>
+                            </>
+                          ) : (
+                            <span className="text-slate-400">No exam yet</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-4 font-semibold">
+                          <div>{formatActivityDate(student.lastActivityAt)}</div>
+                          <div className="mt-1 max-w-[240px] truncate text-xs text-slate-500 dark:text-slate-400">
+                            {student.lastTopicTitle || 'No recent topic'}
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <div className="inline-flex gap-2">
+                            <a
+                              href={buildStudentProgressEmailHref(student)}
+                              className="inline-flex items-center justify-center gap-2 rounded-xl border border-sky-400/25 bg-sky-500/10 px-3 py-2 text-xs font-black text-sky-500 transition hover:bg-sky-500/15 dark:text-sky-300"
+                            >
+                              <Mail className="h-4 w-4" />
+                              Email
+                            </a>
+                            {whatsappUrl && (
+                              <a
+                                href={whatsappUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-500 transition hover:bg-emerald-500/15 dark:text-emerald-300"
+                              >
+                                <MessageCircle className="h-4 w-4" />
+                                WhatsApp
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-10 text-center font-bold text-slate-500 dark:text-slate-400">
+                      No synced student progress found yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 

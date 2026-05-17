@@ -3,16 +3,33 @@ import { useParams, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Helmet } from 'react-helmet-async';
 import { ictSyllabus } from '../data/ict-syllabus';
-import { FileText, PlayCircle, CheckCircle, Edit3, ArrowLeft, HelpCircle, Clock, Award, LockKeyhole } from 'lucide-react';
+import { FileText, PlayCircle, CheckCircle, Edit3, ArrowLeft, HelpCircle, Clock, Award, LockKeyhole, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import TopicView from '../components/ui/TopicView';
 import ShareButton from '../components/ui/ShareButton';
 import { useLms } from '../context/LmsContext';
+import { useAuth } from '../context/AuthContext';
 import AdBanner from '../components/AdBanner';
+import {
+  fetchDailyPracticeExam,
+  submitDailyPracticeExam,
+  type DailyPracticeExam,
+} from '../services/practiceExam';
 
 type Tab = 'notes' | 'video' | 'short_qs' | 'practice' | 'cq' | 'quiz';
 
 const tabsFromHash: Tab[] = ['notes', 'video', 'short_qs', 'practice', 'cq', 'quiz'];
+
+const formatDhakaDateTime = (value?: string | null) => {
+  if (!value) return 'tomorrow';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'tomorrow';
+  return date.toLocaleString('en-GB', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Asia/Dhaka',
+  });
+};
 
 const getTabFromHash = (hash: string): Tab | null => {
   const tab = hash.replace('#', '') as Tab;
@@ -66,6 +83,7 @@ function ComingSoonVideoPlaceholder() {
 export default function TopicDetails() {
   const { topicId } = useParams();
   const location = useLocation();
+  const { user, login } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('notes');
   const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(new Set(['notes']));
   const [showProgressToast, setShowProgressToast] = useState(false);
@@ -108,9 +126,13 @@ export default function TopicDetails() {
   // Quiz Mode State
   const [quizStarted, setQuizStarted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
-  const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [score, setScore] = useState(0);
+  const [dailyPracticeExam, setDailyPracticeExam] = useState<DailyPracticeExam | null>(null);
+  const [dailyPracticeLoading, setDailyPracticeLoading] = useState(false);
+  const [dailyPracticeSubmitting, setDailyPracticeSubmitting] = useState(false);
+  const [dailyPracticeError, setDailyPracticeError] = useState('');
   
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -118,13 +140,15 @@ export default function TopicDetails() {
   const [scrollLeft, setScrollLeft] = useState(0);
 
   const { recordTopicVisit, isTopicCompleted, toggleTopicCompletion, saveQuizResult, quizResults } = useLms();
+  const dailyQuizQuestions = dailyPracticeExam?.questions || [];
+  const dailyAttempt = dailyPracticeExam?.attempt || null;
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (quizStarted && !quizSubmitted && timeLeft > 0) {
       timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
     } else if (timeLeft === 0 && !quizSubmitted) {
-      handleQuizSubmit();
+      void handleQuizSubmit();
     }
     return () => clearInterval(timer);
   }, [quizStarted, timeLeft, quizSubmitted]);
@@ -134,6 +158,51 @@ export default function TopicDetails() {
       recordTopicVisit(currentTopic.id);
     }
   }, [currentTopic?.id, recordTopicVisit]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setQuizStarted(false);
+    setQuizSubmitted(false);
+    setQuizAnswers({});
+    setTimeLeft(600);
+    setScore(0);
+    setDailyPracticeError('');
+
+    if (!currentTopic || !user?.id) {
+      setDailyPracticeExam(null);
+      return undefined;
+    }
+
+    setDailyPracticeLoading(true);
+    void fetchDailyPracticeExam(currentTopic.id)
+      .then(data => {
+        if (cancelled) return;
+        setDailyPracticeExam(data);
+        if (!data.canAttempt && data.attempt) {
+          setQuizSubmitted(true);
+          setScore(data.attempt.score);
+          setQuizAnswers(Object.fromEntries(
+            data.questions.map(question => [question.id, question.selectedOption || ''])
+          ));
+        }
+      })
+      .catch((error: any) => {
+        if (!cancelled) {
+          setDailyPracticeExam(null);
+          setDailyPracticeError(error?.message || 'Failed to load today\'s topic exam.');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setDailyPracticeLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentTopic?.id, user?.id]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollContainerRef.current) return;
@@ -158,27 +227,49 @@ export default function TopicDetails() {
     scrollContainerRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  const handleQuizSubmit = () => {
-    if (!currentTopic) return;
-    let newScore = 0;
-    currentTopic.quizMcqs.forEach((mcq, idx) => {
-      if (quizAnswers[idx] === mcq.correct) {
-        newScore++;
+  const handleQuizSubmit = async () => {
+    if (!currentTopic || !user || !dailyPracticeExam?.canAttempt || dailyPracticeSubmitting) return;
+
+    setDailyPracticeSubmitting(true);
+    setDailyPracticeError('');
+
+    try {
+      const data = await submitDailyPracticeExam({
+        topicId: currentTopic.id,
+        answers: quizAnswers,
+        name: user.name,
+        phone: user.phone,
+      });
+      const attempt = data.attempt;
+      setDailyPracticeExam(data);
+      setScore(attempt?.score || 0);
+      setQuizSubmitted(true);
+
+      if (attempt) {
+        saveQuizResult({
+          topicId: currentTopic.id,
+          topicTitle: currentTopic.title,
+          chapterId: parentChapter?.id,
+          chapterTitle: parentChapter?.title,
+          mode: 'topic',
+          score: attempt.score,
+          total: attempt.total,
+        });
       }
-    });
-    setScore(newScore);
-    setQuizSubmitted(true);
-    saveQuizResult({
-      topicId: currentTopic.id,
-      topicTitle: currentTopic.title,
-      chapterId: parentChapter?.id,
-      chapterTitle: parentChapter?.title,
-      mode: 'topic',
-      score: newScore,
-      total: currentTopic.quizMcqs.length,
-    });
-    if (!isTopicCompleted(currentTopic.id)) {
-      toggleTopicCompletion(currentTopic.id);
+
+      if (!isTopicCompleted(currentTopic.id)) {
+        toggleTopicCompletion(currentTopic.id);
+      }
+    } catch (error: any) {
+      const exam = error?.data as DailyPracticeExam | undefined;
+      if (exam?.attempt) {
+        setDailyPracticeExam(exam);
+        setScore(exam.attempt.score);
+        setQuizSubmitted(true);
+      }
+      setDailyPracticeError(error?.message || 'Failed to submit today\'s topic exam.');
+    } finally {
+      setDailyPracticeSubmitting(false);
     }
   };
 
@@ -606,53 +697,97 @@ export default function TopicDetails() {
             <motion.div key="quiz" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} transition={{ duration: 0.3 }}
               className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/60 dark:border-white/10 shadow-glass-inset rounded-[1.75rem] md:rounded-[2.5rem] p-4 sm:p-6 md:p-12 mb-20"
             >
-              {!quizStarted && !quizSubmitted ? (
+              {!user ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-[2rem] bg-sky-100 text-sky-600 ring-4 ring-sky-500/20 shadow-xl dark:bg-sky-900/30 dark:text-sky-300">
+                    <LockKeyhole size={44} />
+                  </div>
+                  <h2 className="mb-5 text-2xl font-black text-slate-900 dark:text-white md:text-4xl">Login to take the daily topic exam</h2>
+                  <p className="mb-8 max-w-lg text-base font-semibold leading-8 text-slate-600 dark:text-slate-300">
+                    Daily exam attempt tracking, shuffled questions, and student-wide answer analytics need your account.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void login({ redirectTo: `${location.pathname}#quiz` })}
+                    className="inline-flex items-center gap-3 rounded-full bg-sky-600 px-8 py-4 font-black text-white shadow-xl shadow-sky-900/20 transition hover:bg-sky-500"
+                  >
+                    <PlayCircle />
+                    Continue with Google
+                  </button>
+                </div>
+              ) : dailyPracticeLoading ? (
+                <div className="flex min-h-72 items-center justify-center gap-3 text-sm font-bold text-slate-500 dark:text-slate-400">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Loading today's shuffled topic exam...
+                </div>
+              ) : !dailyPracticeExam ? (
+                <div className="rounded-3xl border border-rose-300/30 bg-rose-500/10 p-6 text-center">
+                  <p className="font-black text-rose-500 dark:text-rose-300">{dailyPracticeError || 'Today\'s topic exam could not be loaded.'}</p>
+                </div>
+              ) : !quizStarted && !quizSubmitted ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <div className="w-24 h-24 bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-[2rem] flex items-center justify-center mb-8 ring-4 ring-teal-500/20 shadow-xl rotate-3 hover:rotate-0 transition-all duration-300">
                     <Clock size={48} />
                   </div>
-                  <h2 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white mb-6 tracking-tight break-words">10-Minute Quiz Challenge</h2>
+                  <h2 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white mb-6 tracking-tight break-words">Daily Topic Practice Exam</h2>
                   <p className="text-slate-600 dark:text-slate-400 max-w-lg mb-10 text-base md:text-lg leading-relaxed break-words">
-                    Test your knowledge on <span className="font-bold text-slate-800 dark:text-slate-200">"{currentTopic.title}"</span>. You have 10 minutes to answer {currentTopic.quizMcqs.length} questions. Answers will be revealed at the end.
+                    Test your knowledge on <span className="font-bold text-slate-800 dark:text-slate-200">"{currentTopic.title}"</span>. You have 10 minutes to answer {dailyQuizQuestions.length} shuffled questions. One attempt is allowed per topic each day.
                   </p>
                   <button 
                     onClick={() => setQuizStarted(true)}
                     className="px-7 md:px-10 py-4 md:py-5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white font-black rounded-full shadow-2xl shadow-teal-500/40 transition-transform hover:scale-105 active:scale-95 text-base md:text-lg flex items-center gap-3"
                   >
                     <PlayCircle />
-                    Start Quiz Now
+                    Start Today's Exam
                   </button>
                 </div>
-              ) : quizSubmitted ? (
+              ) : quizSubmitted && dailyAttempt ? (
                 <div className="flex flex-col items-center justify-center text-center py-8">
                   <div className="w-28 h-28 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500 rounded-[2rem] flex items-center justify-center mb-8 ring-4 ring-emerald-500/20 shadow-xl">
                     <Award size={56} />
                   </div>
-                  <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">Quiz Completed!</h2>
-                  <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-10">
-                    Your Score: <span className="text-emerald-500 font-black">{score}</span> / {currentTopic.quizMcqs.length}
+                  <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">Today's Exam Completed</h2>
+                  <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300">
+                    Your Score: <span className="text-emerald-500 font-black">{score}</span> / {dailyAttempt.total}
                   </p>
-                  
+                  <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                    Next attempt opens at {formatDhakaDateTime(dailyPracticeExam.nextEligibleAt)}.
+                  </p>
+
+                  <div className="mt-8 grid w-full gap-4 text-left sm:grid-cols-3">
+                    {[
+                      { label: 'Accuracy', value: `${dailyAttempt.accuracy}%`, tone: 'text-emerald-500 dark:text-emerald-300' },
+                      { label: 'Wrong', value: `${dailyAttempt.wrongPercent}%`, tone: 'text-rose-500 dark:text-rose-300' },
+                      { label: 'Correct Answers', value: `${dailyAttempt.correctCount}/${dailyAttempt.total}`, tone: 'text-sky-500 dark:text-sky-300' },
+                    ].map(item => (
+                      <div key={item.label} className="rounded-3xl border border-slate-900/10 bg-white/70 p-5 dark:border-white/10 dark:bg-slate-950/40">
+                        <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{item.label}</div>
+                        <div className={`mt-2 text-3xl font-black ${item.tone}`}>{item.value}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {dailyPracticeError && (
+                    <div className="mt-6 w-full rounded-2xl border border-amber-300/30 bg-amber-400/10 px-5 py-4 text-left text-sm font-semibold text-amber-600 dark:text-amber-300">
+                      {dailyPracticeError}
+                    </div>
+                  )}
+
                   <div className="w-full text-left mt-8 flex flex-col gap-6">
                     <h3 className="text-2xl font-black border-b border-slate-900/10 dark:border-white/10 pb-6 text-slate-800 dark:text-slate-100">Performance Review</h3>
-                    {currentTopic.quizMcqs.map((mcq, idx) => {
-                      const selected = quizAnswers[idx];
+                    {dailyQuizQuestions.map((mcq, idx) => {
+                      const selected = mcq.selectedOption || quizAnswers[mcq.id];
+                      const stats = mcq.stats;
                       
                       return (
-                        <div key={idx} className="bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-4 md:p-8 shadow-sm min-w-0">
+                        <div key={mcq.id} className="bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-4 md:p-8 shadow-sm min-w-0">
                           <h4 className="text-base md:text-lg font-bold mb-6 text-slate-800 dark:text-slate-200 leading-relaxed block break-words">
                             <span className="text-slate-400 mr-2">{idx + 1}.</span> <QuestionText text={mcq.q} />
-                            {/* @ts-ignore */}
-                            {mcq.boardQuestions && mcq.boardQuestions.map((board, bIdx) => (
-                              <span key={bIdx} className="inline-block ml-0 sm:ml-3 mt-2 sm:mt-0 px-3 py-1 bg-gradient-to-r from-amber-200 to-orange-200 dark:from-amber-900/50 dark:to-orange-900/40 text-amber-800 dark:text-amber-300 text-[0.75rem] sm:text-xs font-black rounded-lg border border-amber-300/50 dark:border-amber-700/50 shadow-sm tracking-wider align-middle mb-1 uppercase max-w-full break-words">
-                                {board}
-                              </span>
-                            ))}
                           </h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {mcq.options.map((opt, oIdx) => {
                               let btnClass = "bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-400";
-                              if (opt === mcq.correct) {
+                              if (opt === mcq.correctOption) {
                                 btnClass = "bg-emerald-100 dark:bg-emerald-500/20 border-emerald-400 dark:border-emerald-500/50 text-emerald-800 dark:text-emerald-300 font-bold ring-2 ring-emerald-500/30";
                               } else if (opt === selected) {
                                 btnClass = "bg-rose-50 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/30 text-rose-700 dark:text-rose-400 opacity-90 ring-1 ring-rose-500/20";
@@ -664,24 +799,35 @@ export default function TopicDetails() {
                               );
                             })}
                           </div>
+                          <div className="mt-5 grid gap-3 md:grid-cols-3">
+                            <div className="rounded-2xl bg-emerald-500/10 p-4">
+                              <div className="text-xs font-black uppercase tracking-[0.14em] text-emerald-600 dark:text-emerald-300">Students Correct</div>
+                              <div className="mt-1 text-2xl font-black text-emerald-600 dark:text-emerald-300">{stats?.correctPercent || 0}%</div>
+                            </div>
+                            <div className="rounded-2xl bg-rose-500/10 p-4">
+                              <div className="text-xs font-black uppercase tracking-[0.14em] text-rose-600 dark:text-rose-300">Students Wrong</div>
+                              <div className="mt-1 text-2xl font-black text-rose-600 dark:text-rose-300">{stats?.wrongPercent || 0}%</div>
+                            </div>
+                            <div className="rounded-2xl bg-sky-500/10 p-4">
+                              <div className="text-xs font-black uppercase tracking-[0.14em] text-sky-600 dark:text-sky-300">Most Chosen</div>
+                              <div className="mt-1 text-sm font-black text-sky-700 dark:text-sky-200">
+                                {stats?.topOption ? `${stats.topOption.label} (${stats.topOption.percent}%)` : 'No data yet'}
+                              </div>
+                            </div>
+                          </div>
+                          {stats?.optionStats?.length ? (
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              {stats.optionStats.map(option => (
+                                <span key={`${mcq.id}-${option.index}`} className="rounded-full bg-slate-900/5 px-3 py-1.5 text-xs font-bold text-slate-600 dark:bg-white/5 dark:text-slate-300">
+                                  {String.fromCharCode(65 + option.index)}: {option.percent}%
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
                         </div>
                       );
                     })}
                   </div>
-                  
-                  <button 
-                    onClick={() => {
-                      setQuizStarted(false);
-                      setQuizSubmitted(false);
-                      setQuizAnswers({});
-                      setTimeLeft(600);
-                      setScore(0);
-                    }}
-                    className="mt-14 px-8 py-4 bg-slate-200/50 dark:bg-slate-800/50 hover:bg-slate-300/50 dark:hover:bg-slate-700/50 text-slate-900 dark:text-white font-bold rounded-full transition-colors flex items-center gap-2"
-                  >
-                    <Clock size={18} />
-                    Retake Quiz
-                  </button>
                 </div>
               ) : (
                 <div>
@@ -697,24 +843,18 @@ export default function TopicDetails() {
                   </div>
                   
                   <div className="flex flex-col gap-10 mb-10">
-                    {currentTopic.quizMcqs.map((mcq, idx) => (
-                      <div key={idx} className="bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-4 md:p-8 shadow-sm min-w-0">
+                    {dailyQuizQuestions.map((mcq, idx) => (
+                      <div key={mcq.id} className="bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-4 md:p-8 shadow-sm min-w-0">
                         <h3 className="text-base md:text-xl font-bold mb-6 text-slate-800 dark:text-slate-100 leading-relaxed block break-words">
                           <span className="text-slate-400 mr-2">{idx + 1}.</span> <QuestionText text={mcq.q} />
-                          {/* @ts-ignore */}
-                          {mcq.boardQuestions && mcq.boardQuestions.map((board, bIdx) => (
-                            <span key={bIdx} className="inline-block ml-0 sm:ml-3 mt-2 sm:mt-0 px-3 py-1 bg-gradient-to-r from-amber-200 to-orange-200 dark:from-amber-900/50 dark:to-orange-900/40 text-amber-800 dark:text-amber-300 text-[0.75rem] sm:text-xs font-black rounded-lg border border-amber-300/50 dark:border-amber-700/50 shadow-sm tracking-wider align-middle mb-1 uppercase max-w-full break-words">
-                              {board}
-                            </span>
-                          ))}
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {mcq.options.map((opt, oIdx) => {
-                            const isSelected = quizAnswers[idx] === opt;
+                            const isSelected = quizAnswers[mcq.id] === opt;
                             return (
                               <button 
                                 key={oIdx} 
-                                onClick={() => setQuizAnswers(prev => ({ ...prev, [idx]: opt }))}
+                                onClick={() => setQuizAnswers(prev => ({ ...prev, [mcq.id]: opt }))}
                                 className={cn(
                                   "p-4 md:p-5 rounded-2xl border font-bold text-left transition-all active:scale-[0.98] text-sm md:text-base break-words",
                                   isSelected 
@@ -733,11 +873,12 @@ export default function TopicDetails() {
                   
                   <div className="flex justify-end sticky bottom-6 z-10 px-0 sm:px-4">
                     <button 
-                      onClick={handleQuizSubmit}
-                      className="w-full sm:w-auto justify-center px-7 md:px-12 py-4 md:py-5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white font-black text-base md:text-lg rounded-full shadow-2xl shadow-teal-500/40 transition-transform hover:scale-105 flex items-center gap-3"
+                      onClick={() => void handleQuizSubmit()}
+                      disabled={dailyPracticeSubmitting}
+                      className="w-full sm:w-auto justify-center px-7 md:px-12 py-4 md:py-5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white font-black text-base md:text-lg rounded-full shadow-2xl shadow-teal-500/40 transition-transform hover:scale-105 flex items-center gap-3 disabled:cursor-wait disabled:opacity-70"
                     >
-                      <CheckCircle />
-                      Submit Final Answers
+                      {dailyPracticeSubmitting ? <Loader2 className="animate-spin" /> : <CheckCircle />}
+                      {dailyPracticeSubmitting ? 'Submitting...' : 'Submit Final Answers'}
                     </button>
                   </div>
                 </div>
