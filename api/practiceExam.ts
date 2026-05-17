@@ -87,6 +87,7 @@ const serializeAttempt = (id: string, data: Record<string, any>) => ({
   userId: cleanString(data.userId),
   email: cleanString(data.email),
   name: cleanString(data.name) || null,
+  profileImage: cleanString(data.profileImage) || null,
   topicId: cleanString(data.topicId),
   topicTitle: cleanString(data.topicTitle),
   chapterId: cleanString(data.chapterId),
@@ -208,6 +209,7 @@ export default async function practiceExam(req: any, res: any) {
     const answers = (body.answers || {}) as Record<string, unknown>;
     const studentName = cleanString(body.name || decoded.name);
     const phone = cleanString(body.phone);
+    const profileImage = cleanString(body.profileImage);
 
     const questionResults = exam.questions.map(question => {
       const chosenIndex = selectedOptionIndex(question, answers[question.id]);
@@ -241,6 +243,7 @@ export default async function practiceExam(req: any, res: any) {
       email: cleanString(decoded.email),
       name: studentName || null,
       phone: phone || null,
+      profileImage: profileImage || null,
       ...topic,
       dateKey: exam.dateKey,
       score: correctCount,
@@ -260,6 +263,7 @@ export default async function practiceExam(req: any, res: any) {
       email: cleanString(decoded.email),
       ...(studentName ? { name: studentName } : {}),
       ...(phone ? { phone } : {}),
+      ...(profileImage ? { profileImage } : {}),
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
 

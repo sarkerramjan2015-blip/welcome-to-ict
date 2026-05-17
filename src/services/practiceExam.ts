@@ -38,6 +38,7 @@ export type DailyPracticeAttempt = {
   userId: string;
   email: string;
   name: string | null;
+  profileImage?: string | null;
   topicId: string;
   topicTitle: string;
   chapterId: string;
@@ -104,15 +105,17 @@ export const submitDailyPracticeExam = async ({
   answers,
   name,
   phone,
+  profileImage,
 }: {
   topicId: string;
   answers: Record<string, string>;
   name?: string | null;
   phone?: string | null;
+  profileImage?: string | null;
 }) => {
   const data = await requestPracticeExam<DailyPracticeExam & { success: true }>('/api/practiceExam', {
     method: 'POST',
-    body: JSON.stringify({ topicId, answers, name, phone }),
+    body: JSON.stringify({ topicId, answers, name, phone, profileImage }),
   });
   return data;
 };

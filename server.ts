@@ -20,6 +20,8 @@ import challengeExamHandler from "./api/challengeExam";
 import firebaseConfigHandler from "./api/firebaseConfig";
 import leaderboardHandler from "./api/leaderboard";
 import practiceExamHandler from "./api/practiceExam";
+import practiceCardImageHandler from "./api/practiceCardImage";
+import practiceShareHandler from "./api/practiceShare";
 import rankCardImageHandler from "./api/rankCardImage";
 import rankShareHandler from "./api/rankShare";
 import studyProgressHandler from "./api/studyProgress";
@@ -60,6 +62,8 @@ async function startServer() {
   app.all("/api/firebaseConfig", firebaseConfigHandler);
   app.all("/api/leaderboard", leaderboardHandler);
   app.all("/api/practiceExam", practiceExamHandler);
+  app.all("/api/practiceCardImage", practiceCardImageHandler);
+  app.all("/api/practiceShare", practiceShareHandler);
   app.all("/api/rankCardImage", rankCardImageHandler);
   app.all("/api/rankShare", rankShareHandler);
   app.all("/api/studyProgress", studyProgressHandler);

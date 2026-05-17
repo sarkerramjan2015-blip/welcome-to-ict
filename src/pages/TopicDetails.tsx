@@ -3,7 +3,7 @@ import { useParams, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Helmet } from 'react-helmet-async';
 import { ictSyllabus } from '../data/ict-syllabus';
-import { FileText, PlayCircle, CheckCircle, Edit3, ArrowLeft, HelpCircle, Clock, Award, LockKeyhole, Loader2 } from 'lucide-react';
+import { FileText, PlayCircle, CheckCircle, Edit3, ArrowLeft, HelpCircle, Clock, Award, LockKeyhole, Loader2, Share2, Download, Facebook } from 'lucide-react';
 import { cn } from '../lib/utils';
 import TopicView from '../components/ui/TopicView';
 import ShareButton from '../components/ui/ShareButton';
@@ -54,6 +54,23 @@ const QuestionText = ({ text }: { text: string }) => {
     </span>
   );
 };
+
+const downloadBlob = (blob: Blob, fileName: string) => {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+const safeFilePart = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'topic';
 
 function ComingSoonVideoPlaceholder() {
   return (
@@ -133,6 +150,8 @@ export default function TopicDetails() {
   const [dailyPracticeLoading, setDailyPracticeLoading] = useState(false);
   const [dailyPracticeSubmitting, setDailyPracticeSubmitting] = useState(false);
   const [dailyPracticeError, setDailyPracticeError] = useState('');
+  const [practiceShareBusy, setPracticeShareBusy] = useState<'download' | 'share' | 'facebook' | ''>('');
+  const [practiceShareNotice, setPracticeShareNotice] = useState('');
   
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -239,6 +258,7 @@ export default function TopicDetails() {
         answers: quizAnswers,
         name: user.name,
         phone: user.phone,
+        profileImage: user.profileImage,
       });
       const attempt = data.attempt;
       setDailyPracticeExam(data);
@@ -277,6 +297,81 @@ export default function TopicDetails() {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const getPracticeShareImageBlob = async () => {
+    if (!dailyAttempt?.id) {
+      throw new Error('Practice result is not ready yet.');
+    }
+
+    const response = await fetch(`/api/practiceCardImage?attemptId=${encodeURIComponent(dailyAttempt.id)}`);
+    if (!response.ok) {
+      throw new Error('Score card image could not be created.');
+    }
+
+    return response.blob();
+  };
+
+  const handlePracticeCardDownload = async () => {
+    if (!dailyAttempt) return;
+
+    setPracticeShareBusy('download');
+    setPracticeShareNotice('');
+    try {
+      const blob = await getPracticeShareImageBlob();
+      downloadBlob(blob, `ict-toppers-${safeFilePart(currentTopic.title)}-score-card.png`);
+    } catch (error: any) {
+      setPracticeShareNotice(error?.message || 'Score card download failed.');
+    } finally {
+      setPracticeShareBusy('');
+    }
+  };
+
+  const handlePracticeCardShare = async () => {
+    if (!dailyAttempt) return;
+
+    setPracticeShareBusy('share');
+    setPracticeShareNotice('');
+    try {
+      const blob = await getPracticeShareImageBlob();
+      const file = new File(
+        [blob],
+        `ict-toppers-${safeFilePart(currentTopic.title)}-score-card.png`,
+        { type: 'image/png' }
+      );
+      const shareData = {
+        title: 'ICT Toppers Daily Topic Practice Result',
+        text: `${user?.name || 'ICT Student'} scored ${dailyAttempt.score}/${dailyAttempt.total} on ${currentTopic.title}.`,
+        files: [file],
+      };
+
+      if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
+        await navigator.share(shareData);
+        return;
+      }
+
+      downloadBlob(blob, file.name);
+      setPracticeShareNotice('Your browser cannot share images directly, so the score card was downloaded instead.');
+    } catch (error: any) {
+      if (error?.name !== 'AbortError') {
+        setPracticeShareNotice(error?.message || 'Score card sharing failed.');
+      }
+    } finally {
+      setPracticeShareBusy('');
+    }
+  };
+
+  const handlePracticeFacebookShare = () => {
+    if (!dailyAttempt?.id) return;
+
+    setPracticeShareBusy('facebook');
+    setPracticeShareNotice('');
+    const siteOrigin = window.location.hostname.includes('localhost')
+      ? 'https://www.icttoppers.com'
+      : window.location.origin;
+    const shareUrl = `${siteOrigin}/api/practiceShare?attemptId=${encodeURIComponent(dailyAttempt.id)}`;
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank', 'width=640,height=520');
+    window.setTimeout(() => setPracticeShareBusy(''), 400);
   };
 
   if (!currentTopic || !parentChapter) {
@@ -765,6 +860,100 @@ export default function TopicDetails() {
                         <div className={`mt-2 text-3xl font-black ${item.tone}`}>{item.value}</div>
                       </div>
                     ))}
+                  </div>
+
+                  <div className="mt-8 w-full rounded-[1.75rem] border border-slate-900/10 bg-white/70 p-4 text-left shadow-sm dark:border-white/10 dark:bg-slate-950/35 md:p-6">
+                    <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Share Score Card</p>
+                        <h3 className="mt-1 text-xl font-black text-slate-900 dark:text-white">Show your daily topic result</h3>
+                      </div>
+                      <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Image card includes your profile, topic, and full score breakdown.</p>
+                    </div>
+
+                    <div className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-950 text-white shadow-2xl shadow-slate-950/15">
+                      <div className="grid gap-5 p-5 md:grid-cols-[220px_minmax(0,1fr)] md:p-6">
+                        <div className="flex flex-col items-center justify-center rounded-[1.25rem] bg-white/[0.06] p-4 text-center">
+                          <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-emerald-300/70 bg-emerald-500/15">
+                            {user?.profileImage ? (
+                              <img
+                                src={user.profileImage}
+                                alt={user.name || 'Student'}
+                                className="h-full w-full object-cover"
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-3xl font-black text-emerald-100">
+                                {(user?.name || 'ICT Student').charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <div className="mt-4 break-words text-xl font-black">{user?.name || 'ICT Student'}</div>
+                          <div className="mt-1 text-sm font-semibold text-slate-300">{parentChapter.title}</div>
+                        </div>
+
+                        <div className="min-w-0 rounded-[1.25rem] bg-white/[0.06] p-4 md:p-5">
+                          <div className="text-xs font-black uppercase tracking-[0.16em] text-indigo-200">Topic</div>
+                          <div className="mt-2 break-words text-2xl font-black">{currentTopic.title}</div>
+                          <div className="mt-5 flex flex-wrap items-end gap-x-5 gap-y-3">
+                            <div className="text-5xl font-black text-emerald-300">{dailyAttempt.score}/{dailyAttempt.total}</div>
+                            <div className="pb-1 text-sm font-bold uppercase tracking-[0.14em] text-slate-300">Score</div>
+                          </div>
+                          <div className="mt-5 grid gap-3 sm:grid-cols-4">
+                            {[
+                              { label: 'Correct', value: dailyAttempt.correctCount, tone: 'text-emerald-300' },
+                              { label: 'Wrong', value: dailyAttempt.wrongCount, tone: 'text-rose-300' },
+                              { label: 'Accuracy', value: `${dailyAttempt.accuracy}%`, tone: 'text-sky-300' },
+                              { label: 'Wrong %', value: `${dailyAttempt.wrongPercent}%`, tone: 'text-amber-200' },
+                            ].map(item => (
+                              <div key={item.label} className="rounded-2xl bg-white/[0.06] p-3">
+                                <div className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-slate-400">{item.label}</div>
+                                <div className={`mt-1 text-2xl font-black ${item.tone}`}>{item.value}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                      <button
+                        type="button"
+                        onClick={() => void handlePracticeCardShare()}
+                        disabled={Boolean(practiceShareBusy)}
+                        title="Share the score card image"
+                        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 font-black text-slate-950 transition hover:bg-emerald-400 disabled:cursor-wait disabled:opacity-70"
+                      >
+                        <Share2 className="h-4 w-4" />
+                        {practiceShareBusy === 'share' ? 'Preparing image...' : 'Share Image'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handlePracticeFacebookShare}
+                        disabled={Boolean(practiceShareBusy)}
+                        title="Share the public result card on Facebook"
+                        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#1877F2] px-5 py-3 font-black text-white transition hover:bg-[#0f6ae0] disabled:cursor-wait disabled:opacity-70"
+                      >
+                        <Facebook className="h-4 w-4" />
+                        Facebook
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handlePracticeCardDownload()}
+                        disabled={Boolean(practiceShareBusy)}
+                        title="Download the score card as PNG"
+                        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-slate-900/10 bg-slate-900/5 px-5 py-3 font-black text-slate-800 transition hover:bg-slate-900/10 disabled:cursor-wait disabled:opacity-70 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+                      >
+                        <Download className="h-4 w-4" />
+                        {practiceShareBusy === 'download' ? 'Preparing...' : 'Download PNG'}
+                      </button>
+                    </div>
+
+                    {practiceShareNotice && (
+                      <div className="mt-4 rounded-2xl border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-sm font-semibold text-amber-700 dark:text-amber-200">
+                        {practiceShareNotice}
+                      </div>
+                    )}
                   </div>
 
                   {dailyPracticeError && (
