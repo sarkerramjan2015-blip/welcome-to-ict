@@ -12,6 +12,7 @@ import accessProfileHandler from "./api/accessProfile";
 import adminAuthHandler from "./api/adminAuth";
 import adminAccessHandler from "./api/adminAccess";
 import adminActivityHandler from "./api/adminActivity";
+import adminContentHandler from "./api/adminContent";
 import adminLeaderboardHandler from "./api/adminLeaderboard";
 import adminPracticeProgressHandler from "./api/adminPracticeProgress";
 import adminQuizQuestionsHandler from "./api/adminQuizQuestions";
@@ -51,6 +52,7 @@ async function startServer() {
   app.all("/api/adminAuth", adminAuthHandler);
   app.all("/api/adminAccess", adminAccessHandler);
   app.all("/api/adminActivity", adminActivityHandler);
+  app.all("/api/adminContent", adminContentHandler);
   app.all("/api/adminLeaderboard", adminLeaderboardHandler);
   app.all("/api/adminPracticeProgress", adminPracticeProgressHandler);
   app.all("/api/adminQuizQuestions", adminQuizQuestionsHandler);

@@ -43,16 +43,9 @@ import {
   X,
 } from 'lucide-react';
 import {
-  addDoc,
-  collection,
   doc,
-  getDoc,
-  getDocs,
-  increment,
   onSnapshot,
   serverTimestamp,
-  setDoc,
-  writeBatch,
 } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
@@ -74,6 +67,11 @@ import {
   type AdminPracticeProgressSummary,
   type AdminPracticeStudent,
 } from '../../services/adminPracticeProgress';
+import {
+  fetchAdminContentLibrary,
+  generateAdminChallengeQuestions,
+  saveAdminContentAction,
+} from '../../services/adminContent';
 import {
   fetchAdminLeaderboard,
   publishAdminLeaderboard,
@@ -994,68 +992,20 @@ export default function AdminDashboard() {
   };
 
   const loadContentLibrary = useCallback(async () => {
-    if (!isAdmin || firebaseDb === undefined) {
-      return;
-    }
-
-    if (!firebaseDb) {
-      setChapters([]);
-      setTopics([]);
-      setContentMcqs([]);
-      setContentCqs([]);
+    if (!isAdmin) {
       return;
     }
 
     setContentLoading(true);
     try {
-      const [chapterSnapshot, topicSnapshot, mcqSnapshot, cqSnapshot] = await Promise.all([
-        getDocs(collection(firebaseDb, 'chapters')),
-        getDocs(collection(firebaseDb, 'topics')),
-        getDocs(collection(firebaseDb, 'mcqs')),
-        getDocs(collection(firebaseDb, 'cqs')),
-      ]);
-
-      const nextChapters = chapterSnapshot.docs
-        .map(item => {
-          const data = item.data() || {};
-          return {
-            id: item.id,
-            title: String(data.title || ''),
-            slug: String(data.slug || ''),
-            description: String(data.description || ''),
-            order: Number(data.order || 0),
-            level: String(data.level || ''),
-            status: String(data.status || ''),
-          };
-        })
-        .sort(compareByOrderThenTitle);
-
-      const nextTopics = topicSnapshot.docs
-        .map(item => {
-          const data = item.data() || {};
-          return {
-            id: item.id,
-            title: String(data.title || ''),
-            slug: String(data.slug || ''),
-            chapterId: String(data.chapterId || ''),
-            importance: String(data.importance || ''),
-            order: Number(data.order || 0),
-            board_notes: String(data.board_notes || ''),
-            video_url: String(data.video_url || ''),
-          };
-        })
-        .sort(compareByOrderThenTitle);
-
-      const mapQuestion = (id: string, data: Record<string, any>) => ({
-        id,
-        chapterId: String(data.chapterId || ''),
-        topicId: String(data.topicId || ''),
-      });
+      const data = await fetchAdminContentLibrary();
+      const nextChapters = data.chapters.sort(compareByOrderThenTitle);
+      const nextTopics = data.topics.sort(compareByOrderThenTitle);
 
       setChapters(nextChapters);
       setTopics(nextTopics);
-      setContentMcqs(mcqSnapshot.docs.map(item => mapQuestion(item.id, item.data())));
-      setContentCqs(cqSnapshot.docs.map(item => mapQuestion(item.id, item.data())));
+      setContentMcqs(data.mcqs);
+      setContentCqs(data.cqs);
       setSelectedContentChapterId(current => (
         current && nextChapters.some(item => item.id === current)
           ? current
@@ -1071,7 +1021,7 @@ export default function AdminDashboard() {
     } finally {
       setContentLoading(false);
     }
-  }, [firebaseDb, isAdmin]);
+  }, [isAdmin]);
 
   useEffect(() => {
     void loadContentLibrary();
@@ -1586,117 +1536,24 @@ export default function AdminDashboard() {
     event.preventDefault();
     if (!activeAction || !requireAdminSession()) return;
 
-    if (firebaseDb === undefined) {
-      setNotice({ type: 'error', text: 'Firebase is still loading. Please try again in a moment.' });
-      return;
-    }
-
-    if (!firebaseDb) {
-      setNotice({ type: 'error', text: 'Firebase is not configured. Check your VITE_FIREBASE_* environment variables.' });
-      return;
-    }
-
     const submittedAction = activeAction;
     setIsSaving(true);
     setNotice(null);
 
     try {
-      const payload = buildFirestorePayload(submittedAction, forms);
       const collectionName = actionConfig[submittedAction].collectionName;
-      let savedId = '';
-      let quizChallengeId = '';
+      const saved = await saveAdminContentAction(submittedAction, forms[submittedAction]);
+      const savedId = saved.savedId;
+      const quizChallengeId = saved.challengeId || '';
 
       if (submittedAction === 'quizQuestion') {
-        const quizPayload = payload as ReturnType<typeof buildFirestorePayload> & {
-          challengeId: string;
-          question: string;
-          q: string;
-          options: string[];
-          correctAnswer: string;
-          correct: string;
-          explanation: string;
-          chapterId: string;
-          topicId: string;
-          order: number;
-        };
-        quizChallengeId = quizPayload.challengeId;
-        const challengeRef = doc(firebaseDb, 'megaChallenges', quizPayload.challengeId);
-        const challengeSnap = await getDoc(challengeRef);
-
-        if (!challengeSnap.exists()) {
-          throw new Error('Choose an existing quiz routine before adding quiz questions.');
-        }
-
-        const questionRef = doc(collection(firebaseDb, 'megaChallenges', quizPayload.challengeId, 'questions'));
-        savedId = questionRef.id;
-        const embeddedQuestion = {
-          id: savedId,
-          question: quizPayload.question,
-          q: quizPayload.q,
-          options: quizPayload.options,
-          correctAnswer: quizPayload.correctAnswer,
-          correct: quizPayload.correct,
-          explanation: quizPayload.explanation,
-          chapterId: quizPayload.chapterId,
-          topicId: quizPayload.topicId,
-          order: quizPayload.order,
-        };
-
-        await setDoc(questionRef, {
-          ...embeddedQuestion,
-          challengeId: quizPayload.challengeId,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        }, { merge: true });
-
-        const challengeData = challengeSnap.data() || {};
-        await setDoc(challengeRef, {
-          questionCount: Array.isArray(challengeData.questions)
-            ? challengeData.questions.length + 1
-            : increment(1),
-          ...(Array.isArray(challengeData.questions)
-            ? { questions: [...challengeData.questions, embeddedQuestion] }
-            : {}),
-          updatedAt: serverTimestamp(),
-        }, { merge: true });
-
-        const currentRef = doc(firebaseDb, 'megaChallenges', 'current');
-        const currentSnap = await getDoc(currentRef);
-        if (
-          currentSnap.exists() &&
-          currentSnap.data()?.currentChallengeId === quizPayload.challengeId &&
-          Array.isArray(currentSnap.data()?.questions)
-        ) {
-          await setDoc(currentRef, {
-            questions: [...currentSnap.data()?.questions, embeddedQuestion],
-            questionCount: currentSnap.data()?.questions.length + 1,
-            updatedAt: serverTimestamp(),
-          }, { merge: true });
-        }
-
         await loadQuizQuestionSets();
-        if (selectedQuestionChallengeId === quizPayload.challengeId) {
+        if (selectedQuestionChallengeId === quizChallengeId) {
           await loadQuizQuestions();
         }
-        if (nextChallengeSet?.id === quizPayload.challengeId) {
+        if (nextChallengeSet?.id === quizChallengeId) {
           await loadNextChallengeOverview();
         }
-      } else if (submittedAction === 'challenge') {
-        savedId = String((payload as { id: string }).id);
-        await setDoc(doc(firebaseDb, collectionName, savedId), payload, { merge: true });
-        if ((payload as { status?: string }).status === 'LIVE') {
-          await setDoc(
-            doc(firebaseDb, collectionName, 'current'),
-            {
-              currentChallengeId: savedId,
-              updatedAt: serverTimestamp(),
-            },
-            { merge: true }
-          );
-        }
-      } else {
-        const saved = await addDoc(collection(firebaseDb, collectionName), payload);
-        savedId = saved.id;
       }
 
       if (['chapter', 'topic', 'mcq', 'cq'].includes(submittedAction)) {
@@ -1733,91 +1590,17 @@ export default function AdminDashboard() {
   const generateChallenge = async () => {
     if (!requireAdminSession()) return;
 
-    if (firebaseDb === undefined) {
-      setNotice({ type: 'error', text: 'Firebase is still loading. Please try again in a moment.' });
-      return;
-    }
-
-    if (!firebaseDb) {
-      setNotice({ type: 'error', text: 'Firebase is not configured. Challenge generation needs Firestore access.' });
-      return;
-    }
-
     setIsGenerating(true);
     setNotice(null);
 
     try {
-      const snapshot = await getDocs(collection(firebaseDb, 'mcqs'));
-      const mcqs = snapshot.docs
-        .map(item => normalizeMcq(item.id, item.data()))
-        .filter((item): item is MegaChallengeQuestion => Boolean(item));
-
-      if (mcqs.length < 30) {
-        throw new Error(`At least 30 valid MCQs are required in Firestore/mcqs. Found ${mcqs.length}.`);
-      }
-
-      const selectedQuestions = [...mcqs].sort(() => Math.random() - 0.5).slice(0, 30);
-      const currentRef = doc(firebaseDb, 'megaChallenges', 'current');
-      const currentSnap = await getDoc(currentRef);
-      let challengeId = getCurrentChallengeId();
-      
-      if (currentSnap.exists() && currentSnap.data().currentChallengeId) {
-        challengeId = currentSnap.data().currentChallengeId;
-      }
-      
-      const now = new Date();
-      const month = now.toLocaleString('default', { month: 'long' });
-      const year = now.getFullYear();
-      const challengePayload = {
-        id: challengeId,
-        title: 'HSC ICT Monthly Quiz Exam',
-        month,
-        year,
-        status: 'LIVE',
-        sourceCollection: 'mcqs',
-        questionCount: selectedQuestions.length,
-        totalMarks: selectedQuestions.length,
-        durationMinutes: 30,
-        questions: selectedQuestions,
-        updatedAt: serverTimestamp(),
-      };
-
-      await setDoc(
-        doc(firebaseDb, 'megaChallenges', challengeId),
-        {
-          ...challengePayload,
-          createdAt: serverTimestamp(),
-        },
-        { merge: true }
-      );
-
-      await setDoc(
-        doc(firebaseDb, 'megaChallenges', 'current'),
-        {
-          ...challengePayload,
-          currentChallengeId: challengeId,
-        },
-        { merge: true }
-      );
-
-      const batch = writeBatch(firebaseDb);
-      selectedQuestions.forEach((question, index) => {
-        batch.set(
-          doc(firebaseDb, 'megaChallenges', challengeId, 'questions', question.id),
-          {
-            ...question,
-            challengeId,
-            order: index + 1,
-            updatedAt: serverTimestamp(),
-          },
-          { merge: true }
-        );
-      });
-      await batch.commit();
+      const result = await generateAdminChallengeQuestions();
+      await loadQuizQuestionSets();
+      await loadNextChallengeOverview();
 
       setNotice({
         type: 'success',
-        text: `Mega Challenge ${challengeId} is live with ${selectedQuestions.length} random MCQs from Firestore.`,
+        text: `Mega Challenge ${result.challengeId} is live with ${result.questionCount} random MCQs from Firestore.`,
       });
     } catch (error: any) {
       console.error('Challenge generation error:', error);

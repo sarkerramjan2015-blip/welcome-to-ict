@@ -124,14 +124,26 @@ const normalizeEditableQuestion = (value: Record<string, any>): QuizQuestion => 
   };
 };
 
-const getChallengeQuestions = async (challengeId: string) => {
+const resolveChallengeSnapshot = async (challengeId: string) => {
   const db = getAdminDb();
   const challengeRef = db.collection('megaChallenges').doc(challengeId);
   const challengeSnap = await challengeRef.get();
 
-  if (!challengeSnap.exists) {
-    throw httpError(404, `No quiz routine was found for ${challengeId}.`);
+  if (challengeSnap.exists) {
+    return { challengeRef, challengeSnap, logicalId: challengeSnap.id };
   }
+
+  const currentRef = db.collection('megaChallenges').doc('current');
+  const currentSnap = await currentRef.get();
+  if (currentSnap.exists && cleanString(currentSnap.data()?.currentChallengeId) === challengeId) {
+    return { challengeRef: currentRef, challengeSnap: currentSnap, logicalId: challengeId };
+  }
+
+  throw httpError(404, `No quiz routine was found for ${challengeId}.`);
+};
+
+const getChallengeQuestions = async (challengeId: string) => {
+  const { challengeRef, challengeSnap, logicalId } = await resolveChallengeSnapshot(challengeId);
 
   const subcollectionSnap = await challengeRef.collection('questions').get();
   const subcollectionQuestions = subcollectionSnap.docs
@@ -142,7 +154,7 @@ const getChallengeQuestions = async (challengeId: string) => {
   if (subcollectionQuestions.length) {
     return {
       challenge: {
-        id: challengeSnap.id,
+        id: logicalId,
         ...serializeValue(challengeSnap.data() || {}),
       },
       questions: subcollectionQuestions,
@@ -157,7 +169,7 @@ const getChallengeQuestions = async (challengeId: string) => {
 
   return {
     challenge: {
-      id: challengeSnap.id,
+      id: logicalId,
       ...serializeValue(challengeSnap.data() || {}),
     },
     questions: embeddedQuestions,
@@ -166,6 +178,7 @@ const getChallengeQuestions = async (challengeId: string) => {
 
 const listChallengeSets = async () => {
   const snapshot = await getAdminDb().collection('megaChallenges').get();
+  const currentDoc = snapshot.docs.find(item => item.id === 'current');
   const items = await Promise.all(
     snapshot.docs
       .filter(item => item.id !== 'current')
@@ -184,6 +197,19 @@ const listChallengeSets = async () => {
         };
       })
   );
+
+  const currentChallengeId = cleanString(currentDoc?.data()?.currentChallengeId);
+  if (currentDoc && currentChallengeId && !items.some(item => item.id === currentChallengeId)) {
+    const data = currentDoc.data() || {};
+    items.push({
+      id: currentChallengeId,
+      title: cleanString(data.title) || 'HSC ICT Monthly Quiz Exam',
+      status: cleanString(data.status) || 'DRAFT',
+      startsAt: toIsoDate(data.startsAt),
+      updatedAt: toIsoDate(data.updatedAt),
+      questionCount: Number(data.questionCount || (Array.isArray(data.questions) ? data.questions.length : 0)),
+    });
+  }
 
   return items.sort((a, b) => {
     const aTime = new Date(a.startsAt || a.updatedAt || 0).getTime();

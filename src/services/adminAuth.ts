@@ -1,6 +1,4 @@
 import type { User as FirebaseUser } from 'firebase/auth';
-import { getFirebaseDb } from '../lib/firebase';
-
 export const ADMIN_COLLECTION = 'admin';
 export const ADMIN_ROLE = 'admin';
 
@@ -78,34 +76,6 @@ const validateAdminRecord = (
   };
 };
 
-const verifyViaFirestore = async (firebaseUser: FirebaseUser) => {
-  const db = await getFirebaseDb();
-  if (!db) {
-    throw new Error('Firebase client config is missing, so Firestore admin/{uid} could not be checked.');
-  }
-
-  const [{ doc, getDoc }] = await Promise.all([
-    import('firebase/firestore'),
-  ]);
-
-  const snapshot = await getDoc(doc(db, ADMIN_COLLECTION, firebaseUser.uid));
-  if (!snapshot.exists()) {
-    throw new Error(`No admin document exists at admin/${firebaseUser.uid}.`);
-  }
-
-  const adminRecord = validateAdminRecord(
-    snapshot.data() as Record<string, unknown>,
-    firebaseUser.uid,
-    firebaseUser.email || ''
-  );
-
-  if (!adminRecord) {
-    throw new Error(`admin/${firebaseUser.uid} exists, but uid/email/role fields do not match this signed-in Firebase account.`);
-  }
-
-  return adminRecord;
-};
-
 const verifyViaApi = async (firebaseUser: FirebaseUser) => {
   const token = await firebaseUser.getIdToken();
   const response = await fetch('/api/adminAuth', {
@@ -141,17 +111,6 @@ export const verifyFirebaseAdminUser = async (
   }
 
   const attempts: AdminVerificationAttempt[] = [];
-
-  try {
-    const firestoreAdmin = await verifyViaFirestore(firebaseUser);
-    if (firestoreAdmin) return firestoreAdmin;
-  } catch (error) {
-    attempts.push({
-      source: 'Client Firestore',
-      message: getErrorMessage(error),
-    });
-    console.warn('Firestore admin verification failed, trying API fallback:', error);
-  }
 
   try {
     return await verifyViaApi(firebaseUser);

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getFirebaseAuth, getGoogleProvider } from '../../lib/firebase';
-import { verifyFirebaseAdminUser } from '../../services/adminAuth';
+import { AdminVerificationError, verifyFirebaseAdminUser } from '../../services/adminAuth';
 
 function GoogleLogo() {
   return (
@@ -17,8 +17,28 @@ function GoogleLogo() {
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const redirectTimerRef = useRef<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => () => {
+    if (redirectTimerRef.current) {
+      window.clearTimeout(redirectTimerRef.current);
+    }
+  }, []);
+
+  const rejectInvalidAdmin = async (auth: Awaited<ReturnType<typeof getFirebaseAuth>>, signOut: (auth: any) => Promise<void>) => {
+    if (auth) {
+      await signOut(auth).catch(() => undefined);
+    }
+    setError('Invalid email. Only the approved admin email can access this portal.');
+    if (redirectTimerRef.current) {
+      window.clearTimeout(redirectTimerRef.current);
+    }
+    redirectTimerRef.current = window.setTimeout(() => {
+      navigate('/', { replace: true });
+    }, 2200);
+  };
 
   const handleGoogleAdminLogin = async () => {
     setError('');
@@ -40,8 +60,7 @@ export default function AdminLogin() {
       const adminRecord = await verifyFirebaseAdminUser(credential.user, { throwOnFailure: true });
 
       if (!adminRecord) {
-        await signOut(auth).catch(() => undefined);
-        setError('This Google account is not approved in Firestore admin/{uid}.');
+        await rejectInvalidAdmin(auth, signOut);
         return;
       }
 
@@ -49,6 +68,13 @@ export default function AdminLogin() {
       navigate('/admin/dashboard', { replace: true });
     } catch (loginError: any) {
       if (loginError?.code === 'auth/popup-closed-by-user') {
+        return;
+      }
+
+      if (loginError instanceof AdminVerificationError) {
+        const auth = await getFirebaseAuth();
+        const { signOut } = await import('firebase/auth');
+        await rejectInvalidAdmin(auth, signOut);
         return;
       }
 
