@@ -308,7 +308,7 @@ export default async function practiceExam(req: any, res: any) {
     console.error('practiceExam error:', error);
     return json(res, error?.status || 500, {
       success: false,
-      error: error?.message || 'Practice exam request failed.',
+      error: error?.message || 'Practice exam request failed (backend).',
     });
   }
 }

@@ -117,7 +117,7 @@ export const buildDailyPracticeQuestions = (topicId: string, dateKey: string) =>
   if (!topic) return [];
 
   const uniqueQuestions = new Map<string, PracticeQuestion>();
-  [...topic.practiceMcqs, ...topic.quizMcqs]
+  [...(topic.practiceMcqs || []), ...(topic.quizMcqs || [])]
     .map(question => normalizeQuestion(topicId, question))
     .filter((question): question is PracticeQuestion => Boolean(question))
     .forEach(question => uniqueQuestions.set(question.id, question));
