@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
 import { getPublicRankResult } from '../src/server/publicLeaderboardAccess.js';
+import practiceCardImageHandler from '../src/server/api/practiceCardImage.js';
 
 const cleanString = (value: unknown) => String(value || '').trim();
 
@@ -71,6 +72,9 @@ const createRankSvg = async (rank: Awaited<ReturnType<typeof getPublicRankResult
 };
 
 export default async function rankCardImage(req: any, res: any) {
+  const gatewayRoute = Array.isArray(req.query?.route) ? req.query.route[0] : req.query?.route;
+  if (gatewayRoute === 'practiceCardImage') return practiceCardImageHandler(req, res);
+
   try {
     if (req.method !== 'GET') {
       res.setHeader('Allow', 'GET');

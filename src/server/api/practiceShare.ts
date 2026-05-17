@@ -1,4 +1,4 @@
-import { getPublicPracticeResult } from '../src/server/publicPracticeShareAccess.js';
+import { getPublicPracticeResult } from '../publicPracticeShareAccess.js';
 
 const cleanString = (value: unknown) => String(value || '').trim();
 

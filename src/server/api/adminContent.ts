@@ -1,5 +1,5 @@
 import { FieldValue } from 'firebase-admin/firestore';
-import { getAdminDb, httpError, requireAdmin, verifyRequest } from '../src/server/firebaseAdminAccess.js';
+import { getAdminDb, httpError, requireAdmin, verifyRequest } from '../firebaseAdminAccess.js';
 
 type AdminAction = 'chapter' | 'topic' | 'mcq' | 'cq' | 'quizQuestion' | 'course' | 'suggestion' | 'challenge';
 

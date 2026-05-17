@@ -1,4 +1,7 @@
 import { getAdminDb, verifyRequest } from '../src/server/firebaseAdminAccess.js';
+import accessProfileHandler from '../src/server/api/accessProfile.js';
+import practiceExamHandler from '../src/server/api/practiceExam.js';
+import studyProgressHandler from '../src/server/api/studyProgress.js';
 
 const json = (res: any, status: number, payload: Record<string, unknown>) => {
   res.status(status).json(payload);
@@ -72,6 +75,12 @@ const safePublishedEntry = (result: Record<string, any>, index: number) => ({
 });
 
 export default async function leaderboard(req: any, res: any) {
+  const gatewayRoute = Array.isArray(req.query?.route) ? req.query.route[0] : req.query?.route;
+
+  if (gatewayRoute === 'accessProfile') return accessProfileHandler(req, res);
+  if (gatewayRoute === 'practiceExam') return practiceExamHandler(req, res);
+  if (gatewayRoute === 'studyProgress') return studyProgressHandler(req, res);
+
   try {
     if (req.method !== 'GET') {
       res.setHeader('Allow', 'GET');

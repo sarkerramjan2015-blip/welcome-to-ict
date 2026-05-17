@@ -39,6 +39,38 @@
   ],
   "rewrites": [
     {
+      "source": "/api/adminAccess",
+      "destination": "/api/adminActivity?route=adminAccess"
+    },
+    {
+      "source": "/api/adminContent",
+      "destination": "/api/adminActivity?route=adminContent"
+    },
+    {
+      "source": "/api/adminPracticeProgress",
+      "destination": "/api/adminActivity?route=adminPracticeProgress"
+    },
+    {
+      "source": "/api/accessProfile",
+      "destination": "/api/leaderboard?route=accessProfile"
+    },
+    {
+      "source": "/api/practiceExam",
+      "destination": "/api/leaderboard?route=practiceExam"
+    },
+    {
+      "source": "/api/studyProgress",
+      "destination": "/api/leaderboard?route=studyProgress"
+    },
+    {
+      "source": "/api/practiceCardImage",
+      "destination": "/api/rankCardImage?route=practiceCardImage"
+    },
+    {
+      "source": "/api/practiceShare",
+      "destination": "/api/rankShare?route=practiceShare"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }

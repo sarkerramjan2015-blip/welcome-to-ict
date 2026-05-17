@@ -1,5 +1,5 @@
 import { FieldValue } from 'firebase-admin/firestore';
-import { getAdminAuth, getAdminDb, httpError, requireAdmin, verifyRequest } from '../src/server/firebaseAdminAccess.js';
+import { getAdminAuth, getAdminDb, httpError, requireAdmin, verifyRequest } from '../firebaseAdminAccess.js';
 
 const json = (res: any, status: number, payload: Record<string, unknown>) => {
   res.status(status).json(payload);

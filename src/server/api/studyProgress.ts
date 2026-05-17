@@ -1,6 +1,6 @@
 import { FieldValue } from 'firebase-admin/firestore';
-import { getAdminDb, httpError, verifyRequest } from '../src/server/firebaseAdminAccess.js';
-import { getPracticeTopicMeta } from '../src/server/practiceExamBank.js';
+import { getAdminDb, httpError, verifyRequest } from '../firebaseAdminAccess.js';
+import { getPracticeTopicMeta } from '../practiceExamBank.js';
 
 const json = (res: any, status: number, payload: Record<string, unknown>) => {
   res.status(status).json(payload);

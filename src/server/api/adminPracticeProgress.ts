@@ -1,4 +1,4 @@
-import { getAdminDb, requireAdmin, verifyRequest } from '../src/server/firebaseAdminAccess.js';
+import { getAdminDb, requireAdmin, verifyRequest } from '../firebaseAdminAccess.js';
 
 const json = (res: any, status: number, payload: Record<string, unknown>) => {
   res.status(status).json(payload);

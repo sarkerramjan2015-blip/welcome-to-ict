@@ -1,5 +1,8 @@
 import type { UserRecord } from 'firebase-admin/auth';
 import { getAdminAuth, requireAdmin, verifyRequest } from '../src/server/firebaseAdminAccess.js';
+import adminAccessHandler from '../src/server/api/adminAccess.js';
+import adminContentHandler from '../src/server/api/adminContent.js';
+import adminPracticeProgressHandler from '../src/server/api/adminPracticeProgress.js';
 
 const DEFAULT_ANALYTICS_DASHBOARD_URL = 'https://analytics.google.com/analytics/web/';
 
@@ -97,6 +100,12 @@ const getAuthActivity = async () => {
 };
 
 export default async function adminActivity(req: any, res: any) {
+  const gatewayRoute = Array.isArray(req.query?.route) ? req.query.route[0] : req.query?.route;
+
+  if (gatewayRoute === 'adminAccess') return adminAccessHandler(req, res);
+  if (gatewayRoute === 'adminContent') return adminContentHandler(req, res);
+  if (gatewayRoute === 'adminPracticeProgress') return adminPracticeProgressHandler(req, res);
+
   try {
     if (req.method !== 'GET') {
       res.setHeader('Allow', 'GET');

@@ -1,4 +1,5 @@
 import { getPublicRankResult } from '../src/server/publicLeaderboardAccess.js';
+import practiceShareHandler from '../src/server/api/practiceShare.js';
 
 const cleanString = (value: unknown) => String(value || '').trim();
 
@@ -23,6 +24,9 @@ const requestOrigin = (req: any) => {
 };
 
 export default async function rankShare(req: any, res: any) {
+  const gatewayRoute = Array.isArray(req.query?.route) ? req.query.route[0] : req.query?.route;
+  if (gatewayRoute === 'practiceShare') return practiceShareHandler(req, res);
+
   try {
     if (req.method !== 'GET') {
       res.setHeader('Allow', 'GET');
