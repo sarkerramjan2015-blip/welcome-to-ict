@@ -1,6 +1,6 @@
-import type { CQ, PracticeMCQ, ShortQuestion, Topic } from "../../ict-syllabus";
+import type { CQ, PracticeMCQ, ShortQuestion, Topic } from "../../ict-syllabus.js";
 // @ts-ignore
-import { generateQuiz } from "../../utils";
+import { generateQuiz } from "../../utils.js";
 
 type ExtraMcqRow = [
   id: string,
@@ -647,7 +647,7 @@ const noteBlock = (
   boardFocus: string[]
 ) => {
   return `
-<section class="mt-10 rounded-[2rem] border border-teal-200/70 bg-white/85 p-5 shadow-xl dark:border-teal-800/50 dark:bg-slate-900/70 md:p-8">
+<section class="special-note-card mt-10 rounded-[2rem] border border-teal-200/70 bg-white/85 p-5 shadow-xl dark:border-teal-800/50 dark:bg-slate-900/70 md:p-8">
   <h3 class="mb-5 flex items-center gap-3 text-2xl font-black text-teal-800 dark:text-teal-200">
     ${noteIcon}
     ${title}

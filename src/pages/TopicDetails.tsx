@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Helmet } from 'react-helmet-async';
+import html2canvas from 'html2canvas';
 import { ictSyllabus } from '../data/ict-syllabus';
 import { FileText, PlayCircle, CheckCircle, Edit3, ArrowLeft, HelpCircle, Clock, Award, LockKeyhole, Loader2, Share2, Download, Facebook } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -14,6 +15,7 @@ import {
   fetchDailyPracticeExam,
   submitDailyPracticeExam,
   type DailyPracticeExam,
+  type DailyPracticeQuestion,
 } from '../services/practiceExam';
 
 type Tab = 'notes' | 'video' | 'short_qs' | 'practice' | 'cq' | 'quiz';
@@ -71,6 +73,27 @@ const safeFilePart = (value: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '') || 'topic';
+
+const DAILY_TOPIC_EXAM_SECONDS = 5 * 60;
+const PRACTICE_CARD_LAYOUT_VERSION = 'square-v2';
+
+const shuffleItems = <T,>(items: T[]) => {
+  const next = [...items];
+
+  for (let index = next.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
+  }
+
+  return next;
+};
+
+const buildQuizDisplayState = (questions: DailyPracticeQuestion[]) => ({
+  questionOrder: shuffleItems(questions.map(question => question.id)),
+  optionOrder: Object.fromEntries(
+    questions.map(question => [question.id, shuffleItems(question.options)])
+  ) as Record<string, string[]>,
+});
 
 function ComingSoonVideoPlaceholder() {
   return (
@@ -142,8 +165,10 @@ export default function TopicDetails() {
 
   // Quiz Mode State
   const [quizStarted, setQuizStarted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
+  const [timeLeft, setTimeLeft] = useState(DAILY_TOPIC_EXAM_SECONDS);
   const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
+  const [quizQuestionOrder, setQuizQuestionOrder] = useState<string[]>([]);
+  const [quizOptionOrder, setQuizOptionOrder] = useState<Record<string, string[]>>({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [score, setScore] = useState(0);
   const [dailyPracticeExam, setDailyPracticeExam] = useState<DailyPracticeExam | null>(null);
@@ -154,13 +179,23 @@ export default function TopicDetails() {
   const [practiceShareNotice, setPracticeShareNotice] = useState('');
   
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const practiceCardPreviewRef = React.useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
   const { recordTopicVisit, isTopicCompleted, toggleTopicCompletion, saveQuizResult, quizResults } = useLms();
-  const dailyQuizQuestions = dailyPracticeExam?.questions || [];
+  const storedDailyQuizQuestions = dailyPracticeExam?.questions || [];
+  const dailyQuizQuestions = quizQuestionOrder.length
+    ? quizQuestionOrder
+        .map(questionId => storedDailyQuizQuestions.find(question => question.id === questionId))
+        .filter((question): question is DailyPracticeQuestion => Boolean(question))
+    : storedDailyQuizQuestions;
   const dailyAttempt = dailyPracticeExam?.attempt || null;
+  const answeredQuizCount = dailyQuizQuestions.filter(question => Boolean(quizAnswers[question.id])).length;
+
+  const getDisplayedQuizOptions = (question: DailyPracticeQuestion) =>
+    quizOptionOrder[question.id] || question.options;
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -184,7 +219,9 @@ export default function TopicDetails() {
     setQuizStarted(false);
     setQuizSubmitted(false);
     setQuizAnswers({});
-    setTimeLeft(600);
+    setQuizQuestionOrder([]);
+    setQuizOptionOrder({});
+    setTimeLeft(DAILY_TOPIC_EXAM_SECONDS);
     setScore(0);
     setDailyPracticeError('');
 
@@ -198,6 +235,9 @@ export default function TopicDetails() {
       .then(data => {
         if (cancelled) return;
         setDailyPracticeExam(data);
+        const displayState = buildQuizDisplayState(data.questions);
+        setQuizQuestionOrder(displayState.questionOrder);
+        setQuizOptionOrder(displayState.optionOrder);
         if (!data.canAttempt && data.attempt) {
           setQuizSubmitted(true);
           setScore(data.attempt.score);
@@ -293,10 +333,40 @@ export default function TopicDetails() {
     }
   };
 
+  const handleQuizAnswerSelect = (questionId: string, option: string) => {
+    setQuizAnswers(prev => {
+      if (prev[questionId]) {
+        return prev;
+      }
+
+      return { ...prev, [questionId]: option };
+    });
+  };
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const renderPracticeShareImageBlob = async () => {
+    if (!practiceCardPreviewRef.current) {
+      throw new Error('Score card preview is not ready yet.');
+    }
+
+    const canvas = await html2canvas(practiceCardPreviewRef.current, {
+      backgroundColor: '#020617',
+      logging: false,
+      scale: Math.min(window.devicePixelRatio || 1, 2),
+      useCORS: true,
+    });
+
+    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+    if (!blob || blob.size === 0) {
+      throw new Error('Score card image could not be created.');
+    }
+
+    return blob;
   };
 
   const getPracticeShareImageBlob = async () => {
@@ -304,12 +374,19 @@ export default function TopicDetails() {
       throw new Error('Practice result is not ready yet.');
     }
 
-    const response = await fetch(`/api/practiceCardImage?attemptId=${encodeURIComponent(dailyAttempt.id)}`);
-    if (!response.ok) {
-      throw new Error('Score card image could not be created.');
+    try {
+      const response = await fetch(`/api/practiceCardImage?attemptId=${encodeURIComponent(dailyAttempt.id)}&v=${PRACTICE_CARD_LAYOUT_VERSION}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        if (blob.size > 0) {
+          return blob;
+        }
+      }
+    } catch {
+      // Fall back to the already-rendered preview card below.
     }
 
-    return response.blob();
+    return renderPracticeShareImageBlob();
   };
 
   const handlePracticeCardDownload = async () => {
@@ -389,7 +466,7 @@ export default function TopicDetails() {
     { id: 'short_qs', label: 'জ্ঞানমূলক ও অনুধাবনমূলক', icon: HelpCircle },
     { id: 'practice', label: 'MCQ Practice Mode', icon: CheckCircle },
     { id: 'cq', label: 'CQ (সৃজনশীল)', icon: Edit3 },
-    { id: 'quiz', label: 'MCQ Quiz Mode (10 Mins)', icon: Clock },
+    { id: 'quiz', label: 'MCQ Quiz Mode (5 Mins)', icon: Clock },
   ];
 
   const videoUrl =
@@ -826,7 +903,7 @@ export default function TopicDetails() {
                   </div>
                   <h2 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white mb-6 tracking-tight break-words">Daily Topic Practice Exam</h2>
                   <p className="text-slate-600 dark:text-slate-400 max-w-lg mb-10 text-base md:text-lg leading-relaxed break-words">
-                    Test your knowledge on <span className="font-bold text-slate-800 dark:text-slate-200">"{currentTopic.title}"</span>. You have 10 minutes to answer {dailyQuizQuestions.length} shuffled questions. One attempt is allowed per topic each day.
+                    Test your knowledge on <span className="font-bold text-slate-800 dark:text-slate-200">"{currentTopic.title}"</span>. You have 5 minutes to answer {dailyQuizQuestions.length} questions. Questions and options appear in a fresh order each time, and one attempt is allowed per topic each day.
                   </p>
                   <button 
                     onClick={() => setQuizStarted(true)}
@@ -871,10 +948,18 @@ export default function TopicDetails() {
                       <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Image card includes your profile, topic, and full score breakdown.</p>
                     </div>
 
-                    <div className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-950 text-white shadow-2xl shadow-slate-950/15">
-                      <div className="grid gap-5 p-5 md:grid-cols-[220px_minmax(0,1fr)] md:p-6">
-                        <div className="flex flex-col items-center justify-center rounded-[1.25rem] bg-white/[0.06] p-4 text-center">
-                          <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-emerald-300/70 bg-emerald-500/15">
+                    <div
+                      ref={practiceCardPreviewRef}
+                      className="mx-auto aspect-square w-full max-w-[560px] overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950 text-white shadow-2xl shadow-slate-950/15"
+                    >
+                      <div className="relative flex h-full flex-col bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.22),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.18),transparent_30%)] p-4 sm:p-5 md:p-6">
+                        <div>
+                          <div className="text-2xl font-black md:text-3xl">ICT Toppers</div>
+                          <div className="mt-1 text-xs font-black uppercase tracking-[0.16em] text-sky-200 md:text-sm">Daily Topic Practice Result</div>
+                        </div>
+
+                        <div className="mt-4 flex items-center gap-4 rounded-[1.35rem] border border-white/10 bg-white/[0.06] p-4">
+                          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border-4 border-emerald-300/70 bg-emerald-500/15 sm:h-24 sm:w-24">
                             {user?.profileImage ? (
                               <img
                                 src={user.profileImage}
@@ -888,30 +973,41 @@ export default function TopicDetails() {
                               </div>
                             )}
                           </div>
-                          <div className="mt-4 break-words text-xl font-black">{user?.name || 'ICT Student'}</div>
-                          <div className="mt-1 text-sm font-semibold text-slate-300">{parentChapter.title}</div>
+                          <div className="min-w-0 text-left">
+                            <div className="break-words text-xl font-black leading-tight sm:text-2xl">{user?.name || 'ICT Student'}</div>
+                            <div className="mt-2 break-words text-sm font-semibold leading-relaxed text-slate-300">{parentChapter.title}</div>
+                          </div>
                         </div>
 
-                        <div className="min-w-0 rounded-[1.25rem] bg-white/[0.06] p-4 md:p-5">
+                        <div className="mt-4 flex min-h-0 flex-1 flex-col rounded-[1.35rem] border border-white/10 bg-white/[0.06] p-4 md:p-5">
                           <div className="text-xs font-black uppercase tracking-[0.16em] text-indigo-200">Topic</div>
-                          <div className="mt-2 break-words text-2xl font-black">{currentTopic.title}</div>
-                          <div className="mt-5 flex flex-wrap items-end gap-x-5 gap-y-3">
-                            <div className="text-5xl font-black text-emerald-300">{dailyAttempt.score}/{dailyAttempt.total}</div>
-                            <div className="pb-1 text-sm font-bold uppercase tracking-[0.14em] text-slate-300">Score</div>
+                          <div className="mt-2 break-words text-xl font-black leading-snug sm:text-2xl md:text-3xl">{currentTopic.title}</div>
+                          <div className="mt-auto grid gap-4 pt-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] sm:items-end">
+                            <div>
+                              <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Score</div>
+                              <div className="mt-2 text-5xl font-black leading-none text-emerald-300 md:text-6xl">{dailyAttempt.score}/{dailyAttempt.total}</div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              {[
+                                { label: 'Correct', value: dailyAttempt.correctCount, tone: 'text-emerald-300' },
+                                { label: 'Wrong', value: dailyAttempt.wrongCount, tone: 'text-rose-300' },
+                                { label: 'Accuracy', value: `${dailyAttempt.accuracy}%`, tone: 'text-sky-300' },
+                              ].map(item => (
+                                <div key={item.label} className="rounded-2xl bg-white/[0.06] p-2.5 text-center sm:p-3">
+                                  <div className="text-[0.58rem] font-black uppercase tracking-[0.12em] text-slate-400 sm:text-[0.65rem]">{item.label}</div>
+                                  <div className={`mt-1 text-lg font-black sm:text-2xl ${item.tone}`}>{item.value}</div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <div className="mt-5 grid gap-3 sm:grid-cols-4">
-                            {[
-                              { label: 'Correct', value: dailyAttempt.correctCount, tone: 'text-emerald-300' },
-                              { label: 'Wrong', value: dailyAttempt.wrongCount, tone: 'text-rose-300' },
-                              { label: 'Accuracy', value: `${dailyAttempt.accuracy}%`, tone: 'text-sky-300' },
-                              { label: 'Wrong %', value: `${dailyAttempt.wrongPercent}%`, tone: 'text-amber-200' },
-                            ].map(item => (
-                              <div key={item.label} className="rounded-2xl bg-white/[0.06] p-3">
-                                <div className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-slate-400">{item.label}</div>
-                                <div className={`mt-1 text-2xl font-black ${item.tone}`}>{item.value}</div>
-                              </div>
-                            ))}
+                        </div>
+
+                        <div className="mt-4 flex items-center justify-between gap-4 rounded-[1.35rem] border border-white/10 bg-white/[0.05] px-4 py-3">
+                          <div>
+                            <div className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-slate-400">Wrong Rate</div>
+                            <div className="mt-1 text-2xl font-black text-amber-200">{dailyAttempt.wrongPercent}%</div>
                           </div>
+                          <div className="text-right text-sm font-bold text-sky-100 sm:text-base">www.icttoppers.com</div>
                         </div>
                       </div>
                     </div>
@@ -967,6 +1063,7 @@ export default function TopicDetails() {
                     {dailyQuizQuestions.map((mcq, idx) => {
                       const selected = mcq.selectedOption || quizAnswers[mcq.id];
                       const stats = mcq.stats;
+                      const displayedOptions = getDisplayedQuizOptions(mcq);
                       
                       return (
                         <div key={mcq.id} className="bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-4 md:p-8 shadow-sm min-w-0">
@@ -974,7 +1071,7 @@ export default function TopicDetails() {
                             <span className="text-slate-400 mr-2">{idx + 1}.</span> <QuestionText text={mcq.q} />
                           </h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {mcq.options.map((opt, oIdx) => {
+                            {displayedOptions.map((opt, oIdx) => {
                               let btnClass = "bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-400";
                               if (opt === mcq.correctOption) {
                                 btnClass = "bg-emerald-100 dark:bg-emerald-500/20 border-emerald-400 dark:border-emerald-500/50 text-emerald-800 dark:text-emerald-300 font-bold ring-2 ring-emerald-500/30";
@@ -982,7 +1079,7 @@ export default function TopicDetails() {
                                 btnClass = "bg-rose-50 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/30 text-rose-700 dark:text-rose-400 opacity-90 ring-1 ring-rose-500/20";
                               }
                               return (
-                                <div key={oIdx} className={cn("p-4 md:p-5 rounded-2xl border font-semibold text-sm md:text-base break-words", btnClass)}>
+                                <div key={`${mcq.id}-${opt}`} className={cn("p-4 md:p-5 rounded-2xl border font-semibold text-sm md:text-base break-words", btnClass)}>
                                   {opt}
                                 </div>
                               );
@@ -1006,11 +1103,14 @@ export default function TopicDetails() {
                           </div>
                           {stats?.optionStats?.length ? (
                             <div className="mt-4 flex flex-wrap gap-2">
-                              {stats.optionStats.map(option => (
-                                <span key={`${mcq.id}-${option.index}`} className="rounded-full bg-slate-900/5 px-3 py-1.5 text-xs font-bold text-slate-600 dark:bg-white/5 dark:text-slate-300">
-                                  {String.fromCharCode(65 + option.index)}: {option.percent}%
-                                </span>
-                              ))}
+                              {displayedOptions.map((option, displayIndex) => {
+                                const optionStat = stats.optionStats.find(item => item.label === option);
+                                return (
+                                  <span key={`${mcq.id}-${displayIndex}`} className="rounded-full bg-slate-900/5 px-3 py-1.5 text-xs font-bold text-slate-600 dark:bg-white/5 dark:text-slate-300">
+                                    {String.fromCharCode(65 + displayIndex)}: {optionStat?.percent || 0}%
+                                  </span>
+                                );
+                              })}
                             </div>
                           ) : null}
                         </div>
@@ -1021,7 +1121,12 @@ export default function TopicDetails() {
               ) : (
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/40 dark:border-white/10 pb-5 md:pb-6 mb-8 sticky top-16 lg:top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-3xl z-10 py-4 md:py-5 rounded-[1.5rem] md:rounded-[2rem] px-4 md:px-6 shadow-xl ring-1 ring-white/50 dark:ring-white/10">
-                    <h2 className="text-xl md:text-2xl font-black text-teal-600 dark:text-teal-400 tracking-tight">Quiz in Progress</h2>
+                    <div>
+                      <h2 className="text-xl md:text-2xl font-black text-teal-600 dark:text-teal-400 tracking-tight">Quiz in Progress</h2>
+                      <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                        {answeredQuizCount}/{dailyQuizQuestions.length} answered
+                      </p>
+                    </div>
                     <div className={cn(
                       "flex items-center gap-2 px-5 py-2.5 rounded-full font-black text-lg",
                       timeLeft < 60 ? "bg-rose-500/20 text-rose-600 dark:text-rose-400 animate-pulse ring-2 ring-rose-500/30" : "bg-teal-500/10 text-teal-700 dark:text-teal-300 ring-1 ring-teal-500/20"
@@ -1032,32 +1137,64 @@ export default function TopicDetails() {
                   </div>
                   
                   <div className="flex flex-col gap-10 mb-10">
-                    {dailyQuizQuestions.map((mcq, idx) => (
-                      <div key={mcq.id} className="bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-4 md:p-8 shadow-sm min-w-0">
-                        <h3 className="text-base md:text-xl font-bold mb-6 text-slate-800 dark:text-slate-100 leading-relaxed block break-words">
-                          <span className="text-slate-400 mr-2">{idx + 1}.</span> <QuestionText text={mcq.q} />
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {mcq.options.map((opt, oIdx) => {
-                            const isSelected = quizAnswers[mcq.id] === opt;
-                            return (
-                              <button 
-                                key={oIdx} 
-                                onClick={() => setQuizAnswers(prev => ({ ...prev, [mcq.id]: opt }))}
-                                className={cn(
-                                  "p-4 md:p-5 rounded-2xl border font-bold text-left transition-all active:scale-[0.98] text-sm md:text-base break-words",
-                                  isSelected 
-                                    ? "bg-teal-500/20 border-teal-500/50 text-teal-800 dark:text-teal-300 shadow-inner ring-2 ring-teal-500/30 scale-[1.02]" 
-                                    : "bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 shadow-sm"
-                                )}
-                              >
-                                {opt}
-                              </button>
-                            );
-                          })}
+                    {dailyQuizQuestions.map((mcq, idx) => {
+                      const displayedOptions = getDisplayedQuizOptions(mcq);
+                      const selectedOption = quizAnswers[mcq.id];
+                      const isLocked = Boolean(selectedOption);
+
+                      return (
+                        <div key={mcq.id} className="bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 rounded-3xl p-4 md:p-8 shadow-sm min-w-0">
+                          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                            <span className="rounded-full bg-slate-900/5 px-3 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:bg-white/5 dark:text-slate-300">
+                              Question {idx + 1}
+                            </span>
+                            <span className={cn(
+                              "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-black",
+                              isLocked
+                                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                                : "bg-sky-500/10 text-sky-700 dark:text-sky-300"
+                            )}>
+                              {isLocked ? <LockKeyhole className="h-3.5 w-3.5" /> : <HelpCircle className="h-3.5 w-3.5" />}
+                              {isLocked ? 'Answer locked' : 'Choose one'}
+                            </span>
+                          </div>
+                          <h3 className="text-base md:text-xl font-bold mb-6 text-slate-800 dark:text-slate-100 leading-relaxed block break-words">
+                            <QuestionText text={mcq.q} />
+                          </h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {displayedOptions.map((opt, oIdx) => {
+                              const isSelected = selectedOption === opt;
+                              return (
+                                <button 
+                                  key={`${mcq.id}-${opt}`} 
+                                  type="button"
+                                  disabled={isLocked || dailyPracticeSubmitting}
+                                  onClick={() => handleQuizAnswerSelect(mcq.id, opt)}
+                                  className={cn(
+                                    "group flex min-h-20 items-start gap-3 rounded-2xl border p-4 text-left text-sm font-bold transition-all md:min-h-24 md:p-5 md:text-base break-words disabled:cursor-default",
+                                    isSelected 
+                                      ? "bg-teal-500/20 border-teal-500/50 text-teal-800 dark:text-teal-300 shadow-inner ring-2 ring-teal-500/30 scale-[1.02]" 
+                                      : isLocked
+                                        ? "bg-slate-100/70 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 opacity-80"
+                                        : "bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 shadow-sm active:scale-[0.98]"
+                                  )}
+                                >
+                                  <span className={cn(
+                                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-black",
+                                    isSelected
+                                      ? "border-teal-500/50 bg-teal-500/20 text-teal-700 dark:text-teal-200"
+                                      : "border-slate-300 bg-white/70 text-slate-500 dark:border-slate-600 dark:bg-slate-950/40 dark:text-slate-300"
+                                  )}>
+                                    {String.fromCharCode(65 + oIdx)}
+                                  </span>
+                                  <span className="pt-1 leading-relaxed">{opt}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   
                   <div className="flex justify-end sticky bottom-6 z-10 px-0 sm:px-4">

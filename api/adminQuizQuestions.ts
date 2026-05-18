@@ -211,6 +211,27 @@ const listChallengeSets = async () => {
     });
   }
 
+  if (currentDoc && !currentChallengeId && !items.some(item => item.id === 'current')) {
+    const data = currentDoc.data() || {};
+    const hasLegacyRoutineData = Boolean(
+      cleanString(data.title) ||
+      data.startsAt ||
+      data.updatedAt ||
+      Array.isArray(data.questions)
+    );
+
+    if (hasLegacyRoutineData) {
+      items.push({
+        id: 'current',
+        title: cleanString(data.title) || 'HSC ICT Monthly Quiz Exam',
+        status: cleanString(data.status) || 'DRAFT',
+        startsAt: toIsoDate(data.startsAt),
+        updatedAt: toIsoDate(data.updatedAt),
+        questionCount: Number(data.questionCount || (Array.isArray(data.questions) ? data.questions.length : 0)),
+      });
+    }
+  }
+
   return items.sort((a, b) => {
     const aTime = new Date(a.startsAt || a.updatedAt || 0).getTime();
     const bTime = new Date(b.startsAt || b.updatedAt || 0).getTime();

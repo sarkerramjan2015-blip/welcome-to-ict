@@ -71,7 +71,7 @@ export default function TopicView({ topic, onTakeQuiz }: TopicViewProps) {
         initial={{ opacity: 0, scale: 0.98, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/60 dark:border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_8px_32px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_8px_32px_rgba(0,0,0,0.4)] rounded-[1.75rem] md:rounded-[2.5rem] p-4 sm:p-6 md:p-10 lg:p-14 overflow-hidden"
+        className="topic-notes-shell bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/60 dark:border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_8px_32px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_8px_32px_rgba(0,0,0,0.4)] rounded-[1.75rem] md:rounded-[2.5rem] p-4 sm:p-6 md:p-10 lg:p-14 overflow-hidden"
       >
         <div 
           className="topic-notes prose prose-sm md:prose-lg prose-slate dark:prose-invert max-w-none prose-headings:text-teal-800 dark:prose-headings:text-teal-400 prose-a:text-emerald-600 hover:prose-a:text-emerald-500 prose-img:rounded-2xl prose-img:shadow-xl"

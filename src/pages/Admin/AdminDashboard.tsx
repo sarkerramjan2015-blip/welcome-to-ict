@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import {
   Activity,
+  AlertTriangle,
   BarChart3,
   BadgeCheck,
   Ban,
@@ -784,6 +785,8 @@ export default function AdminDashboard() {
   const [selectedChallengeDetails, setSelectedChallengeDetails] = useState<AdminChallengeDetails | null>(null);
   const [nextChallengeDetails, setNextChallengeDetails] = useState<AdminChallengeDetails | null>(null);
   const [nextChallengeQuestions, setNextChallengeQuestions] = useState<AdminQuizQuestion[]>([]);
+  const [nextChallengeLoading, setNextChallengeLoading] = useState(false);
+  const [nextChallengeError, setNextChallengeError] = useState('');
   const [quizQuestionsLoading, setQuizQuestionsLoading] = useState(false);
   const [quizQuestionsError, setQuizQuestionsError] = useState('');
   const [savingQuestionId, setSavingQuestionId] = useState('');
@@ -974,6 +977,7 @@ export default function AdminDashboard() {
 
     return upcoming[0] || challengeSets[0] || null;
   }, [challengeSets]);
+  const nextChallengeDisplayError = nextChallengeError || (!nextChallengeSet ? quizQuestionsError : '');
 
   const analyticsDashboardUrl = activitySummary?.analyticsDashboardUrl || DEFAULT_ANALYTICS_DASHBOARD_URL;
 
@@ -1311,16 +1315,23 @@ export default function AdminDashboard() {
     if (!isAdmin || !nextChallengeSet?.id) {
       setNextChallengeDetails(null);
       setNextChallengeQuestions([]);
+      setNextChallengeError('');
+      setNextChallengeLoading(false);
       return;
     }
 
+    setNextChallengeLoading(true);
     try {
       const data = await fetchAdminChallengeDetails(nextChallengeSet.id);
       setNextChallengeDetails(data.challenge);
       setNextChallengeQuestions(data.questions);
-    } catch {
+      setNextChallengeError('');
+    } catch (error: any) {
       setNextChallengeDetails(null);
       setNextChallengeQuestions([]);
+      setNextChallengeError(error?.message || 'Failed to load the next quiz routine.');
+    } finally {
+      setNextChallengeLoading(false);
     }
   }, [isAdmin, nextChallengeSet?.id]);
 
@@ -2145,7 +2156,24 @@ export default function AdminDashboard() {
         </div>
 
         <div className="rounded-3xl border border-slate-900/10 bg-slate-900/5 p-5 dark:border-white/10 dark:bg-white/5 md:p-6">
-          {!nextChallengeDetails ? (
+          {nextChallengeLoading ? (
+            <div className="py-10 text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-300">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+              <p className="font-bold text-slate-700 dark:text-slate-200">Loading next quiz routine...</p>
+            </div>
+          ) : nextChallengeDisplayError ? (
+            <div className="py-10 text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-400/10 text-rose-300">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <p className="font-bold text-slate-700 dark:text-slate-200">Quiz routine could not be loaded.</p>
+              <p className="mt-1 text-sm text-rose-500 dark:text-rose-300">
+                {nextChallengeDisplayError}
+              </p>
+            </div>
+          ) : !nextChallengeDetails ? (
             <div className="py-10 text-center">
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-300">
                 <CalendarDays className="h-6 w-6" />

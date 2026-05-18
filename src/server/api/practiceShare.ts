@@ -1,6 +1,7 @@
 import { getPublicPracticeResult } from '../publicPracticeShareAccess.js';
 
 const cleanString = (value: unknown) => String(value || '').trim();
+const PRACTICE_CARD_LAYOUT_VERSION = 'square-v2';
 
 const queryValue = (req: any, key: string) => {
   const value = req.query?.[key];
@@ -49,7 +50,8 @@ export default async function practiceShare(req: any, res: any) {
 
     const destination = `${origin}/topics/${encodeURIComponent(result.topicId)}#quiz`;
     const shareUrl = `${origin}/api/practiceShare?attemptId=${encodeURIComponent(result.attemptId)}`;
-    const imageUrl = `${origin}/api/practiceCardImage?attemptId=${encodeURIComponent(result.attemptId)}&v=${encodeURIComponent(result.completedAt || String(result.score))}`;
+    const imageVersion = `${result.completedAt || String(result.score)}-${PRACTICE_CARD_LAYOUT_VERSION}`;
+    const imageUrl = `${origin}/api/practiceCardImage?attemptId=${encodeURIComponent(result.attemptId)}&v=${encodeURIComponent(imageVersion)}`;
     const title = `${result.name} completed ${result.topicTitle}`;
     const description = `Score ${result.score}/${result.total}. Accuracy ${result.accuracy}%. Correct ${result.correctCount}, wrong ${result.wrongCount}.`;
 
@@ -68,8 +70,8 @@ export default async function practiceShare(req: any, res: any) {
   <meta property="og:title" content="${escapeHtml(title)}">
   <meta property="og:description" content="${escapeHtml(description)}">
   <meta property="og:image" content="${escapeHtml(imageUrl)}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+  <meta property="og:image:width" content="1080">
+  <meta property="og:image:height" content="1080">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${escapeHtml(title)}">
   <meta name="twitter:description" content="${escapeHtml(description)}">

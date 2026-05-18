@@ -526,8 +526,41 @@ td {
 }
 
 @media (max-width: 640px) {
+  .topic-notes :where(.grid.grid-cols-2, .grid.grid-cols-3, .grid.grid-cols-4) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .topic-notes :where(.absolute.top-0.right-0) {
+    top: -0.5rem;
+    right: -0.5rem;
+    padding: 1rem;
+  }
+
+  .topic-notes :where(svg.w-32.h-32) {
+    width: 5.5rem;
+    height: 5.5rem;
+  }
+
+  .topic-notes :where(.truncate) {
+    max-width: 100%;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .topic-notes :where(.p-8, .p-10) {
+    padding: 1.25rem;
+  }
+
   .topic-notes :where(.rounded-\[2\.5rem\]) {
     border-radius: 1.5rem;
+  }
+
+  .topic-notes :where(.special-note-card) {
+    width: calc(100% + 2rem);
+    max-width: none;
+    margin-inline: -1rem;
+    border-radius: 1.25rem;
   }
 
   .topic-notes :where(h2) {
