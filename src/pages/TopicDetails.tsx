@@ -75,7 +75,7 @@ const safeFilePart = (value: string) =>
     .replace(/^-+|-+$/g, '') || 'topic';
 
 const DAILY_TOPIC_EXAM_SECONDS = 5 * 60;
-const PRACTICE_CARD_LAYOUT_VERSION = 'square-v2';
+const PRACTICE_CARD_LAYOUT_VERSION = 'square-v5';
 
 const shuffleItems = <T,>(items: T[]) => {
   const next = [...items];
@@ -94,6 +94,27 @@ const buildQuizDisplayState = (questions: DailyPracticeQuestion[]) => ({
     questions.map(question => [question.id, shuffleItems(question.options)])
   ) as Record<string, string[]>,
 });
+
+const clampStyle = (lines: number): React.CSSProperties => ({
+  display: '-webkit-box',
+  WebkitLineClamp: lines,
+  WebkitBoxOrient: 'vertical',
+  overflow: 'hidden',
+});
+
+const ClampText = ({
+  children,
+  lines,
+  className,
+}: {
+  children: React.ReactNode;
+  lines: number;
+  className: string;
+}) => (
+  <div className={className} style={clampStyle(lines)}>
+    {children}
+  </div>
+);
 
 function ComingSoonVideoPlaceholder() {
   return (
@@ -952,13 +973,20 @@ export default function TopicDetails() {
                       ref={practiceCardPreviewRef}
                       className="mx-auto aspect-square w-full max-w-[560px] overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950 text-white shadow-2xl shadow-slate-950/15"
                     >
-                      <div className="relative flex h-full flex-col bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.22),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.18),transparent_30%)] p-4 sm:p-5 md:p-6">
-                        <div>
-                          <div className="text-2xl font-black md:text-3xl">ICT Toppers</div>
-                          <div className="mt-1 text-xs font-black uppercase tracking-[0.16em] text-sky-200 md:text-sm">Daily Topic Practice Result</div>
+                      <div className="relative flex h-full flex-col bg-[radial-gradient(circle_at_96%_2%,rgba(14,165,233,0.22),transparent_32%),radial-gradient(circle_at_2%_98%,rgba(16,185,129,0.18),transparent_34%),linear-gradient(135deg,#06101f,#111827_55%,#172033)] p-4 sm:p-5">
+                        <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-sky-400/10" />
+                        <div className="pointer-events-none absolute -bottom-28 -left-24 h-64 w-64 rounded-full bg-emerald-400/10" />
+                        <div className="relative flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="text-2xl font-black leading-none md:text-3xl">ICT Toppers</div>
+                            <div className="mt-2 text-[0.62rem] font-black uppercase tracking-[0.16em] text-sky-200 sm:text-xs">Daily Topic Practice Result</div>
+                          </div>
+                          <div className="shrink-0 rounded-full border border-sky-200/10 bg-slate-950/45 px-3 py-2 text-[0.58rem] font-black uppercase tracking-[0.12em] text-sky-100 sm:text-[0.64rem]">
+                            Topic Exam
+                          </div>
                         </div>
 
-                        <div className="mt-4 flex items-center gap-4 rounded-[1.35rem] border border-white/10 bg-white/[0.06] p-4">
+                        <div className="relative mt-4 flex min-h-[7.8rem] items-center gap-4 rounded-[1.35rem] border border-white/10 bg-white/[0.07] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
                           <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border-4 border-emerald-300/70 bg-emerald-500/15 sm:h-24 sm:w-24">
                             {user?.profileImage ? (
                               <img
@@ -973,41 +1001,57 @@ export default function TopicDetails() {
                               </div>
                             )}
                           </div>
-                          <div className="min-w-0 text-left">
-                            <div className="break-words text-xl font-black leading-tight sm:text-2xl">{user?.name || 'ICT Student'}</div>
-                            <div className="mt-2 break-words text-sm font-semibold leading-relaxed text-slate-300">{parentChapter.title}</div>
+                          <div className="min-w-0 flex-1 text-left">
+                            <div className="mb-1 text-[0.58rem] font-black uppercase tracking-[0.18em] text-sky-200/90">Student</div>
+                            <ClampText lines={2} className="break-words text-xl font-black leading-tight sm:text-2xl">
+                              {user?.name || 'ICT Student'}
+                            </ClampText>
+                            <ClampText lines={2} className="mt-2 break-words text-xs font-semibold leading-relaxed text-slate-300 sm:text-sm">
+                              {parentChapter.title}
+                            </ClampText>
                           </div>
                         </div>
 
-                        <div className="mt-4 flex min-h-0 flex-1 flex-col rounded-[1.35rem] border border-white/10 bg-white/[0.06] p-4 md:p-5">
-                          <div className="text-xs font-black uppercase tracking-[0.16em] text-indigo-200">Topic</div>
-                          <div className="mt-2 break-words text-xl font-black leading-snug sm:text-2xl md:text-3xl">{currentTopic.title}</div>
-                          <div className="mt-auto grid gap-4 pt-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] sm:items-end">
-                            <div>
-                              <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Score</div>
-                              <div className="mt-2 text-5xl font-black leading-none text-emerald-300 md:text-6xl">{dailyAttempt.score}/{dailyAttempt.total}</div>
+                        <div className="relative mt-4 rounded-[1.35rem] border border-white/10 bg-white/[0.07] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                          <div className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-indigo-200">Topic</div>
+                          <ClampText lines={2} className="mt-2 min-h-[3.35rem] break-words text-lg font-black leading-snug sm:text-xl md:text-2xl">
+                            {currentTopic.title}
+                          </ClampText>
+                        </div>
+
+                        <div className="relative mt-4 flex min-h-0 flex-1 flex-col rounded-[1.35rem] border border-white/10 bg-white/[0.07] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                          <div className="grid flex-1 gap-4 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)] sm:items-center">
+                            <div className="min-w-0">
+                              <div className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-slate-400">Score</div>
+                              <div className="mt-2 whitespace-nowrap text-5xl font-black leading-none text-emerald-300 md:text-6xl">{dailyAttempt.score}/{dailyAttempt.total}</div>
+                              <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-800">
+                                <div
+                                  className="h-full rounded-full bg-emerald-300"
+                                  style={{ width: `${dailyAttempt.total ? Math.max(0, Math.min(100, Math.round((dailyAttempt.score / dailyAttempt.total) * 100))) : 0}%` }}
+                                />
+                              </div>
                             </div>
                             <div className="grid grid-cols-3 gap-2">
                               {[
-                                { label: 'Correct', value: dailyAttempt.correctCount, tone: 'text-emerald-300' },
-                                { label: 'Wrong', value: dailyAttempt.wrongCount, tone: 'text-rose-300' },
-                                { label: 'Accuracy', value: `${dailyAttempt.accuracy}%`, tone: 'text-sky-300' },
+                                { label: 'Correct', value: dailyAttempt.correctCount, tone: 'text-emerald-300', bg: 'bg-emerald-400/10' },
+                                { label: 'Wrong', value: dailyAttempt.wrongCount, tone: 'text-rose-300', bg: 'bg-rose-400/10' },
+                                { label: 'Accuracy', value: `${dailyAttempt.accuracy}%`, tone: 'text-sky-300', bg: 'bg-sky-400/10' },
                               ].map(item => (
-                                <div key={item.label} className="rounded-2xl bg-white/[0.06] p-2.5 text-center sm:p-3">
-                                  <div className="text-[0.58rem] font-black uppercase tracking-[0.12em] text-slate-400 sm:text-[0.65rem]">{item.label}</div>
-                                  <div className={`mt-1 text-lg font-black sm:text-2xl ${item.tone}`}>{item.value}</div>
+                                <div key={item.label} className={`min-h-[5rem] rounded-2xl ${item.bg} p-2.5 text-center ring-1 ring-white/5 sm:p-3`}>
+                                  <div className="text-[0.54rem] font-black uppercase tracking-[0.08em] text-slate-300 sm:text-[0.6rem]">{item.label}</div>
+                                  <div className={`mt-2 text-xl font-black leading-none sm:text-2xl ${item.tone}`}>{item.value}</div>
                                 </div>
                               ))}
                             </div>
                           </div>
                         </div>
 
-                        <div className="mt-4 flex items-center justify-between gap-4 rounded-[1.35rem] border border-white/10 bg-white/[0.05] px-4 py-3">
+                        <div className="relative mt-4 flex items-center justify-between gap-4 rounded-[1.35rem] border border-white/10 bg-white/[0.05] px-4 py-3">
                           <div>
-                            <div className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-slate-400">Wrong Rate</div>
-                            <div className="mt-1 text-2xl font-black text-amber-200">{dailyAttempt.wrongPercent}%</div>
+                            <div className="text-[0.6rem] font-black uppercase tracking-[0.14em] text-slate-400">Wrong Rate</div>
+                            <div className="mt-1 text-xl font-black text-amber-200 sm:text-2xl">{dailyAttempt.wrongPercent}%</div>
                           </div>
-                          <div className="text-right text-sm font-bold text-sky-100 sm:text-base">www.icttoppers.com</div>
+                          <div className="text-right text-xs font-bold text-sky-100 sm:text-base">www.icttoppers.com</div>
                         </div>
                       </div>
                     </div>

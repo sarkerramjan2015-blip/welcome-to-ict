@@ -690,6 +690,23 @@ const toDateTimeLocal = (value?: string | null) => {
   ].join('-') + `T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
 
+const getNextQuizStartInput = () => {
+  const dhakaNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' }));
+  dhakaNow.setDate(dhakaNow.getDate() + 1);
+  dhakaNow.setHours(21, 0, 0, 0);
+  const pad = (part: number) => String(part).padStart(2, '0');
+  return [
+    dhakaNow.getFullYear(),
+    pad(dhakaNow.getMonth() + 1),
+    pad(dhakaNow.getDate()),
+  ].join('-') + `T${pad(dhakaNow.getHours())}:${pad(dhakaNow.getMinutes())}`;
+};
+
+const getRoutineIdFromStart = (startsAt: string) => {
+  const datePart = startsAt.split('T')[0] || new Date().toISOString().slice(0, 10);
+  return `quiz-${datePart}-hsc-ict`;
+};
+
 const compareByOrderThenTitle = <T extends { order?: number; title?: string }>(a: T, b: T) => {
   const orderDiff = Number(a.order || 0) - Number(b.order || 0);
   if (orderDiff !== 0) return orderDiff;
@@ -1473,7 +1490,16 @@ export default function AdminDashboard() {
 
   const openChallengeEditor = (challenge: AdminChallengeDetails | null) => {
     if (!challenge) {
+      const startsAt = getNextQuizStartInput();
       openAction('challenge');
+      setForms(prev => ({
+        ...prev,
+        challenge: {
+          ...makeInitialForms().challenge,
+          challengeId: getRoutineIdFromStart(startsAt),
+          startsAt,
+        },
+      }));
       return;
     }
 
@@ -1492,6 +1518,13 @@ export default function AdminDashboard() {
       },
     }));
     openAction('challenge');
+  };
+
+  const refreshNextQuizControl = async () => {
+    await loadQuizQuestionSets();
+    if (nextChallengeSet?.id) {
+      await loadNextChallengeOverview();
+    }
   };
 
   const openScopedAction = (action: Extract<ActionType, 'topic' | 'mcq' | 'cq' | 'quizQuestion'>) => {
@@ -2144,15 +2177,25 @@ export default function AdminDashboard() {
               See the next exam date, syllabus, published questions, and edit the routine from one place.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => void loadNextChallengeOverview()}
-            disabled={!nextChallengeSet}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-900/10 bg-slate-900/5 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-900/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => openChallengeEditor(nextChallengeDetails)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-black text-white shadow-lg shadow-cyan-950/20 transition hover:bg-cyan-400"
+            >
+              {nextChallengeDetails ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+              {nextChallengeDetails ? 'Edit Routine' : 'Create Routine'}
+            </button>
+            <button
+              type="button"
+              onClick={() => void refreshNextQuizControl()}
+              disabled={quizQuestionsLoading || nextChallengeLoading}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-900/10 bg-slate-900/5 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-900/10 disabled:cursor-wait disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+            >
+              {(quizQuestionsLoading || nextChallengeLoading) ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              Refresh
+            </button>
+          </div>
         </div>
 
         <div className="rounded-3xl border border-slate-900/10 bg-slate-900/5 p-5 dark:border-white/10 dark:bg-white/5 md:p-6">
@@ -2174,12 +2217,33 @@ export default function AdminDashboard() {
               </p>
             </div>
           ) : !nextChallengeDetails ? (
-            <div className="py-10 text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-300">
+            <div className="mx-auto max-w-xl py-12 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-300 ring-1 ring-cyan-300/15">
                 <CalendarDays className="h-6 w-6" />
               </div>
-              <p className="font-bold text-slate-700 dark:text-slate-200">No quiz routine found yet.</p>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Use the Quiz Routine action to publish the next exam.</p>
+              <p className="text-lg font-black text-slate-800 dark:text-slate-100">No quiz routine found yet.</p>
+              <p className="mx-auto mt-2 max-w-md text-sm font-semibold leading-relaxed text-slate-500 dark:text-slate-400">
+                Create the next 9 PM exam routine now. After saving, this panel will show the date, syllabus, status, and question preview.
+              </p>
+              <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => openChallengeEditor(null)}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-cyan-950/20 transition hover:bg-cyan-400"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create Quiz Routine
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void loadQuizQuestionSets()}
+                  disabled={quizQuestionsLoading}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-900/10 bg-white/70 px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-white disabled:cursor-wait disabled:opacity-60 dark:border-white/10 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:bg-slate-950/70"
+                >
+                  {quizQuestionsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                  Check Again
+                </button>
+              </div>
             </div>
           ) : (
             <>

@@ -1,4 +1,4 @@
-import type { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus.js";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "ওয়েবসাইট প্রকাশের প্রথম ধাপ কী?", options: ["কোড লেখা", "হোস্টিং কেনা", "ডোমেইন নিবন্ধন", "লক্ষ্য নির্ধারণ"], correct: "লক্ষ্য নির্ধারণ", explanation: "ওয়েবসাইট তৈরির আগে উদ্দেশ্য ও লক্ষ্য নির্ধারণ করতে হয়।" },

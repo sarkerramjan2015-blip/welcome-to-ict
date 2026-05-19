@@ -1,4 +1,4 @@
-import type { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus.js";
 
 export const practiceMcqs: PracticeMCQ[] = [
   {

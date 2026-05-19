@@ -1,4 +1,4 @@
-import type { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus.js";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "প্রোগ্রাম ফ্লোচার্টে প্রক্রিয়াকরণে কোন প্রতীকটি ব্যবহৃত হয়? [ঢাকা বোর্ড ২০২৪]", options: ["বৃত্ত", "সামান্তরিক", "রম্বস", "আয়তক্ষেত্র"], correct: "আয়তক্ষেত্র", explanation: "আয়তক্ষেত্র প্রতীকটি ফ্লোচার্টে process বা প্রক্রিয়াকরণ বোঝাতে ব্যবহৃত হয়।" },

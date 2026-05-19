@@ -1,4 +1,4 @@
-import type { CQ } from "../../../ict-syllabus";
+import type { CQ } from "../../../ict-syllabus.js";
 
 export const cqs: CQ[] = [
   {

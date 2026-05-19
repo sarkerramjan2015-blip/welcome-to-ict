@@ -1,4 +1,4 @@
-import type { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus.js";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "হাইপারলিংক তৈরির ট্যাগ কোনটি?", options: ["<a>", "<img>", "<p>", "<br>"], correct: "<a>", explanation: "<a> (anchor) ট্যাগ হাইপারলিংক তৈরি করে।" },

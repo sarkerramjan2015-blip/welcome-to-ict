@@ -1,4 +1,4 @@
-import type { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus.js";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "C ভাষায় % কোন ধরনের operator? [বরিশাল বোর্ড ২০২৪]", options: ["Arithmetic", "Logical", "Relational", "Assignment"], correct: "Arithmetic", explanation: "% ভাগশেষ নির্ণয় করে, তাই arithmetic operator।" },

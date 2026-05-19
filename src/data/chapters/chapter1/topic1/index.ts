@@ -1,10 +1,10 @@
-import type { Topic } from "../../../ict-syllabus";
-import { generateQuiz } from "../../../utils";
-import { meta } from "./meta";
-import { notes } from "./notes";
-import { practiceMcqs } from "./mcqs";
-import { questions } from "./questions";
-import { cqs } from "./cqs";
+import type { Topic } from "../../../ict-syllabus.js";
+import { generateQuiz } from "../../../utils.js";
+import { meta } from "./meta.js";
+import { notes } from "./notes.js";
+import { practiceMcqs } from "./mcqs.js";
+import { questions } from "./questions.js";
+import { cqs } from "./cqs.js";
 
 export const topic1: Topic = {
   ...meta,

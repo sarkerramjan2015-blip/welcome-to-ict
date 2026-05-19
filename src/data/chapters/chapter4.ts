@@ -1,4 +1,4 @@
-import type { Chapter } from "../ict-syllabus";
+import type { Chapter } from "../ict-syllabus.js";
 
 export const chapter4: Chapter = {
   id: "chap-4",

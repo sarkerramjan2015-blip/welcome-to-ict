@@ -1,11 +1,11 @@
-import type { Topic } from "../../../ict-syllabus";
+import type { Topic } from "../../../ict-syllabus.js";
 // @ts-ignore
-import { generateQuiz } from "../../../utils";
-import { meta } from "./meta";
-import { notes } from "./notes";
-import { mcqs } from "./mcqs";
-import { questions } from "./questions";
-import { cqs } from "./cqs";
+import { generateQuiz } from "../../../utils.js";
+import { meta } from "./meta.js";
+import { notes } from "./notes.js";
+import { mcqs } from "./mcqs.js";
+import { questions } from "./questions.js";
+import { cqs } from "./cqs.js";
 
 export const topic1: Topic = {
   ...meta,

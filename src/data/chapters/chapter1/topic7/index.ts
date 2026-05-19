@@ -1,9 +1,9 @@
-import { meta } from './meta';
-import { notes } from './notes';
-import { practiceMcqs } from './mcqs';
-import { questions } from './questions';
-import { cqs } from './cqs';
-import type { Topic } from '../../../ict-syllabus';
+import { meta } from './meta.js';
+import { notes } from './notes.js';
+import { practiceMcqs } from './mcqs.js';
+import { questions } from './questions.js';
+import { cqs } from './cqs.js';
+import type { Topic } from '../../../ict-syllabus.js';
 
 export const topic7: Topic = {
   ...meta,

@@ -1,7 +1,7 @@
 import { getPublicPracticeResult } from '../publicPracticeShareAccess.js';
 
 const cleanString = (value: unknown) => String(value || '').trim();
-const PRACTICE_CARD_LAYOUT_VERSION = 'square-v2';
+const PRACTICE_CARD_LAYOUT_VERSION = 'square-v5';
 
 const queryValue = (req: any, key: string) => {
   const value = req.query?.[key];

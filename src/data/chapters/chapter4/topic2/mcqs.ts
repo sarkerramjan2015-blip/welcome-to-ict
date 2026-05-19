@@ -1,4 +1,4 @@
-import type { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus.js";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "সারা বিশ্বের সকল আইপি এড্রেস ও ডোমেইন নেম নিয়ন্ত্রণ করে কোন প্রতিষ্ঠান? [রাজশাহী বোর্ড ২০১৯]", options: ["MICROSOFT", "ICANN", "GOOGLE", "YAHOO"], correct: "ICANN", explanation: "ICANN (Internet Corporation for Assigned Names and Numbers) বিশ্বের সকল IP ও ডোমেইন নাম নিয়ন্ত্রণ করে।" },

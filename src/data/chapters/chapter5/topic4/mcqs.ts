@@ -1,4 +1,4 @@
-import type { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus.js";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "প্রোগ্রাম ডিজাইন মডেলে ২০% - ৪০% সময় ব্যয় করা হয় কোনটিতে? [রাজশাহী বোর্ড ২০২৪]", options: ["বিশ্লেষণ", "রক্ষণাবেক্ষণ", "পরীক্ষণ", "ডিজাইন"], correct: "ডিজাইন", explanation: "প্রোগ্রাম তৈরির পরিকল্পনা বা ডিজাইন পর্যায়ে উল্লেখযোগ্য সময় ব্যয় হয়।" },

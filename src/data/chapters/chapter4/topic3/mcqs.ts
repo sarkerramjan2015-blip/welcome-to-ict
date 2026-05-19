@@ -1,4 +1,4 @@
-import type { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus.js";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "HTML এর পূর্ণরূপ কোনটি?", options: ["HyperText Markup Language", "High Text Markup Language", "HyperText Language", "Hyper Term Markup Language"], correct: "HyperText Markup Language", explanation: "HTML = HyperText Markup Language। ওয়েবপেজ তৈরির মার্কআপ ভাষা।" },

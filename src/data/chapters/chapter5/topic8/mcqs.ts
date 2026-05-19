@@ -1,4 +1,4 @@
-import type { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus.js";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "for(i=10; i<=15; i+=2) if(i>12) printf(i+1) else printf(i-1); output কোনটি? [চট্টগ্রাম বোর্ড ২০২৪]", options: ["9 11 15", "10 11 15", "10 12 15", "9 11 14"], correct: "9 11 15", explanation: "i=10 হলে 9, i=12 হলে 11, i=14 হলে 15 print হয়।" },

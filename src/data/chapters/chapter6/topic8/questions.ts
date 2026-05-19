@@ -1,4 +1,4 @@
-import type { ShortQuestion } from "../../../ict-syllabus";
+import type { ShortQuestion } from "../../../ict-syllabus.js";
 
 export const questions: { knowledgeQuestions: ShortQuestion[]; analyticalQuestions: ShortQuestion[] } = {
   "knowledgeQuestions": [

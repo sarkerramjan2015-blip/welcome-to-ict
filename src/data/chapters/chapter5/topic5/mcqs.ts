@@ -1,4 +1,4 @@
-import type { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus.js";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "টেক্সট ডেটা টাইপে বর্ণের সংখ্যা সর্বোচ্চ কত হতে পারে? [চট্টগ্রাম বোর্ড ২০১৭]", options: ["128", "255", "256", "512"], correct: "256", explanation: "৮ বিটে ২^৮ = ২৫৬টি মান প্রকাশ করা যায়।" },

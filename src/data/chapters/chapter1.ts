@@ -1,5 +1,5 @@
-import type { Chapter } from "../ict-syllabus";
-import { generateQuiz } from "../utils";
+import type { Chapter } from "../ict-syllabus.js";
+import { generateQuiz } from "../utils.js";
 
 export const chapter1: Chapter = {
   id: "chap-1",

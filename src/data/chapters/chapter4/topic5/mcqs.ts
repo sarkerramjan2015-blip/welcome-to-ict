@@ -1,4 +1,4 @@
-import type { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus.js";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "টেক্সটকে বোল্ড করতে কোন ট্যাগ ব্যবহৃত হয়?", options: ["<b>", "<i>", "<u>", "<p>"], correct: "<b>", explanation: "<b> ট্যাগ টেক্সট বোল্ড করে।" },

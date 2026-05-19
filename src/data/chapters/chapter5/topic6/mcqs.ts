@@ -1,4 +1,4 @@
-import type { PracticeMCQ } from "../../../ict-syllabus";
+import type { PracticeMCQ } from "../../../ict-syllabus.js";
 
 export const practiceMCQs: PracticeMCQ[] = [
   { q: "C প্রোগ্রামে data output এর জন্য ব্যবহৃত function কোনটি? [কুমিল্লা বোর্ড ২০২৪]", options: ["printf()", "scanf()", "float()", "getch()"], correct: "printf()", explanation: "printf() আউটপুট প্রদর্শন করে।" },

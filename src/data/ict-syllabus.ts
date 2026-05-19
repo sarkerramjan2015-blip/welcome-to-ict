@@ -1,9 +1,9 @@
-import { chapter1 } from "./chapters/chapter1/index";
-import { chapter2 } from "./chapters/chapter2/index";
-import { chapter3 } from "./chapters/chapter3/index";
-import { chapter4 } from "./chapters/chapter4/index";
-import { chapter5 } from "./chapters/chapter5/index";
-import { chapter6 } from "./chapters/chapter6/index";
+import { chapter1 } from "./chapters/chapter1/index.js";
+import { chapter2 } from "./chapters/chapter2/index.js";
+import { chapter3 } from "./chapters/chapter3/index.js";
+import { chapter4 } from "./chapters/chapter4/index.js";
+import { chapter5 } from "./chapters/chapter5/index.js";
+import { chapter6 } from "./chapters/chapter6/index.js";
 
 export interface ShortQuestion {
   q: string;
