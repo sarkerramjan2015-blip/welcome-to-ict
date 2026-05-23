@@ -24,6 +24,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import type { PremiumPlan } from '../PremiumSubscriptionModal';
 import AnnouncementBar from '../ui/AnnouncementBar';
+import { isSscIctEnabled } from '../../features/ssc-ict/config';
 
 const Footer = lazy(() => import('./Footer'));
 const AIChatbot = lazy(() => import('../ui/AIChatbot'));
@@ -59,6 +60,7 @@ function SEO({ title, disabled = false }: { title?: string; disabled?: boolean }
 const mainNavLinks: NavItem[] = [
   { to: '/', label: 'Home', icon: HomeIcon },
   { to: '/#mentor-section', label: 'Mentor', icon: Users },
+  ...(isSscIctEnabled ? [{ to: '/ssc-ict', label: 'SSC ICT', icon: Crown, badge: 'NEW' }] : []),
   { to: '/courses', label: 'Courses', icon: Video },
   { to: '/syllabus', label: 'Chapters', icon: BookOpen },
   { to: '/mcq-practice', label: 'MCQ Practice', icon: Brain },
@@ -69,6 +71,8 @@ const mainNavLinks: NavItem[] = [
 ];
 
 const getPageTitle = (pathname: string, isBoardQuestionPage: boolean) => {
+  if (pathname.includes('ssc-ict/chapter/ict-and-bangladesh')) return 'SSC ICT Chapter 1 MCQ, Special Notes and Flipbook';
+  if (pathname.includes('ssc-ict')) return 'SSC ICT Complete Preparation';
   if (pathname.includes('mcq-practice')) return 'Free HSC ICT MCQ Practice';
   if (pathname.includes('chapters')) return 'HSC Chapters';
   if (pathname.includes('topics')) return 'Topics';
@@ -275,7 +279,7 @@ export default function Layout() {
           <span className="whitespace-nowrap text-lg font-black tracking-tight text-slate-950 dark:text-white sm:text-xl">ICT Toppers</span>
         </Link>
 
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 xl:flex">
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 2xl:flex">
           {mainNavLinks.map(link => (
             <Link key={link.to} to={link.to} className={linkClass(link.to)}>
               <span className="whitespace-nowrap">{link.label}</span>
@@ -288,7 +292,7 @@ export default function Layout() {
           ))}
         </nav>
 
-        <div className="hidden shrink-0 items-center gap-2 xl:flex">
+        <div className="hidden shrink-0 items-center gap-2 2xl:flex">
           {user ? (
             <>
               <Link to={dashboardPath} className={linkClass(dashboardPath)}>
@@ -341,7 +345,7 @@ export default function Layout() {
           </button>
         </div>
 
-        <div className="flex items-center gap-2 xl:hidden">
+        <div className="flex items-center gap-2 2xl:hidden">
           <button
             onClick={toggleTheme}
             className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-white/10 dark:text-slate-200"
@@ -362,7 +366,7 @@ export default function Layout() {
         <>
           {isMobileMenuOpen && (
             <div
-              className="absolute left-3 right-3 top-[calc(100%+0.5rem)] rounded-3xl border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/95 xl:hidden"
+              className="absolute left-3 right-3 top-[calc(100%+0.5rem)] rounded-3xl border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/95 2xl:hidden"
             >
               <div className="grid gap-1">
                 {mainNavLinks.map(link => {
@@ -475,6 +479,18 @@ export default function Layout() {
             onUpgrade={handlePremiumUpgrade}
           />
         </Suspense>
+      )}
+
+      {isSscIctEnabled && !location.pathname.startsWith('/ssc-ict') && !isBoardQuestionPage && (
+        <Link
+          to="/ssc-ict"
+          className={`fixed left-4 z-50 inline-flex items-center gap-2 rounded-full border border-white/70 bg-sky-600 px-4 py-3 text-sm font-black text-white shadow-2xl shadow-sky-600/25 transition hover:-translate-y-1 hover:bg-sky-500 dark:border-white/10 sm:left-5 ${isHomePage ? 'bottom-24 md:bottom-28 lg:bottom-8' : 'bottom-5 md:bottom-8'}`}
+          aria-label="Open SSC ICT section"
+        >
+          <Crown className="h-4 w-4" />
+          SSC ICT
+          <span className="rounded-full bg-white/20 px-2 py-0.5 text-[0.62rem] leading-none">NEW</span>
+        </Link>
       )}
 
       {!location.pathname.startsWith('/topics/') && !isBoardQuestionPage && (

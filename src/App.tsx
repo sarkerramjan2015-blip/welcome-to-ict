@@ -34,6 +34,8 @@ const Register = lazy(() => import('./pages/Register'));
 const SuccessPage = lazy(() => import('./pages/SuccessPage'));
 const PaymentStatusPage = lazy(() => import('./pages/PaymentStatusPage'));
 const LmsRoute = lazy(() => import('./components/routes/LmsRoute'));
+const SscIctRoutes = lazy(() => import('./features/ssc-ict/SscIctRoutes'));
+const SscIctAdminRoutes = lazy(() => import('./features/ssc-ict/SscIctAdminRoutes'));
 
 const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
@@ -156,6 +158,7 @@ export default function App() {
                 <Route path="payment/cancel" element={<PaymentStatusPage type="cancel" />} />
                 <Route path="payment/fail" element={<PaymentStatusPage type="fail" />} />
                 <Route path="admin" element={<AdminLogin />} />
+                <Route path="ssc-ict/*" element={<SscIctRoutes />} />
 
                 <Route element={<LmsRoute />}>
                   <Route path="courses" element={<Courses />} />
@@ -168,6 +171,7 @@ export default function App() {
                   <Route path="payment/success" element={<SuccessPage />} />
                   <Route path="dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
                   <Route path="admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                  <Route path="admin/ssc-ict/*" element={<AdminRoute><SscIctAdminRoutes /></AdminRoute>} />
                 </Route>
               </Route>
             </Routes>

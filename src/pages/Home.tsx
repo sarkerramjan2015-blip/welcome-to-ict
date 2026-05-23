@@ -3,7 +3,7 @@ import { fetchUpcomingChallenge, getFallbackChallenge, type UpcomingChallenge } 
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import Countdown from '../components/Countdown';
-import { BookOpen, BriefcaseBusiness, CreditCard, GraduationCap, NotebookTabs, Rocket, Timer, Trophy, Video, Users, Star, User, ChevronDown, Zap, ArrowRight } from 'lucide-react';
+import { BookOpen, BriefcaseBusiness, CreditCard, Crown, GraduationCap, NotebookTabs, Rocket, Timer, Trophy, Video, Users, Star, User, ChevronDown, Zap, ArrowRight } from 'lucide-react';
 import bioImageSmall from '@/src/asset/bio_image-mentor-256.webp';
 import bioImage from '@/src/asset/bio_image-mentor.webp';
 
@@ -396,6 +396,21 @@ export default function Home() {
             <Trophy className="size-3.5 md:size-5 text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
           </Link>
         </div>
+        <Link
+          to="/ssc-ict"
+          className="mx-auto mb-12 flex w-full max-w-3xl items-center justify-between gap-4 rounded-3xl border border-sky-300/40 bg-gradient-to-r from-sky-600 via-cyan-600 to-emerald-500 p-4 text-left text-white shadow-2xl shadow-sky-600/20 transition-transform transition-shadow duration-300 hover:-translate-y-1 hover:shadow-sky-600/30 sm:p-5"
+        >
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/18">
+              <Crown className="h-6 w-6" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-100">New SSC Section</p>
+              <p className="mt-1 text-sm font-black leading-6 sm:text-lg">SSC ICT complete prep is live now.</p>
+            </div>
+          </div>
+          <ArrowRight className="h-5 w-5 shrink-0" />
+        </Link>
       </section>
 
       {/* Stats Counter Section */}
@@ -441,20 +456,20 @@ export default function Home() {
         </div>
 
         <div className="block group h-full">
-          <div className="relative rounded-3xl overflow-hidden p-[2px] h-full block opacity-60 cursor-not-allowed">
-            <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,#f43f5e_360deg)] animate-spin-slow"></div>
-            <div className="absolute inset-0 bg-[conic-gradient(from_180deg,transparent_0_300deg,#fb7185_360deg)] animate-spin-slow"></div>
-            <div className="relative bg-gradient-to-br from-slate-100 dark:from-slate-900 to-rose-950 rounded-[22px] border border-dashed border-slate-900/10 dark:border-white/20 p-6 md:p-8 text-center flex flex-col items-center shadow-2xl shadow-black/20 h-full transition-colors duration-300">
-              <div className="w-16 h-16 bg-slate-900/5 dark:bg-white/5 rounded-2xl mb-6 flex items-center justify-center text-rose-400">
+          <Link to="/ssc-ict" className="relative rounded-3xl overflow-hidden p-[2px] h-full block">
+            <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,#0ea5e9_360deg)] animate-spin-slow"></div>
+            <div className="absolute inset-0 bg-[conic-gradient(from_180deg,transparent_0_300deg,#10b981_360deg)] animate-spin-slow"></div>
+            <div className="relative bg-gradient-to-br from-slate-100 dark:from-slate-900 to-cyan-50 dark:to-cyan-950 rounded-[22px] border border-dashed border-slate-900/10 dark:border-white/20 p-6 md:p-8 text-center flex flex-col items-center shadow-2xl shadow-black/20 h-full transition-colors duration-300 group-hover:from-white dark:group-hover:from-slate-800 group-hover:to-cyan-100 dark:group-hover:to-cyan-900">
+              <div className="w-16 h-16 bg-sky-500/20 rounded-2xl mb-6 flex items-center justify-center text-sky-500 group-hover:scale-110 transition-transform">
                 <NotebookTabs className="w-8 h-8" />
               </div>
               <h3 className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-50">SSC ICT</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Targeted for 2024 & 2025 candidates.</p>
-              <div className="mt-auto text-[0.7rem] font-bold uppercase px-4 py-1.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">
-                Coming Soon
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">PDF, MCQ practice, quiz, short notes and progress dashboard.</p>
+              <div className="mt-auto text-[0.7rem] font-bold uppercase px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-500 border border-emerald-500/30">
+                Available Now
               </div>
             </div>
-          </div>
+          </Link>
         </div>
 
         <div className="block group h-full">
