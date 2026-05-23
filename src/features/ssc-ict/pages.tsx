@@ -121,25 +121,30 @@ export function SscIctLanding() {
 
   return (
     <div className={pageWrap}>
-      <section className="mb-12 overflow-hidden rounded-[2rem] border border-slate-900/10 bg-white/76 p-6 shadow-2xl shadow-slate-950/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/7 md:p-10">
-        <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+      <section className="relative mb-12 overflow-hidden rounded-[2.5rem] border border-slate-900/10 bg-white/75 p-6 shadow-2xl shadow-slate-950/5 backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/40 md:p-10 lg:p-12">
+        {/* Glow Effects */}
+        <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-cyan-500/15 blur-[100px] dark:bg-cyan-500/10" />
+        <div className="pointer-events-none absolute -right-20 -bottom-20 h-72 w-72 rounded-full bg-emerald-500/15 blur-[100px] dark:bg-emerald-500/10" />
+        <div className="pointer-events-none absolute left-1/3 top-1/4 h-80 w-80 rounded-full bg-indigo-500/10 blur-[120px] dark:bg-indigo-500/5" />
+
+        <div className="relative grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-sky-300/30 bg-sky-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-sky-600 dark:text-sky-200">
-              <Sparkles className="h-4 w-4" />
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-sky-300/40 bg-gradient-to-r from-sky-400/12 via-emerald-400/12 to-indigo-400/12 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-sky-600 dark:text-sky-300">
+              <Sparkles className="h-4 w-4 animate-pulse" />
               Premium SSC Module
             </div>
-            <h1 className="text-4xl font-black leading-tight text-slate-950 dark:text-white md:text-6xl">
+            <h1 className="bg-gradient-to-r from-sky-600 via-emerald-500 to-indigo-600 bg-clip-text text-4xl font-black leading-tight text-transparent dark:from-sky-300 dark:via-emerald-300 dark:to-indigo-300 md:text-5xl lg:text-6xl">
               SSC ICT Complete Preparation
             </h1>
             <p className="mt-5 max-w-2xl text-base font-semibold leading-8 text-slate-600 dark:text-slate-300">
               Chapter-wise smart PDF flipbook, MCQ practice, timed quiz, dashboard progress, leaderboard rank and shareable result card.
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link to="/ssc-ict/chapter/ict-and-bangladesh/preview" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-sky-600/20 transition hover:bg-sky-500">
+            <div className="mt-7 flex flex-col sm:flex-row gap-3">
+              <Link to="/ssc-ict/chapter/ict-and-bangladesh/preview" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-sky-600/20 transition hover:bg-sky-500 w-full sm:w-auto">
                 <Eye className="h-4 w-4" />
                 Start Free Preview
               </Link>
-              <Link to="/ssc-ict/packages" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-900/10 bg-white px-6 py-3 text-sm font-black text-slate-900 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/10 dark:text-white">
+              <Link to="/ssc-ict/packages" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-900/10 bg-white px-6 py-3 text-sm font-black text-slate-900 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/10 dark:text-white w-full sm:w-auto">
                 <Layers className="h-4 w-4" />
                 View Packages
               </Link>
@@ -199,7 +204,7 @@ export function SscIctLanding() {
         </div>
       </section>
 
-      <section className="mt-12 grid gap-4 md:grid-cols-5">
+      <section className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {[
           ['Smart PDF', 'Chapter-wise protected flipbook with resume progress.'],
           ['MCQ Practice', 'Instant answer, explanation, bookmarks and wrong-only filters.'],
@@ -493,9 +498,9 @@ export function SscPracticePage() {
           <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search MCQ..." className="w-full rounded-2xl border border-slate-900/10 bg-white/75 py-3 pl-11 pr-4 text-sm font-semibold outline-none focus:border-sky-400 dark:border-white/10 dark:bg-white/7 dark:text-white" />
         </label>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide shrink-0">
           {(['all', 'wrong', 'unattempted', 'bookmarked'] as PracticeFilter[]).map(item => (
-            <button key={item} type="button" onClick={() => setFilter(item)} className={`rounded-2xl px-3 py-3 text-xs font-black capitalize ${filter === item ? 'bg-sky-600 text-white' : 'bg-white/70 text-slate-600 dark:bg-white/7 dark:text-slate-300'}`}>
+            <button key={item} type="button" onClick={() => setFilter(item)} className={`rounded-2xl px-4 py-2.5 text-xs font-black capitalize whitespace-nowrap ${filter === item ? 'bg-sky-600 text-white shadow-lg shadow-sky-600/15' : 'bg-white/70 text-slate-600 dark:bg-white/7 dark:text-slate-300'}`}>
               {item}
             </button>
           ))}
@@ -636,10 +641,10 @@ export function SscQuizPage() {
           <p className="mt-3 text-sm font-semibold leading-7 text-slate-600 dark:text-slate-300">
             {questions.length} MCQ, {config.quizSettings.durationMinutes} minutes. Leaderboard rank uses higher score, lower time, then earlier submission.
           </p>
-          <div className="mt-6 grid grid-cols-3 gap-3">
-            <div className="rounded-2xl bg-slate-900/5 p-4 dark:bg-white/7"><Clock className="mx-auto mb-2 h-5 w-5 text-sky-500" /><p className="font-black">{config.quizSettings.durationMinutes} min</p></div>
-            <div className="rounded-2xl bg-slate-900/5 p-4 dark:bg-white/7"><Target className="mx-auto mb-2 h-5 w-5 text-emerald-500" /><p className="font-black">{questions.length} marks</p></div>
-            <div className="rounded-2xl bg-slate-900/5 p-4 dark:bg-white/7"><Gauge className="mx-auto mb-2 h-5 w-5 text-amber-500" /><p className="font-black">{config.quizSettings.negativeMarkingEnabled ? 'Negative' : 'No negative'}</p></div>
+          <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3 text-center">
+            <div className="rounded-2xl bg-slate-900/5 p-4 dark:bg-white/7"><Clock className="mx-auto mb-2 h-5 w-5 text-sky-500" /><p className="text-xs sm:text-sm font-black">{config.quizSettings.durationMinutes} min</p></div>
+            <div className="rounded-2xl bg-slate-900/5 p-4 dark:bg-white/7"><Target className="mx-auto mb-2 h-5 w-5 text-emerald-500" /><p className="text-xs sm:text-sm font-black">{questions.length} marks</p></div>
+            <div className="rounded-2xl bg-slate-900/5 p-4 dark:bg-white/7"><Gauge className="mx-auto mb-2 h-5 w-5 text-amber-500" /><p className="text-xs sm:text-sm font-black">{config.quizSettings.negativeMarkingEnabled ? 'Negative' : 'No negative'}</p></div>
           </div>
           <button type="button" onClick={() => setStarted(true)} className="mt-7 inline-flex items-center gap-2 rounded-2xl bg-sky-600 px-7 py-4 text-sm font-black text-white shadow-lg shadow-sky-600/20 transition hover:bg-sky-500">
             <PlayCircle className="h-5 w-5" />
@@ -684,7 +689,7 @@ export function SscQuizPage() {
               </button>
             ))}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto [&>button]:flex-1 sm:[&>button]:flex-none">
             <button type="button" onClick={() => setCurrent(value => Math.max(0, value - 1))} className="rounded-2xl border border-slate-900/10 bg-white px-5 py-3 text-sm font-black text-slate-700 dark:border-white/10 dark:bg-white/10 dark:text-white">Previous</button>
             {current < questions.length - 1 ? (
               <button type="button" onClick={() => setCurrent(value => Math.min(questions.length - 1, value + 1))} className="rounded-2xl bg-sky-600 px-5 py-3 text-sm font-black text-white">Next</button>
@@ -781,20 +786,20 @@ export function SscLeaderboardPage() {
         ))}
       </div>
       <div className="overflow-hidden rounded-[1.75rem] border border-slate-900/10 bg-white/75 shadow-xl shadow-slate-950/5 dark:border-white/10 dark:bg-white/7">
-        <div className="grid grid-cols-[72px_1fr_80px_90px_110px] gap-3 bg-slate-900/5 px-4 py-3 text-xs font-black uppercase tracking-[0.12em] text-slate-500 dark:bg-white/7">
-          <span>Rank</span><span>Student</span><span>Score</span><span>Time</span><span>Date</span>
+        <div className="grid grid-cols-[56px_1fr_64px_64px] sm:grid-cols-[72px_1fr_80px_90px_110px] gap-2 sm:gap-3 bg-slate-900/5 px-3 sm:px-4 py-3 text-xs font-black uppercase tracking-[0.12em] text-slate-500 dark:bg-white/7">
+          <span>Rank</span><span>Student</span><span>Score</span><span>Time</span><span className="hidden sm:inline">Date</span>
         </div>
         {attempts.length === 0 ? (
           <SscEmptyState title="No quiz attempts yet" text="Complete a chapter quiz to appear on the leaderboard." />
         ) : (
           <div className="divide-y divide-slate-900/10 dark:divide-white/10">
             {attempts.map(attempt => (
-              <div key={attempt.id} className={`grid grid-cols-[72px_1fr_80px_90px_110px] gap-3 px-4 py-4 text-sm font-bold ${attempt.userId === userId ? 'bg-amber-400/12' : ''}`}>
-                <span className="inline-flex items-center gap-1 text-amber-500"><Medal className="h-4 w-4" />#{attempt.rankSnapshot}</span>
+              <div key={attempt.id} className={`grid grid-cols-[56px_1fr_64px_64px] sm:grid-cols-[72px_1fr_80px_90px_110px] gap-2 sm:gap-3 px-3 sm:px-4 py-4 text-sm font-bold ${attempt.userId === userId ? 'bg-amber-400/12' : ''}`}>
+                <span className="inline-flex items-center gap-1 text-amber-500"><Medal className="h-4 w-4 shrink-0" />#{attempt.rankSnapshot}</span>
                 <span className="min-w-0 truncate text-slate-800 dark:text-slate-100">{attempt.displayName}</span>
                 <span className="text-emerald-600 dark:text-emerald-300">{attempt.score}/{attempt.total}</span>
                 <span className="text-slate-600 dark:text-slate-300">{formatTime(attempt.timeTakenSeconds)}</span>
-                <span className="text-slate-500">{new Date(attempt.submittedAt).toLocaleDateString()}</span>
+                <span className="hidden sm:inline text-slate-500">{new Date(attempt.submittedAt).toLocaleDateString()}</span>
               </div>
             ))}
           </div>
@@ -847,17 +852,17 @@ export function SscDashboardPage() {
         </Link>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {[
           ['Purchased', purchased.length, 'chapters', BookOpen],
           ['Quiz Attempts', attempts.length, 'submitted', Trophy],
           ['Best Score', bestScore, 'marks', Medal],
           ['Accuracy', `${averageAccuracy}%`, 'average', BarChart3],
         ].map(([label, value, suffix, Icon]) => (
-          <div key={String(label)} className="rounded-3xl border border-slate-900/10 bg-white/75 p-5 shadow-lg shadow-slate-950/5 dark:border-white/10 dark:bg-white/7">
+          <div key={String(label)} className="rounded-3xl border border-slate-900/10 bg-white/75 p-4 sm:p-5 shadow-lg shadow-slate-950/5 dark:border-white/10 dark:bg-white/7">
             <Icon className="mb-4 h-6 w-6 text-sky-500" />
             <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">{label}</p>
-            <p className="mt-2 text-3xl font-black text-slate-950 dark:text-white">{value}</p>
+            <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 dark:text-white">{value}</p>
             <p className="text-xs font-bold text-slate-500">{suffix}</p>
           </div>
         ))}

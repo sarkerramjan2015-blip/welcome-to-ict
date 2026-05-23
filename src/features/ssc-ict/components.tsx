@@ -82,6 +82,32 @@ function SscPremiumStyles() {
           pointer-events: none;
           z-index: 0;
         }
+        .ssc-glass-card {
+          background: rgba(255, 255, 255, 0.72) !important;
+          backdrop-filter: blur(20px) saturate(180%) !important;
+          border: 1px solid rgba(255, 255, 255, 0.5) !important;
+        }
+        .dark .ssc-glass-card {
+          background: rgba(15, 23, 42, 0.65) !important;
+          backdrop-filter: blur(20px) saturate(180%) !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+        .ssc-glow-border {
+          position: relative;
+        }
+        .ssc-glow-border::before {
+          content: '';
+          position: absolute;
+          inset: -1px;
+          border-radius: inherit;
+          background: linear-gradient(135deg, rgba(14, 165, 233, 0.4), rgba(16, 185, 129, 0.4));
+          z-index: -1;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+        .ssc-glow-border:hover::before {
+          opacity: 1;
+        }
         @keyframes ssc-gradient-drift {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
@@ -189,7 +215,7 @@ export function SscChapterCard({
   onUnlock: (chapter: SscChapter) => void;
 }) {
   return (
-    <article className="group flex h-full flex-col rounded-3xl border border-slate-900/10 bg-white/75 p-5 shadow-xl shadow-slate-950/5 backdrop-blur-xl transition hover:-translate-y-1 hover:border-sky-400/35 hover:shadow-2xl hover:shadow-sky-500/10 dark:border-white/10 dark:bg-white/7">
+    <article className="group ssc-glass-card ssc-glow-border flex h-full flex-col rounded-3xl p-5 shadow-xl shadow-slate-950/5 transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-sky-500/10">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-500/12 text-sky-500">
           <BookOpen className="h-6 w-6" />
@@ -258,7 +284,10 @@ export function SscPackageCard({
   onBuy: () => void;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-[1.75rem] border border-amber-300/25 bg-slate-950 p-6 text-white shadow-2xl shadow-amber-950/25 md:p-8">
+    <section className="relative overflow-hidden rounded-[2rem] border border-amber-300/25 bg-slate-950 p-6 text-white shadow-2xl shadow-amber-950/25 md:p-8">
+      {/* Premium glowing mesh backdrop */}
+      <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gradient-to-br from-amber-500/20 to-sky-500/20 blur-[80px]" />
+      <div className="pointer-events-none absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-gradient-to-br from-emerald-500/10 to-indigo-500/10 blur-[80px]" />
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-300 via-sky-300 to-emerald-300" />
       <div className="relative grid gap-7 md:grid-cols-[1fr_auto] md:items-center">
         <div>
@@ -449,7 +478,7 @@ export function SscChapterToolNav({
   return (
     <nav className={`ssc-hind rounded-[1.75rem] border border-slate-900/10 bg-white/80 p-2 shadow-xl shadow-slate-950/5 backdrop-blur-xl dark:border-white/10 dark:bg-white/7 ${className}`} aria-label="SSC chapter tools">
       <SscPremiumStyles />
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         {tools.map(tool => {
           const Icon = tool.icon;
           const active = location.pathname.endsWith(`/${tool.to}`);
@@ -640,9 +669,9 @@ function SscConceptCoach({
   const coach = getConceptCoach(title, pageIndex);
   const accent = readerAccentSets[pageIndex % readerAccentSets.length];
   return (
-    <div className={`my-8 overflow-hidden rounded-[1.75rem] border ${accent.border} bg-gradient-to-br ${accent.soft} p-5 shadow-lg shadow-slate-950/5`}>
+    <div className={`my-8 overflow-hidden rounded-[1.75rem] border ${accent.border} bg-gradient-to-br ${accent.soft} p-4 sm:p-5 shadow-lg shadow-slate-950/5`}>
       <div className="grid gap-5 md:grid-cols-[auto_1fr] md:items-center">
-        <div className="relative flex h-24 w-24 items-center justify-center">
+        <div className="relative flex h-24 w-24 items-center justify-center mx-auto md:mx-0">
           <div className={`absolute inset-0 rounded-[2rem] bg-gradient-to-br ${accent.solid} opacity-18 blur-xl ${motionEnabled ? 'animate-pulse' : ''}`} />
           <div className={`relative flex h-20 w-20 items-center justify-center rounded-[1.5rem] bg-gradient-to-br ${accent.solid} text-white shadow-xl ${motionEnabled ? 'ssc-soft-float' : ''}`}>
             <GraduationCap className="h-9 w-9" />
@@ -673,6 +702,7 @@ function SscConceptCoach({
 export function SscFlipbookReader({
   chapter,
   userId,
+  watermark = 'ICT Toppers',
   previewOnly = false,
 }: {
   chapter: SscChapter;
@@ -689,6 +719,46 @@ export function SscFlipbookReader({
   const [focusMode, setFocusMode] = useState(false);
   const readerRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+
+  // Responsive dimensions hooks
+  const containerRef = useRef<HTMLDivElement>(null);
+  const articleRef = useRef<HTMLElement>(null);
+  const [containerWidth, setContainerWidth] = useState(768);
+  const [articleHeight, setArticleHeight] = useState(550);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const handleResize = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.clientWidth);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    const timer = setTimeout(handleResize, 150);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timer);
+    };
+  }, [page, fullscreen]);
+
+  useEffect(() => {
+    if (articleRef.current) {
+      const timer = setTimeout(() => {
+        if (articleRef.current) {
+          setArticleHeight(articleRef.current.scrollHeight);
+        }
+      }, 60);
+      return () => clearTimeout(timer);
+    }
+  }, [page, containerWidth, focusMode]);
+
+  const baseWidth = 768; // Base content page width
+  const isMobile = containerWidth < 768;
+  const paddingOffset = containerWidth < 640 ? 16 : 40;
+  const targetWidth = containerWidth - paddingOffset;
+  const autoScale = targetWidth < baseWidth ? targetWidth / baseWidth : 1;
+  const finalScale = isMobile ? zoom : (autoScale * zoom);
 
   useEffect(() => {
     setPage(current => Math.min(current, Math.max(maxPageCount - 1, 0)));
@@ -743,6 +813,10 @@ export function SscFlipbookReader({
       className={`ssc-hind relative overflow-hidden rounded-[2rem] border border-slate-900/10 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.12),transparent_34%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.12),transparent_30%),linear-gradient(135deg,rgba(248,250,252,0.96),rgba(226,232,240,0.78))] p-4 shadow-2xl shadow-slate-950/10 backdrop-blur-xl dark:border-white/10 dark:bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.12),transparent_34%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.12),transparent_30%),linear-gradient(135deg,rgba(2,6,23,0.98),rgba(15,23,42,0.9))] ${fullscreen ? 'fixed inset-3 z-[95] overflow-y-auto' : ''}`}
     >
       <SscPremiumStyles />
+      {/* Ambient background glows */}
+      <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-sky-500/10 blur-[100px] dark:bg-sky-500/8" />
+      <div className="pointer-events-none absolute -right-24 -bottom-24 h-72 w-72 rounded-full bg-emerald-500/10 blur-[100px] dark:bg-emerald-500/8" />
+
       <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${accent.solid}`} />
       <div className="mb-5 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
         <div>
@@ -833,41 +907,67 @@ export function SscFlipbookReader({
           </div>
         </aside>
 
-        <div className="relative mx-auto flex min-h-[560px] w-full max-w-5xl items-center justify-center overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 p-3 shadow-inner dark:border-white/10 dark:bg-slate-950/60 md:p-5">
-        <article
-          className={`relative z-0 min-h-[510px] w-full origin-top rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(180deg,#fff_0%,#f8fafc_100%)] p-6 text-slate-900 shadow-2xl shadow-slate-950/10 transition-transform dark:border-white/10 dark:bg-[linear-gradient(180deg,#111827_0%,#020617_100%)] dark:text-white md:p-10 ${focusMode ? 'max-w-3xl' : ''}`}
-          style={{ transform: `scale(${zoom})` }}
-        >
-          <div className="mb-8 flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-white/10 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${accent.soft} px-3 py-1 text-xs font-black uppercase tracking-[0.16em] ${accent.icon}`}>
-                <BookOpen className="h-4 w-4" />
-                SSC ICT
-              </p>
-              <h3 className={`mt-3 bg-gradient-to-r ${accent.text} bg-clip-text text-2xl font-black leading-tight text-transparent md:text-3xl`}>{chapter.title}</h3>
-            </div>
-            <div className="inline-flex w-fit items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-500 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
-              <Sparkles className={`h-4 w-4 ${motionEnabled ? 'animate-pulse' : ''}`} />
-              Page {page + 1}/{maxPageCount}
-            </div>
+        <div className="flex flex-col items-center w-full">
+          <div 
+            ref={containerRef}
+            className="relative flex w-full justify-center overflow-auto rounded-[2rem] border border-white/70 bg-white/75 p-1.5 sm:p-3 md:p-5 shadow-inner dark:border-white/10 dark:bg-slate-950/60"
+            style={{ 
+              height: `${articleHeight * (isMobile ? 1 : finalScale) + (fullscreen ? 120 : 40)}px`, 
+              maxHeight: fullscreen ? '88vh' : '680px',
+              minHeight: '380px',
+              transition: 'height 0.15s ease-out'
+            }}
+          >
+            {watermark && (
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.035] select-none z-10">
+                <span className="text-4xl sm:text-6xl md:text-8xl font-black rotate-[20deg] uppercase tracking-widest whitespace-nowrap">
+                  {watermark}
+                </span>
+              </div>
+            )}
+
+            <article
+              ref={articleRef}
+              className={`relative z-0 origin-top rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(180deg,#fff_0%,#f8fafc_100%)] p-4 sm:p-6 text-slate-900 shadow-2xl shadow-slate-950/10 dark:border-white/10 dark:bg-[linear-gradient(180deg,#111827_0%,#020617_100%)] dark:text-white md:p-10`}
+              style={{ 
+                width: isMobile ? '100%' : `${baseWidth}px`, 
+                transform: finalScale !== 1 ? `scale(${finalScale})` : undefined, 
+                transformOrigin: 'top center',
+                minHeight: isMobile ? '300px' : '510px',
+                flexShrink: isMobile ? 1 : 0
+              }}
+            >
+              <div className="mb-8 flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-white/10 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${accent.soft} px-3 py-1 text-xs font-black uppercase tracking-[0.16em] ${accent.icon}`}>
+                    <BookOpen className="h-4 w-4" />
+                    SSC ICT
+                  </p>
+                  <h3 className={`mt-3 bg-gradient-to-r ${accent.text} bg-clip-text text-2xl font-black leading-tight text-transparent md:text-3xl`}>{chapter.title}</h3>
+                </div>
+                <div className="inline-flex w-fit items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-500 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
+                  <Sparkles className={`h-4 w-4 ${motionEnabled ? 'animate-pulse' : ''}`} />
+                  Page {page + 1}/{maxPageCount}
+                </div>
+              </div>
+              <div className="space-y-1">
+                {chapter.pdfPages[page]?.split('\n').map((line, index) => renderFlipbookLine(line, index, motionEnabled))}
+              </div>
+              <div className={`ssc-highlight-sweep relative mt-10 overflow-hidden rounded-3xl border ${accent.border} bg-gradient-to-r ${accent.soft} p-5 text-sm font-black leading-7 text-slate-900 shadow-sm dark:text-white`}>
+                Key exam idea: note পড়ার পর MCQ practice-এ গিয়ে explanation দেখে weak point mark করো।
+              </div>
+            </article>
           </div>
-          <div className="space-y-1">
-            {chapter.pdfPages[page]?.split('\n').map((line, index) => renderFlipbookLine(line, index, motionEnabled))}
-          </div>
-          <div className={`ssc-highlight-sweep relative mt-10 overflow-hidden rounded-3xl border ${accent.border} bg-gradient-to-r ${accent.soft} p-5 text-sm font-black leading-7 text-slate-900 shadow-sm dark:text-white`}>
-            Key exam idea: note পড়ার পর MCQ practice-এ গিয়ে explanation দেখে weak point mark করো।
-          </div>
-        </article>
         </div>
       </div>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-[auto_1fr_auto] md:items-center">
+      <div className="mt-5 flex items-center justify-between gap-3">
         <button type="button" onClick={prevPage} disabled={page === 0} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm font-black text-slate-800 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-white/10 dark:text-white">
           <ArrowLeft className="h-4 w-4" />
           Previous
         </button>
-        <div className="min-w-0">
-          <div className="h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+        <div className="flex-1 min-w-0 mx-2">
+          <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
             <div className={`h-full rounded-full bg-gradient-to-r ${accent.solid}`} style={{ width: `${((page + 1) / maxPageCount) * 100}%` }} />
           </div>
         </div>
@@ -877,7 +977,7 @@ export function SscFlipbookReader({
         </button>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => setZoom(value => Math.max(0.84, value - 0.08))} className="rounded-2xl border border-slate-900/10 bg-white p-3 text-slate-700 dark:border-white/10 dark:bg-white/10 dark:text-white" aria-label="Zoom out">
             <Minus className="h-4 w-4" />
@@ -891,7 +991,7 @@ export function SscFlipbookReader({
           </button>
         </div>
         <p className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
-          <ShieldCheck className="h-4 w-4" />
+          <ShieldCheck className="h-4 w-4 shrink-0" />
           Protected reader. Direct public PDF URL, download and print controls are not exposed.
         </p>
       </div>
