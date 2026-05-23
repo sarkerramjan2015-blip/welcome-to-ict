@@ -1,6 +1,10 @@
 import type { SscChapter, SscIctConfig, SscMcq, SscShortQuestion } from './types';
 import { chapterOneUpgrade } from './chapter1-upgrade';
 import { chapterTwoUpgrade } from './chapter2-upgrade';
+import { chapterThreeUpgrade } from './chapter3-upgrade';
+import { chapterFourUpgrade } from './chapter4-upgrade';
+import { chapterFiveUpgrade } from './chapter5-upgrade';
+import { chapterSixUpgrade } from './chapter6-upgrade';
 
 const makeMcq = (
   id: string,
@@ -127,6 +131,7 @@ export const defaultSscChapters: SscChapter[] = [
       makeShort('ssc-c3-s2', 'ব্রাউজার ও সার্চ ইঞ্জিনের পার্থক্য লেখ।', 'ব্রাউজার ওয়েব পেজ দেখায়, সার্চ ইঞ্জিন তথ্য খুঁজে পেতে সাহায্য করে।', 'High'),
       makeShort('ssc-c3-s3', 'ই-মেইলের দুটি সুবিধা লিখ।', 'দ্রুত বার্তা পাঠানো যায় এবং ফাইল সংযুক্ত করা যায়।'),
     ],
+    ...chapterThreeUpgrade,
   },
   {
     id: 'ssc-chapter-4',
@@ -158,6 +163,7 @@ export const defaultSscChapters: SscChapter[] = [
       makeShort('ssc-c4-s2', 'Cell কী?', 'স্প্রেডশিটে row ও column-এর ছেদে তৈরি ঘরকে cell বলে।', 'High'),
       makeShort('ssc-c4-s3', 'Formula ও Function-এর পার্থক্য লেখ।', 'Formula ব্যবহারকারী তৈরি করে; Function হলো আগে থেকে তৈরি নির্দিষ্ট হিসাবের কমান্ড।', 'High'),
     ],
+    ...chapterFourUpgrade,
   },
   {
     id: 'ssc-chapter-5',
@@ -189,6 +195,7 @@ export const defaultSscChapters: SscChapter[] = [
       makeShort('ssc-c5-s2', 'Pixel কী?', 'ডিজিটাল ছবির ক্ষুদ্রতম একককে pixel বলে।', 'High'),
       makeShort('ssc-c5-s3', 'PNG-এর একটি সুবিধা লিখ।', 'PNG transparent background support করে এবং quality ভালো রাখে।'),
     ],
+    ...chapterFiveUpgrade,
   },
   {
     id: 'ssc-chapter-6',
@@ -220,6 +227,7 @@ export const defaultSscChapters: SscChapter[] = [
       makeShort('ssc-c6-s2', 'অ্যালগরিদম ও ফ্লোচার্টের পার্থক্য লেখ।', 'অ্যালগরিদম ধাপগুলো লিখিতভাবে প্রকাশ করে; ফ্লোচার্ট প্রতীক দিয়ে ধাপগুলো দেখায়।', 'High'),
       makeShort('ssc-c6-s3', 'Variable কেন ব্যবহার করা হয়?', 'প্রোগ্রামে ডেটা সংরক্ষণ ও ব্যবহারের জন্য variable ব্যবহৃত হয়।'),
     ],
+    ...chapterSixUpgrade,
   },
 ];
 
