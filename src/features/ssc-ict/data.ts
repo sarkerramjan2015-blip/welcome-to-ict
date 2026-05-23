@@ -1,5 +1,6 @@
 import type { SscChapter, SscIctConfig, SscMcq, SscShortQuestion } from './types';
 import { chapterOneUpgrade } from './chapter1-upgrade';
+import { chapterTwoUpgrade } from './chapter2-upgrade';
 
 const makeMcq = (
   id: string,
@@ -94,6 +95,7 @@ export const defaultSscChapters: SscChapter[] = [
       makeShort('ssc-c2-s2', 'ফিশিং থেকে বাঁচার উপায় লিখ।', 'সন্দেহজনক লিংক না খোলা, URL যাচাই করা, OTP/পাসওয়ার্ড শেয়ার না করা।', 'High'),
       makeShort('ssc-c2-s3', 'কম্পিউটার রক্ষণাবেক্ষণের দুটি কাজ লেখ।', 'ডিস্ক পরিষ্কার রাখা, অ্যান্টিভাইরাস স্ক্যান, সফটওয়্যার আপডেট, ধুলা পরিষ্কার করা।'),
     ],
+    ...chapterTwoUpgrade,
   },
   {
     id: 'ssc-chapter-3',
