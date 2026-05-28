@@ -240,6 +240,7 @@ const buildPayload = (action: AdminAction, form: Record<string, any>) => {
   return {
     id,
     title,
+    level: cleanString(form.level) || 'HSC',
     month: getDhakaMonth(startsAtDate),
     year: getDhakaYear(startsAtDate),
     fee: toNumber(form.fee, 20),

@@ -246,13 +246,20 @@ function StudentQuickStartSection() {
 }
 
 function QuizExamBanner() {
-  const [upcomingChallenge, setUpcomingChallenge] = useState<UpcomingChallenge>(() => getFallbackChallenge());
+  const [upcomingHsc, setUpcomingHsc] = useState<UpcomingChallenge>(() => getFallbackChallenge('HSC'));
+  const [upcomingSsc, setUpcomingSsc] = useState<UpcomingChallenge>(() => getFallbackChallenge('SSC'));
 
   React.useEffect(() => {
     let mounted = true;
-    void fetchUpcomingChallenge()
+    void fetchUpcomingChallenge('HSC')
       .then(challenge => {
-        if (mounted) setUpcomingChallenge(challenge);
+        if (mounted) setUpcomingHsc(challenge);
+      })
+      .catch(() => undefined);
+
+    void fetchUpcomingChallenge('SSC')
+      .then(challenge => {
+        if (mounted) setUpcomingSsc(challenge);
       })
       .catch(() => undefined);
 
@@ -262,49 +269,90 @@ function QuizExamBanner() {
   }, []);
 
   return (
-    <section
-      className="px-4 sm:px-6 md:px-16 mb-20 max-w-4xl mx-auto w-full"
-    >
-      <Link to="/monthly-quiz" className="block group relative">
-        <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-        <div className="relative bg-white/[0.08] backdrop-blur-3xl border border-slate-900/10 dark:border-white/20 rounded-3xl p-5 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden shadow-2xl shadow-indigo-500/10">
-          <div className="absolute top-0 right-0 bg-sky-500/80 backdrop-blur-md text-white px-6 py-1 rounded-bl-2xl font-bold font-mono text-xs shadow-lg border-b border-l border-slate-900/10 dark:border-white/10 uppercase">
-            Upcoming
-          </div>
-
-          <div className="flex-1 text-center md:text-left">
-            <h2 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white mb-4 break-words">HSC ICT Monthly Quiz Exam</h2>
-            <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 mb-6 font-medium leading-8">Join the biggest HSC ICT Quiz in Bangladesh. Test your skills, compete with thousands, and win exciting prizes!</p>
-
-            <div className="mb-6">
-              <Countdown targetDate={upcomingChallenge.startsAt} />
+    <section className="px-4 sm:px-6 md:px-16 mb-20 max-w-6xl mx-auto w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* HSC Quiz Card */}
+        <Link to="/monthly-quiz" className="block group relative">
+          <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+          <div className="relative bg-white/[0.08] backdrop-blur-3xl border border-slate-900/10 dark:border-white/20 rounded-3xl p-6 flex flex-col justify-between h-full overflow-hidden shadow-2xl shadow-indigo-500/10">
+            <div className="absolute top-0 right-0 bg-sky-500/80 backdrop-blur-md text-white px-4 py-1 rounded-bl-2xl font-bold font-mono text-[10px] shadow-lg border-b border-l border-slate-900/10 dark:border-white/10 uppercase tracking-wider">
+              Upcoming
             </div>
-
-            {upcomingChallenge.syllabus.length > 0 && (
-              <div className="mb-6 text-left border-l-2 border-indigo-400 pl-4">
-                <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Syllabus:</p>
-                <div className="flex flex-col gap-1">
-                  {upcomingChallenge.syllabus.map((topic, i) => (
-                    <p key={i} className="text-xs font-semibold text-slate-600 dark:text-slate-400">- {topic}</p>
-                  ))}
-                </div>
+            <div>
+              <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2 pr-12 leading-tight">HSC ICT Monthly Quiz</h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 font-medium leading-relaxed">Join the biggest HSC ICT Quiz in Bangladesh. Test your skills, compete with thousands, and win exciting prizes!</p>
+              
+              <div className="mb-4">
+                <Countdown targetDate={upcomingHsc.startsAt} />
               </div>
-            )}
 
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-              <span className="inline-flex items-center gap-2 bg-slate-900/5 dark:bg-white/10 px-4 py-2 rounded-full text-sm font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><Trophy className="w-4 h-4 text-amber-400" /> 30 Marks</span>
-              <span className="inline-flex items-center gap-2 bg-slate-900/5 dark:bg-white/10 px-4 py-2 rounded-full text-sm font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><Timer className="w-4 h-4 text-sky-400" /> 30 Minutes</span>
-              <span className="inline-flex items-center gap-2 bg-slate-900/5 dark:bg-white/10 px-4 py-2 rounded-full text-sm font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><CreditCard className="w-4 h-4 text-emerald-400" /> 20 TK Entry</span>
+              {upcomingHsc.syllabus.length > 0 && (
+                <div className="mb-4 text-left border-l-2 border-indigo-400 pl-3">
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">Syllabus:</p>
+                  <div className="flex flex-col gap-0.5">
+                    {upcomingHsc.syllabus.map((topic, i) => (
+                      <p key={i} className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">- {topic}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 bg-slate-900/5 dark:bg-white/10 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><Trophy className="w-3.5 h-3.5 text-amber-400" /> {upcomingHsc.totalMarks} Marks</span>
+                <span className="inline-flex items-center gap-1.5 bg-slate-900/5 dark:bg-white/10 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><Timer className="w-3.5 h-3.5 text-sky-400" /> {upcomingHsc.durationMinutes} Min</span>
+                <span className="inline-flex items-center gap-1.5 bg-slate-900/5 dark:bg-white/10 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><CreditCard className="w-3.5 h-3.5 text-emerald-400" /> {upcomingHsc.fee} TK</span>
+              </div>
+
+              <div className="w-full text-center py-3 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl font-bold text-sm text-white shadow-[0_0_15px_rgba(236,72,153,0.3)] group-hover:shadow-[0_0_20px_rgba(236,72,153,0.5)] group-hover:scale-[1.02] transition-transform transition-shadow duration-300 flex items-center justify-center gap-1.5 border border-slate-900/10 dark:border-white/20">
+                Join HSC Quiz <Rocket className="w-4 h-4" />
+              </div>
             </div>
           </div>
+        </Link>
 
-          <div className="shrink-0 w-full md:w-auto">
-            <div className="w-full text-center px-8 py-4 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl font-bold text-lg text-white shadow-[0_0_20px_rgba(236,72,153,0.5)] group-hover:shadow-[0_0_30px_rgba(236,72,153,0.7)] group-hover:scale-105 transition-transform transition-shadow duration-300 flex items-center justify-center gap-2 border border-slate-900/10 dark:border-white/20">
-              Join Quiz Exam <Rocket className="w-5 h-5" />
+        {/* SSC Quiz Card */}
+        <Link to="/ssc-ict/monthly-quiz" className="block group relative">
+          <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600 to-cyan-600 rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+          <div className="relative bg-white/[0.08] backdrop-blur-3xl border border-slate-900/10 dark:border-white/20 rounded-3xl p-6 flex flex-col justify-between h-full overflow-hidden shadow-2xl shadow-emerald-500/10">
+            <div className="absolute top-0 right-0 bg-emerald-500/80 backdrop-blur-md text-white px-4 py-1 rounded-bl-2xl font-bold font-mono text-[10px] shadow-lg border-b border-l border-slate-900/10 dark:border-white/10 uppercase tracking-wider">
+              Upcoming
+            </div>
+            <div>
+              <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2 pr-12 leading-tight">SSC ICT Monthly Quiz</h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 font-medium leading-relaxed">Join the biggest SSC ICT Quiz in Bangladesh. Test your skills, compete with thousands, and win exciting prizes!</p>
+              
+              <div className="mb-4">
+                <Countdown targetDate={upcomingSsc.startsAt} />
+              </div>
+
+              {upcomingSsc.syllabus.length > 0 && (
+                <div className="mb-4 text-left border-l-2 border-emerald-400 pl-3">
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">Syllabus:</p>
+                  <div className="flex flex-col gap-0.5">
+                    {upcomingSsc.syllabus.map((topic, i) => (
+                      <p key={i} className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">- {topic}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 bg-slate-900/5 dark:bg-white/10 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><Trophy className="w-3.5 h-3.5 text-amber-400" /> {upcomingSsc.totalMarks} Marks</span>
+                <span className="inline-flex items-center gap-1.5 bg-slate-900/5 dark:bg-white/10 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><Timer className="w-3.5 h-3.5 text-emerald-400" /> {upcomingSsc.durationMinutes} Min</span>
+                <span className="inline-flex items-center gap-1.5 bg-slate-900/5 dark:bg-white/10 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-900/10 dark:border-white/10 shadow-inner"><CreditCard className="w-3.5 h-3.5 text-teal-400" /> {upcomingSsc.fee} TK</span>
+              </div>
+
+              <div className="w-full text-center py-3 bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-xl font-bold text-sm text-white shadow-[0_0_15px_rgba(16,185,129,0.3)] group-hover:shadow-[0_0_20px_rgba(16,185,129,0.5)] group-hover:scale-[1.02] transition-transform transition-shadow duration-300 flex items-center justify-center gap-1.5 border border-slate-900/10 dark:border-white/20">
+                Join SSC Quiz <Rocket className="w-4 h-4" />
+              </div>
             </div>
           </div>
-        </div>
-      </Link>
+        </Link>
+      </div>
     </section>
   );
 }
@@ -391,26 +439,14 @@ export default function Home() {
               <span className="tracking-wide text-[10px] md:text-base leading-none whitespace-nowrap">Start HSC ICT</span>
             </div>
           </Link>
-          <Link to="/monthly-quiz" className="inline-flex items-center justify-center gap-1.5 md:gap-2 rounded-2xl border border-slate-900/10 bg-white/75 px-3 py-2.5 md:px-8 md:py-4 font-black text-slate-900 backdrop-blur-xl transition-transform transition-colors transition-shadow duration-300 hover:-translate-y-1 hover:border-red-400/30 hover:text-red-600 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:text-red-400 flex-1 md:flex-none shadow-xl hover:shadow-red-500/20 leading-none">
-            <span className="tracking-wide text-[10px] md:text-base whitespace-nowrap">Join Quiz</span>
-            <Trophy className="size-3.5 md:size-5 text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
+          <Link to="/ssc-ict" className="group relative inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-sky-600 via-cyan-500 to-emerald-500 p-[2px] font-black text-white shadow-[0_0_40px_rgba(14,165,233,0.4)] transition-transform transition-shadow duration-300 hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(14,165,233,0.6)] overflow-hidden flex-1 md:flex-none">
+            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%,transparent_100%)] bg-[length:250%_250%] animate-[shimmer_2s_infinite]"></div>
+            <div className="relative flex items-center justify-center gap-1.5 md:gap-2 bg-gradient-to-r from-sky-600 to-cyan-600 px-3 py-2.5 md:px-8 md:py-4 rounded-[14px] w-full border border-white/10">
+              <Crown className="size-3.5 md:size-5 text-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.8)] group-hover:scale-125 transition-transform duration-300 shrink-0" />
+              <span className="tracking-wide text-[10px] md:text-base leading-none whitespace-nowrap">Start SSC ICT</span>
+            </div>
           </Link>
         </div>
-        <Link
-          to="/ssc-ict"
-          className="mx-auto mb-12 flex w-full max-w-3xl items-center justify-between gap-4 rounded-3xl border border-sky-300/40 bg-gradient-to-r from-sky-600 via-cyan-600 to-emerald-500 p-4 text-left text-white shadow-2xl shadow-sky-600/20 transition-transform transition-shadow duration-300 hover:-translate-y-1 hover:shadow-sky-600/30 sm:p-5"
-        >
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/18">
-              <Crown className="h-6 w-6" />
-            </span>
-            <div className="min-w-0">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-100">New SSC Section</p>
-              <p className="mt-1 text-sm font-black leading-6 sm:text-lg">SSC ICT complete prep is live now.</p>
-            </div>
-          </div>
-          <ArrowRight className="h-5 w-5 shrink-0" />
-        </Link>
       </section>
 
       {/* Stats Counter Section */}

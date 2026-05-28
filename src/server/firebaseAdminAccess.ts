@@ -99,13 +99,30 @@ const getBearerToken = (req: any) => {
   return match?.[1]?.trim() || '';
 };
 
+// Firebase auth error codes that indicate the client must obtain a fresh token.
+const TOKEN_EXPIRED_CODES = new Set([
+  'auth/id-token-expired',
+  'auth/id-token-revoked',
+  'auth/argument-error',
+  'auth/invalid-id-token',
+  'auth/user-disabled',
+]);
+
 export const verifyRequest = async (req: any) => {
   const token = getBearerToken(req);
   if (!token) {
     throw httpError(401, 'Firebase login is required.');
   }
 
-  return getAdminAuth().verifyIdToken(token);
+  try {
+    return await getAdminAuth().verifyIdToken(token);
+  } catch (err: any) {
+    const code = String(err?.errorInfo?.code || err?.code || '');
+    if (TOKEN_EXPIRED_CODES.has(code)) {
+      throw httpError(401, 'Your login session has expired. Please refresh the page and try again.');
+    }
+    throw err;
+  }
 };
 
 export const getVerifiedAdmin = async (decoded: DecodedIdToken): Promise<VerifiedAdmin | null> => {

@@ -3,6 +3,7 @@ import { getFirebaseAuth } from '../lib/firebase';
 export type AdminChallengeSet = {
   id: string;
   title: string;
+  level: string;
   status: string;
   startsAt: string | null;
   updatedAt: string | null;
@@ -12,6 +13,7 @@ export type AdminChallengeSet = {
 export type AdminChallengeDetails = {
   id: string;
   title: string;
+  level: string;
   status: string;
   startsAt: string | null;
   endsAt: string | null;
@@ -96,6 +98,7 @@ const normalizeSyllabus = (value: unknown): string[] => {
 const normalizeChallengeDetails = (value: Record<string, any>, questions: AdminQuizQuestion[]): AdminChallengeDetails => ({
   id: String(value.id || ''),
   title: String(value.title || 'HSC ICT Monthly Quiz Exam'),
+  level: String(value.level || 'HSC'),
   status: String(value.status || 'DRAFT'),
   startsAt: value.startsAt || null,
   endsAt: value.endsAt || null,

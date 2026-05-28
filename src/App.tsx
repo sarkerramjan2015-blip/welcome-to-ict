@@ -167,7 +167,8 @@ export default function App() {
                   <Route path="mcq-practice" element={<MCQPractice />} />
                   <Route path="ebook-reader" element={<PrivateRoute><EBookReader /></PrivateRoute>} />
                   <Route path="topics/:topicId" element={<TopicDetails />} />
-                  <Route path="monthly-quiz" element={<MegaChallenge />} />
+                  <Route path="monthly-quiz" element={<MegaChallenge level="HSC" />} />
+                  <Route path="ssc-ict/monthly-quiz" element={<MegaChallenge level="SSC" />} />
                   <Route path="payment/success" element={<SuccessPage />} />
                   <Route path="dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
                   <Route path="admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

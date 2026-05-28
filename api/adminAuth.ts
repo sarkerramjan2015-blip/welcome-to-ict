@@ -20,11 +20,13 @@ export default async function adminAuth(req: any, res: any) {
       user: admin,
     });
   } catch (error: any) {
-    console.error('adminAuth error:', error);
+    if (process.env.NODE_ENV !== "production") {
+      console.error('adminAuth error:', error);
+    }
     return json(res, error?.status || 500, {
       success: false,
       admin: false,
-      error: error?.message || 'Admin verification failed.',
+      error: process.env.NODE_ENV === "production" && (!error?.status || error.status >= 500) ? 'Admin verification failed due to an internal error.' : (error?.message || 'Admin verification failed.'),
     });
   }
 }

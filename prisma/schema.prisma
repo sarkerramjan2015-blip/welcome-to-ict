@@ -135,6 +135,7 @@ model Task {
 model Challenge {
   id              String              @id @default(cuid())
   title           String              @default("HSC ICT Monthly Quiz Exam")
+  level           String              @default("HSC")
   month           String // e.g., "April"
   year            Int // e.g., 2026
   fee             Float               @default(20.0)

@@ -66,11 +66,13 @@ const mainNavLinks: NavItem[] = [
   { to: '/mcq-practice', label: 'MCQ Practice', icon: Brain },
   { to: '/board-questions', label: 'Board Questions', icon: FileQuestion },
   { to: '/suggestions', label: 'Suggestions', icon: Lightbulb },
-  { to: '/monthly-quiz', label: 'Quiz Exam', icon: Trophy, badge: 'LIVE' },
+  { to: '/monthly-quiz', label: 'HSC Quiz Exam', icon: Trophy, badge: 'LIVE' },
+  ...(isSscIctEnabled ? [{ to: '/ssc-ict/monthly-quiz', label: 'SSC Quiz Exam', icon: Trophy, badge: 'LIVE' }] : []),
   { to: '/admin', label: 'Admin', icon: LogIn },
 ];
 
 const getPageTitle = (pathname: string, isBoardQuestionPage: boolean) => {
+  if (pathname.includes('ssc-ict/monthly-quiz')) return 'Join the biggest SSC ICT Quiz in Bangladesh';
   if (pathname.includes('ssc-ict/chapter/ict-and-bangladesh')) return 'SSC ICT Chapter 1 MCQ, Special Notes and Flipbook';
   if (pathname.includes('ssc-ict')) return 'SSC ICT Complete Preparation';
   if (pathname.includes('mcq-practice')) return 'Free HSC ICT MCQ Practice';
@@ -127,11 +129,26 @@ export default function Layout() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [securityToastVisible, setSecurityToastVisible] = useState(false);
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
+  const [isSscExamActive, setIsSscExamActive] = useState(false);
   const isBoardQuestionPage = location.pathname === '/board-questions' || location.pathname.startsWith('/board-questions/');
   const isHomePage = location.pathname === '/';
   const pageTitle = getPageTitle(location.pathname, isBoardQuestionPage);
   const dashboardPath = userRole === 'admin' ? '/admin/dashboard' : '/dashboard';
   const deferredUiReady = useDeferredMount();
+
+  useEffect(() => {
+    const handleExamStatus = (e: Event) => {
+      const customEvent = e as CustomEvent<{ active: boolean }>;
+      setIsSscExamActive(!!customEvent.detail?.active);
+    };
+    window.addEventListener('ssc-exam-status', handleExamStatus);
+    if ((window as any).isSscExamActive) {
+      setIsSscExamActive(true);
+    }
+    return () => {
+      window.removeEventListener('ssc-exam-status', handleExamStatus);
+    };
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 12);
@@ -257,191 +274,193 @@ export default function Layout() {
       <SEO title={pageTitle} disabled={isBoardQuestionPage} />
       {!isBoardQuestionPage && <div className="premium-mesh-bg" aria-hidden="true"></div>}
 
-      <header
-        className={`sticky top-0 z-50 flex items-center justify-between gap-3 border-b border-slate-900/10 bg-slate-50/88 px-4 shadow-sm shadow-slate-950/0 backdrop-blur-2xl transition-[padding] duration-200 dark:border-white/10 dark:bg-slate-950/88 sm:px-6 md:px-10 lg:px-16 ${isScrolled ? 'py-2' : 'py-3.5'}`}
-      >
-        <Link to="/" className="flex shrink-0 items-center gap-2 sm:gap-2.5">
-          <span className="logo-dotted-shine flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-900/10 dark:bg-white/10 dark:ring-white/10 sm:h-10 sm:w-10">
-            <span className="logo-shine-sweep h-full w-full overflow-hidden rounded-full">
-              <img
-                src="/logo-128.webp"
-                srcSet="/logo-128.webp 128w, /logo-256.webp 256w"
-                sizes="40px"
-                alt=""
-                aria-hidden="true"
-                width="40"
-                height="40"
-                decoding="async"
-                className="h-full w-full rounded-full object-cover"
-              />
+      {!isSscExamActive && (
+        <header
+          className={`sticky top-0 z-50 flex items-center justify-between gap-3 border-b border-slate-900/10 bg-slate-50/88 px-4 shadow-sm shadow-slate-950/0 backdrop-blur-2xl transition-[padding] duration-200 dark:border-white/10 dark:bg-slate-950/88 sm:px-6 md:px-10 lg:px-16 ${isScrolled ? 'py-2' : 'py-3.5'}`}
+        >
+          <Link to="/" className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+            <span className="logo-dotted-shine flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-900/10 dark:bg-white/10 dark:ring-white/10 sm:h-10 sm:w-10">
+              <span className="logo-shine-sweep h-full w-full overflow-hidden rounded-full">
+                <img
+                  src="/logo-128.webp"
+                  srcSet="/logo-128.webp 128w, /logo-256.webp 256w"
+                  sizes="40px"
+                  alt=""
+                  aria-hidden="true"
+                  width="40"
+                  height="40"
+                  decoding="async"
+                  className="h-full w-full rounded-full object-cover"
+                />
+              </span>
             </span>
-          </span>
-          <span className="whitespace-nowrap text-lg font-black tracking-tight text-slate-950 dark:text-white sm:text-xl">ICT Toppers</span>
-        </Link>
+            <span className="whitespace-nowrap text-lg font-black tracking-tight text-slate-950 dark:text-white sm:text-xl">ICT Toppers</span>
+          </Link>
 
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 2xl:flex">
-          {mainNavLinks.map(link => (
-            <Link key={link.to} to={link.to} className={linkClass(link.to)}>
-              <span className="whitespace-nowrap">{link.label}</span>
-              {link.badge && (
-                <span className="ml-1.5 rounded-full bg-red-500 px-1.5 py-0.5 text-[0.58rem] font-black leading-none text-white shadow-sm shadow-red-500/30">
-                  {link.badge}
-                </span>
-              )}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="hidden shrink-0 items-center gap-2 2xl:flex">
-          {user ? (
-            <>
-              <Link to={dashboardPath} className={linkClass(dashboardPath)}>
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                {userRole === 'admin' ? 'Admin' : 'Dashboard'}
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 2xl:flex">
+            {mainNavLinks.map(link => (
+              <Link key={link.to} to={link.to} className={linkClass(link.to)}>
+                <span className="whitespace-nowrap">{link.label}</span>
+                {link.badge && (
+                  <span className="ml-1.5 rounded-full bg-red-500 px-1.5 py-0.5 text-[0.58rem] font-black leading-none text-white shadow-sm shadow-red-500/30">
+                    {link.badge}
+                  </span>
+                )}
               </Link>
-              {userRole !== 'admin' && (
+            ))}
+          </nav>
+
+          <div className="hidden shrink-0 items-center gap-2 2xl:flex">
+            {user ? (
+              <>
+                <Link to={dashboardPath} className={linkClass(dashboardPath)}>
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  {userRole === 'admin' ? 'Admin' : 'Dashboard'}
+                </Link>
+                {userRole !== 'admin' && (
+                  <button
+                    onClick={() => !user.isPremium && setPremiumModalOpen(true)}
+                    disabled={user.isPremium}
+                    className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-black transition-all ${
+                      user.isPremium
+                        ? 'border border-amber-300/30 bg-amber-400/15 text-amber-700 dark:text-amber-200'
+                        : 'bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950'
+                    }`}
+                  >
+                    <Crown className="h-4 w-4" />
+                    {user.isPremium ? 'Premium' : 'Upgrade'}
+                  </button>
+                )}
                 <button
-                  onClick={() => !user.isPremium && setPremiumModalOpen(true)}
-                  disabled={user.isPremium}
-                  className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-black transition-all ${
-                    user.isPremium
-                      ? 'border border-amber-300/30 bg-amber-400/15 text-amber-700 dark:text-amber-200'
-                      : 'bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950'
-                  }`}
+                  onClick={logout}
+                  className="inline-flex min-h-11 items-center rounded-full px-4 py-2 text-sm font-black text-rose-600 transition-all hover:bg-rose-500/10 dark:text-rose-300"
                 >
-                  <Crown className="h-4 w-4" />
-                  {user.isPremium ? 'Premium' : 'Upgrade'}
+                  Logout
                 </button>
-              )}
-              <button
-                onClick={logout}
-                className="inline-flex min-h-11 items-center rounded-full px-4 py-2 text-sm font-black text-rose-600 transition-all hover:bg-rose-500/10 dark:text-rose-300"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/register"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-sky-600 px-5 py-2 text-sm font-black text-white shadow-lg shadow-sky-600/25 transition-all hover:bg-sky-500"
-              >
-                <Sparkles className="h-4 w-4" /> Join Free
-              </Link>
-              <Link
-                to="/login"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-black text-slate-950 transition-all hover:bg-sky-50 dark:border-white/10 dark:bg-white/10 dark:text-white"
-              >
-                <LogIn className="h-4 w-4" /> Login
-              </Link>
-            </>
-          )}
-          <button
-            onClick={toggleTheme}
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-950 dark:border-white/10 dark:bg-white/10 dark:text-slate-300 dark:hover:text-white"
-            aria-label="Toggle dark mode"
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2 2xl:hidden">
-          <button
-            onClick={toggleTheme}
-            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-white/10 dark:text-slate-200"
-            aria-label="Toggle dark mode"
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-          <button
-            onClick={() => setIsMobileMenuOpen(prev => !prev)}
-            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-800 dark:border-white/10 dark:bg-white/10 dark:text-white"
-            aria-label="Open navigation menu"
-            aria-expanded={isMobileMenuOpen}
-          >
-            {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
-        </div>
-
-        <>
-          {isMobileMenuOpen && (
-            <div
-              className="absolute left-3 right-3 top-[calc(100%+0.5rem)] rounded-3xl border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/95 2xl:hidden"
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/register"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full bg-sky-600 px-5 py-2 text-sm font-black text-white shadow-lg shadow-sky-600/25 transition-all hover:bg-sky-50"
+                >
+                  <Sparkles className="h-4 w-4" /> Join Free
+                </Link>
+                <Link
+                  to="/login"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-black text-slate-950 transition-all hover:bg-sky-50 dark:border-white/10 dark:bg-white/10 dark:text-white"
+                >
+                  <LogIn className="h-4 w-4" /> Login
+                </Link>
+              </>
+            )}
+            <button
+              onClick={toggleTheme}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-950 dark:border-white/10 dark:bg-white/10 dark:text-slate-300 dark:hover:text-white"
+              aria-label="Toggle dark mode"
             >
-              <div className="grid gap-1">
-                {mainNavLinks.map(link => {
-                  const Icon = link.icon;
-                  return (
-                    <Link
-                      key={link.to}
-                      to={link.to}
-                      className={`flex min-h-12 items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black ${
-                        isActivePath(location.pathname, location.hash, link.to)
-                          ? 'bg-sky-600 text-white'
-                          : 'text-slate-700 hover:bg-slate-900/5 dark:text-slate-200 dark:hover:bg-white/10'
-                      }`}
-                    >
-                      {Icon && <Icon className="h-5 w-5" />}
-                      <span className="flex-1">{link.label}</span>
-                      {link.badge && (
-                        <span className="rounded-full bg-red-500 px-2 py-1 text-[0.62rem] font-black leading-none text-white">
-                          {link.badge}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-                <div className="my-2 h-px bg-slate-900/10 dark:bg-white/10" />
-                {user ? (
-                  <>
-                    <Link
-                      to={dashboardPath}
-                      className="flex min-h-12 items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black text-slate-700 hover:bg-slate-900/5 dark:text-slate-200 dark:hover:bg-white/10"
-                    >
-                      <LayoutDashboard className="h-5 w-5" />
-                      {userRole === 'admin' ? 'Admin Dashboard' : 'Dashboard'}
-                    </Link>
-                    {userRole !== 'admin' && (
-                      <button
-                        onClick={() => !user.isPremium && setPremiumModalOpen(true)}
-                        disabled={user.isPremium}
-                        className={`min-h-12 rounded-2xl px-4 py-3 text-left text-sm font-black ${
-                          user.isPremium ? 'bg-amber-400/10 text-amber-700 dark:text-amber-200' : 'bg-slate-950 text-white dark:bg-white dark:text-slate-950'
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 2xl:hidden">
+            <button
+              onClick={toggleTheme}
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-white/10 dark:text-slate-200"
+              aria-label="Toggle dark mode"
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            <button
+              onClick={() => setIsMobileMenuOpen(prev => !prev)}
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-800 dark:border-white/10 dark:bg-white/10 dark:text-white"
+              aria-label="Open navigation menu"
+              aria-expanded={isMobileMenuOpen}
+            >
+              {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
+
+          <>
+            {isMobileMenuOpen && (
+              <div
+                className="absolute left-3 right-3 top-[calc(100%+0.5rem)] rounded-3xl border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-slate-950/95 2xl:hidden"
+              >
+                <div className="grid gap-1">
+                  {mainNavLinks.map(link => {
+                    const Icon = link.icon;
+                    return (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        className={`flex min-h-12 items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black ${
+                          isActivePath(location.pathname, location.hash, link.to)
+                            ? 'bg-sky-600 text-white'
+                            : 'text-slate-700 hover:bg-slate-900/5 dark:text-slate-200 dark:hover:bg-white/10'
                         }`}
                       >
-                        {user.isPremium ? 'Premium Active' : 'Upgrade to Premium'}
+                        {Icon && <Icon className="h-5 w-5" />}
+                        <span className="flex-1">{link.label}</span>
+                        {link.badge && (
+                          <span className="rounded-full bg-red-500 px-2 py-1 text-[0.62rem] font-black leading-none text-white">
+                            {link.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                  <div className="my-2 h-px bg-slate-900/10 dark:bg-white/10" />
+                  {user ? (
+                    <>
+                      <Link
+                        to={dashboardPath}
+                        className="flex min-h-12 items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black text-slate-700 hover:bg-slate-900/5 dark:text-slate-200 dark:hover:bg-white/10"
+                      >
+                        <LayoutDashboard className="h-5 w-5" />
+                        {userRole === 'admin' ? 'Admin Dashboard' : 'Dashboard'}
+                      </Link>
+                      {userRole !== 'admin' && (
+                        <button
+                          onClick={() => !user.isPremium && setPremiumModalOpen(true)}
+                          disabled={user.isPremium}
+                          className={`min-h-12 rounded-2xl px-4 py-3 text-left text-sm font-black ${
+                            user.isPremium ? 'bg-amber-400/10 text-amber-700 dark:text-amber-200' : 'bg-slate-950 text-white dark:bg-white dark:text-slate-950'
+                          }`}
+                        >
+                          {user.isPremium ? 'Premium Active' : 'Upgrade to Premium'}
+                        </button>
+                      )}
+                      <button
+                        onClick={logout}
+                        className="min-h-12 rounded-2xl px-4 py-3 text-left text-sm font-black text-rose-600 hover:bg-rose-500/10 dark:text-rose-300"
+                      >
+                        Logout
                       </button>
-                    )}
-                    <button
-                      onClick={logout}
-                      className="min-h-12 rounded-2xl px-4 py-3 text-left text-sm font-black text-rose-600 hover:bg-rose-500/10 dark:text-rose-300"
-                    >
-                      Logout
-                    </button>
-                  </>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2">
-                    <Link
-                      to="/register"
-                      className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-sky-600 px-4 py-3 text-sm font-black text-white"
-                    >
-                      <UserPlus className="h-5 w-5" /> Join Free
-                    </Link>
-                    <Link
-                      to="/login"
-                      className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-950 dark:border-white/10 dark:bg-white/10 dark:text-white"
-                    >
-                      <LogIn className="h-5 w-5" /> Login
-                    </Link>
-                  </div>
-                )}
+                    </>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link
+                        to="/register"
+                        className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-sky-600 px-4 py-3 text-sm font-black text-white"
+                      >
+                        <UserPlus className="h-5 w-5" /> Join Free
+                      </Link>
+                      <Link
+                        to="/login"
+                        className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-950 dark:border-white/10 dark:bg-white/10 dark:text-white"
+                      >
+                        <LogIn className="h-5 w-5" /> Login
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </>
-      </header>
+            )}
+          </>
+        </header>
+      )}
 
-      {!isBoardQuestionPage && <AnnouncementBar />}
+      {!isBoardQuestionPage && !isSscExamActive && <AnnouncementBar />}
 
       <main className="relative z-10 flex flex-1 flex-col" data-protected-content="true">
         <section className="flex flex-1 flex-col" aria-label="ICT Toppers page content">
@@ -481,19 +500,9 @@ export default function Layout() {
         </Suspense>
       )}
 
-      {isSscIctEnabled && !location.pathname.startsWith('/ssc-ict') && !isBoardQuestionPage && (
-        <Link
-          to="/ssc-ict"
-          className={`fixed left-4 z-50 inline-flex items-center gap-2 rounded-full border border-white/70 bg-sky-600 px-4 py-3 text-sm font-black text-white shadow-2xl shadow-sky-600/25 transition hover:-translate-y-1 hover:bg-sky-500 dark:border-white/10 sm:left-5 ${isHomePage ? 'bottom-24 md:bottom-28 lg:bottom-8' : 'bottom-5 md:bottom-8'}`}
-          aria-label="Open SSC ICT section"
-        >
-          <Crown className="h-4 w-4" />
-          SSC ICT
-          <span className="rounded-full bg-white/20 px-2 py-0.5 text-[0.62rem] leading-none">NEW</span>
-        </Link>
-      )}
 
-      {!location.pathname.startsWith('/topics/') && !isBoardQuestionPage && (
+
+      {!location.pathname.startsWith('/topics/') && !isBoardQuestionPage && !isSscExamActive && (
         <a
           href="https://www.facebook.com/ramjansarker02/"
           target="_blank"
@@ -509,13 +518,13 @@ export default function Layout() {
         </a>
       )}
 
-      {deferredUiReady && !isBoardQuestionPage && (
+      {deferredUiReady && !isBoardQuestionPage && !isSscExamActive && (
         <Suspense fallback={null}>
           <AIChatbot />
         </Suspense>
       )}
 
-      {deferredUiReady && (
+      {deferredUiReady && !isSscExamActive && (
         <Suspense fallback={null}>
           <Footer />
         </Suspense>

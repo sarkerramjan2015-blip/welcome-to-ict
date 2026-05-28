@@ -1,10 +1,10 @@
 import type { SscChapter, SscIctConfig, SscMcq, SscShortQuestion } from './types';
-import { chapterOneUpgrade } from './chapter1-upgrade';
-import { chapterTwoUpgrade } from './chapter2-upgrade';
-import { chapterThreeUpgrade } from './chapter3-upgrade';
-import { chapterFourUpgrade } from './chapter4-upgrade';
-import { chapterFiveUpgrade } from './chapter5-upgrade';
-import { chapterSixUpgrade } from './chapter6-upgrade';
+import { chapterOneUpgrade } from './chapter1/chapter1-upgrade';
+import { chapterTwoUpgrade } from './chapter2/chapter2-upgrade';
+import { chapterThreeUpgrade } from './chapter3/chapter3-upgrade';
+import { chapterFourUpgrade } from './chapter4/chapter4-upgrade';
+import { chapterFiveUpgrade } from './chapter5/chapter5-upgrade';
+import { chapterSixUpgrade } from './chapter6/chapter6-upgrade';
 
 const makeMcq = (
   id: string,

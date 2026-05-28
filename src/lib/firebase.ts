@@ -124,7 +124,6 @@ export const getGoogleProvider = async (): Promise<GoogleAuthProvider | null> =>
   if (!googleProviderPromise) {
     googleProviderPromise = import('firebase/auth').then(({ GoogleAuthProvider }) => {
       const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
       return provider;
     });
   }

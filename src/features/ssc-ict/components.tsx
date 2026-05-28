@@ -40,6 +40,125 @@ import {
 
 export const money = (amount: number) => `৳${amount.toLocaleString('en-US')}`;
 
+export function getQuestionStats(questionId: string, correctIndex: number, numOptions: number = 4) {
+  let hash = 0;
+  for (let i = 0; i < questionId.length; i++) {
+    hash = questionId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  hash = Math.abs(hash);
+
+  if (numOptions <= 1) {
+    return {
+      correctPercent: 100,
+      optionPercents: [100],
+      totalStudents: 1000,
+    };
+  }
+
+  const correctPercent = 55 + (hash % 30); // 55% to 84%
+  let remaining = 100 - correctPercent;
+  const stats = Array(numOptions).fill(0);
+  stats[correctIndex] = correctPercent;
+
+  const indices = Array.from({ length: numOptions }, (_, i) => i).filter(idx => idx !== correctIndex);
+  
+  for (let i = 0; i < indices.length - 1; i++) {
+    const share = Math.round(remaining * (0.3 + ((hash >> i) % 4) / 10));
+    stats[indices[i]] = share;
+    remaining -= share;
+  }
+  stats[indices[indices.length - 1]] = Math.max(0, remaining);
+
+  const sum = stats.reduce((a, b) => a + b, 0);
+  if (sum !== 100) {
+    stats[correctIndex] += (100 - sum);
+  }
+
+  const totalStudents = 1200 + (hash % 1800);
+
+  return {
+    correctPercent: stats[correctIndex],
+    optionPercents: stats,
+    totalStudents,
+  };
+}
+
+export function SscChapterSubHeader({
+  chapter,
+  activeTab,
+  hideNav = false,
+}: {
+  chapter: SscChapter;
+  activeTab: 'read' | 'practice' | 'quiz' | 'short-questions';
+  hideNav?: boolean;
+}) {
+  const tools = [
+    { to: 'read', label: 'Reader', icon: BookOpen, color: 'from-cyan-500 to-sky-500' },
+    { to: 'practice', label: 'Practice', icon: Target, color: 'from-emerald-500 to-teal-500' },
+    { to: 'quiz', label: 'Quiz', icon: PlayCircle, color: 'from-amber-500 to-orange-500' },
+    { to: 'short-questions', label: 'Shorts', icon: FileQuestion, color: 'from-indigo-500 to-cyan-500' },
+  ];
+
+  return (
+    <div className="ssc-hind mb-4 space-y-3">
+      <SscPremiumStyles />
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-900/10 pb-3 dark:border-white/10">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          {hideNav ? (
+            <span className="inline-flex items-center gap-1 rounded-lg bg-red-500/10 px-2.5 py-1 text-[10px] font-black text-red-600 dark:bg-red-500/20 dark:text-red-300 animate-pulse">
+              Quiz Exam Mode Active
+            </span>
+          ) : (
+            <>
+              <Link
+                to="/ssc-ict"
+                className="group inline-flex items-center gap-1 rounded-lg bg-slate-900/5 px-2.5 py-1 text-[11px] font-black text-slate-600 transition hover:bg-slate-900/10 hover:text-slate-800 dark:bg-white/10 dark:text-slate-300 dark:hover:bg-white/15"
+              >
+                <ArrowLeft className="h-3 w-3 transition group-hover:-translate-x-0.5" />
+                <span>Home</span>
+              </Link>
+              <span className="text-slate-300 dark:text-slate-700 text-xs">/</span>
+              <Link
+                to={`/ssc-ict/chapter/${chapter.slug}`}
+                className="group inline-flex items-center gap-1 rounded-lg border border-sky-500/10 bg-gradient-to-r from-sky-500/10 to-blue-500/10 px-2 py-0.5 text-[11px] font-black text-sky-700 shadow-sm transition hover:from-sky-500/15 hover:to-blue-500/15 dark:border-white/5 dark:from-sky-500/20 dark:to-blue-500/20 dark:text-sky-300"
+              >
+                <Sparkles className="h-3 w-3 text-sky-500 animate-pulse" />
+                <span>Ch {chapter.orderIndex}:</span>
+                <span className="max-w-[90px] truncate sm:max-w-[200px]" title={chapter.title}>
+                  {chapter.title}
+                </span>
+              </Link>
+            </>
+          )}
+        </div>
+
+        {!hideNav && (
+          <div className="flex rounded-xl border border-slate-900/10 bg-white/80 p-0.5 shadow-sm dark:border-white/10 dark:bg-slate-950/45">
+            {tools.map(tool => {
+              const Icon = tool.icon;
+              const active = activeTab === tool.to;
+              return (
+                <Link
+                  key={tool.to}
+                  to={`/ssc-ict/chapter/${chapter.slug}/${tool.to}`}
+                  className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-black transition-all duration-300 hover:-translate-y-0.5 active:scale-95 ${
+                    active
+                      ? `bg-gradient-to-r ${tool.color} text-white shadow-md`
+                      : 'text-slate-500 hover:bg-slate-900/5 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  <span>{tool.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SscPremiumStyles() {
   return (
     <style>
@@ -165,8 +284,8 @@ export function SscStatusBadge({
 }) {
   if (unlocked) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/30 bg-emerald-400/15 px-3 py-1 text-xs font-black text-emerald-600 dark:text-emerald-200">
-        <BadgeCheck className="h-3.5 w-3.5" />
+      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300/30 bg-emerald-400/15 px-2 py-0.5 text-[10px] font-black text-emerald-600 dark:text-emerald-200">
+        <BadgeCheck className="h-3 w-3" />
         Unlocked
       </span>
     );
@@ -174,32 +293,36 @@ export function SscStatusBadge({
 
   if (pending) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/35 bg-amber-400/15 px-3 py-1 text-xs font-black text-amber-600 dark:text-amber-200">
-        <ReceiptText className="h-3.5 w-3.5" />
+      <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/35 bg-amber-400/15 px-2 py-0.5 text-[10px] font-black text-amber-600 dark:text-amber-200">
+        <ReceiptText className="h-3 w-3" />
         Pending
       </span>
     );
   }
 
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-300/50 bg-slate-900/5 px-3 py-1 text-xs font-black text-slate-500 dark:border-white/10 dark:bg-white/7 dark:text-slate-300">
-      <Lock className="h-3.5 w-3.5" />
+    <span className="inline-flex items-center gap-1 rounded-full border border-slate-300/50 bg-slate-900/5 px-2 py-0.5 text-[10px] font-black text-slate-500 dark:border-white/10 dark:bg-white/7 dark:text-slate-300">
+      <Lock className="h-3 w-3" />
       Locked
     </span>
   );
 }
 
 export function SscFeatureList() {
-  const features = ['Flipbook PDF', 'MCQ Practice', 'Exam Quiz', 'Short Notes', 'Progress Tracking'];
   return (
-    <div className="grid gap-2 text-sm font-bold text-slate-600 dark:text-slate-300">
-      {features.map(feature => (
-        <div key={feature} className="flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-          <span>{feature}</span>
-        </div>
+    <ul className="space-y-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+      {[
+        'Smart interactive PDF flipbook',
+        '30+ Smart MCQs with explanations',
+        'Timed Quiz Mode with ranks',
+        'Dashboard & progress statistics',
+      ].map(text => (
+        <li key={text} className="flex items-center gap-1.5">
+          <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+          <span>{text}</span>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 
@@ -215,55 +338,58 @@ export function SscChapterCard({
   onUnlock: (chapter: SscChapter) => void;
 }) {
   return (
-    <article className="group ssc-glass-card ssc-glow-border flex h-full flex-col rounded-3xl p-5 shadow-xl shadow-slate-950/5 transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-sky-500/10">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-500/12 text-sky-500">
-          <BookOpen className="h-6 w-6" />
+    <article className="group ssc-glass-card ssc-glow-border flex h-full flex-col rounded-2xl p-4 sm:p-5 shadow-lg shadow-slate-950/5 transition duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-sky-500/10">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-500/12 text-sky-500">
+          <BookOpen className="h-5 w-5" />
         </div>
         <SscStatusBadge unlocked={unlocked} pending={pending} />
       </div>
 
-      <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-slate-400">
-        Chapter {chapter.orderIndex.toString().padStart(2, '0')}
-      </p>
-      <h2 className="text-xl font-black leading-tight text-slate-950 dark:text-white">
+      <div className="mb-2 flex items-center gap-2">
+        <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-sky-500/10 to-blue-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-sky-600 dark:from-sky-500/20 dark:to-blue-500/20 dark:text-sky-300 border border-sky-500/10">
+          Ch {chapter.orderIndex.toString().padStart(2, '0')}
+        </span>
+      </div>
+      
+      <h2 className="text-base sm:text-lg font-black leading-tight text-slate-950 dark:text-white transition group-hover:text-sky-500 duration-300">
         {chapter.title}
       </h2>
-      <p className="mt-3 min-h-20 text-sm font-semibold leading-7 text-slate-600 dark:text-slate-300">
+      <p className="mt-2 min-h-12 text-xs sm:text-sm font-semibold leading-relaxed text-slate-500 dark:text-slate-400">
         {chapter.description}
       </p>
 
-      <div className="mt-4 rounded-2xl border border-slate-900/10 bg-slate-50/80 p-4 dark:border-white/10 dark:bg-slate-950/35">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Chapter price</span>
-          <span className="text-2xl font-black text-slate-950 dark:text-white">{money(chapter.price)}</span>
+      <div className="mt-3.5 rounded-xl border border-slate-900/10 bg-slate-50/80 p-3 dark:border-white/10 dark:bg-slate-950/35">
+        <div className="mb-2.5 flex items-center justify-between">
+          <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Chapter price</span>
+          <span className="text-xl font-black text-slate-950 dark:text-white">{money(chapter.price)}</span>
         </div>
         <SscFeatureList />
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-2">
+      <div className="mt-4 flex gap-2">
         <Link
           to={`/ssc-ict/chapter/${chapter.slug}/preview`}
-          className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm font-black text-slate-800 transition hover:bg-sky-50 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+          className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl border border-slate-900/10 bg-white px-3 py-2 text-xs font-black text-slate-700 transition hover:bg-sky-50 hover:text-sky-600 active:scale-95 duration-200 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
         >
-          <Eye className="h-4 w-4" />
-          Free Preview
+          <Eye className="h-3.5 w-3.5" />
+          Preview
         </Link>
         {unlocked ? (
           <Link
             to={`/ssc-ict/chapter/${chapter.slug}`}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-400"
+            className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl bg-emerald-500 px-3 py-2 text-xs font-black text-white transition hover:bg-emerald-400 active:scale-95 duration-200 shadow-md shadow-emerald-500/10"
           >
             Continue
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         ) : (
           <button
             type="button"
             onClick={() => onUnlock(chapter)}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-sky-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-sky-600/20 transition hover:bg-sky-500"
+            className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl bg-sky-600 px-3 py-2 text-xs font-black text-white shadow-md shadow-sky-600/10 transition hover:bg-sky-500 active:scale-95 duration-200"
           >
-            <Lock className="h-4 w-4" />
+            <Lock className="h-3.5 w-3.5" />
             Unlock
           </button>
         )}
@@ -284,45 +410,45 @@ export function SscPackageCard({
   onBuy: () => void;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-[2rem] border border-amber-300/25 bg-slate-950 p-6 text-white shadow-2xl shadow-amber-950/25 md:p-8">
+    <section className="relative overflow-hidden rounded-2xl border border-amber-300/20 bg-slate-950 p-5 text-white shadow-xl shadow-amber-950/25 md:p-6.5">
       {/* Premium glowing mesh backdrop */}
       <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gradient-to-br from-amber-500/20 to-sky-500/20 blur-[80px]" />
       <div className="pointer-events-none absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-gradient-to-br from-emerald-500/10 to-indigo-500/10 blur-[80px]" />
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-300 via-sky-300 to-emerald-300" />
-      <div className="relative grid gap-7 md:grid-cols-[1fr_auto] md:items-center">
+      <div className="relative grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
         <div>
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-amber-100">
-            <Crown className="h-4 w-4" />
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-amber-300/20 bg-amber-300/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-amber-100">
+            <Crown className="h-3.5 w-3.5" />
             Best Value
           </div>
-          <h2 className="text-3xl font-black leading-tight md:text-4xl">{plan.title}</h2>
-          <p className="mt-3 max-w-2xl text-sm font-semibold leading-7 text-slate-300 md:text-base">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-black leading-tight">{plan.title}</h2>
+          <p className="mt-2 max-w-2xl text-xs sm:text-sm font-semibold leading-relaxed text-slate-400">
             একবার payment করলেই সব chapter unlock: All PDFs, all MCQ practice, all quiz exams, leaderboard access, smart dashboard and result share card.
           </p>
-          <div className="mt-5 grid gap-2 text-sm font-bold text-slate-200 sm:grid-cols-2">
+          <div className="mt-4 grid gap-1.5 text-xs font-bold text-slate-300 sm:grid-cols-2">
             {['All Chapter PDFs', 'All MCQ Practice', 'All Quiz Exams', 'Leaderboard Access', 'Result Share Card', 'Smart Dashboard'].map(item => (
-              <span key={item} className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-amber-200" />
+              <span key={item} className="flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-amber-200" />
                 {item}
               </span>
             ))}
           </div>
         </div>
-        <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-5 text-center">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Full Package</p>
-          <div className="mt-2 flex items-end justify-center gap-2">
-            <span className="text-4xl font-black">{money(plan.price)}</span>
+        <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4.5 text-center">
+          <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">Full Package</p>
+          <div className="mt-1.5 flex items-end justify-center gap-1.5">
+            <span className="text-3xl font-black">{money(plan.price)}</span>
             {plan.compareAtPrice && (
-              <span className="pb-1 text-sm font-bold text-slate-500 line-through">{money(plan.compareAtPrice)}</span>
+              <span className="pb-0.5 text-xs font-bold text-slate-500 line-through">{money(plan.compareAtPrice)}</span>
             )}
           </div>
-          <div className="mt-4">
+          <div className="mt-3">
             <SscStatusBadge unlocked={unlocked} pending={pending} />
           </div>
           {unlocked ? (
             <Link
               to="/ssc-ict/dashboard"
-              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-400"
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs sm:text-sm font-black text-white shadow-md shadow-emerald-500/10 transition hover:bg-emerald-400 hover:-translate-y-0.5 active:scale-95 duration-200 transition-all"
             >
               Open Dashboard
             </Link>
@@ -330,7 +456,7 @@ export function SscPackageCard({
             <button
               type="button"
               onClick={onBuy}
-              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 to-sky-400 px-5 py-3 text-sm font-black text-slate-950 transition hover:brightness-110"
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-sky-400 px-4 py-2.5 text-xs sm:text-sm font-black text-slate-950 transition hover:brightness-110 hover:-translate-y-0.5 active:scale-95 duration-200 transition-all"
             >
               Buy Full Package
             </button>
@@ -546,17 +672,17 @@ function renderFlipbookLine(rawLine: string, index: number, motionEnabled: boole
   const line = rawLine.trim();
   const accent = readerAccentSets[index % readerAccentSets.length];
   if (!line) {
-    return <div key={index} className="h-3" />;
+    return <div key={index} className="h-1.5" />;
   }
 
   if (line.startsWith('# ')) {
     return (
-      <div key={index} className="mb-7">
-        <span className={`mb-3 inline-flex items-center gap-2 rounded-full border ${accent.border} bg-gradient-to-r ${accent.soft} px-4 py-2 text-xs font-black uppercase tracking-[0.18em] ${accent.icon}`}>
-          <GraduationCap className="h-4 w-4" />
-          Smart Note Page
+      <div key={index} className="mb-3">
+        <span className={`mb-1 inline-flex items-center gap-1 rounded-full border ${accent.border} bg-gradient-to-r ${accent.soft} px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${accent.icon}`}>
+          <GraduationCap className="h-3 w-3" />
+          Smart Note
         </span>
-        <h1 className={`ssc-gradient-text max-w-3xl bg-gradient-to-r ${accent.text} bg-clip-text text-3xl font-black leading-tight text-transparent md:text-5xl ${motionEnabled ? 'ssc-text-loop' : ''}`}>
+        <h1 className={`ssc-gradient-text max-w-3xl bg-gradient-to-r ${accent.text} bg-clip-text text-xl font-black leading-tight text-transparent md:text-2xl ${motionEnabled ? 'ssc-text-loop' : ''}`}>
           {renderSmartText(line.slice(2))}
         </h1>
       </div>
@@ -565,8 +691,8 @@ function renderFlipbookLine(rawLine: string, index: number, motionEnabled: boole
 
   if (line.startsWith('## ')) {
     return (
-      <h2 key={index} className={`mb-4 mt-7 inline-flex items-center gap-2 rounded-2xl border ${accent.border} bg-gradient-to-r ${accent.soft} px-4 py-2 text-sm font-black uppercase tracking-[0.14em] ${accent.icon}`}>
-        <FileText className="h-4 w-4" />
+      <h2 key={index} className={`mb-2.5 mt-3.5 inline-flex items-center gap-1 rounded-lg border ${accent.border} bg-gradient-to-r ${accent.soft} px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${accent.icon}`}>
+        <FileText className="h-3.5 w-3.5" />
         {renderSmartText(line.slice(3))}
       </h2>
     );
@@ -574,10 +700,10 @@ function renderFlipbookLine(rawLine: string, index: number, motionEnabled: boole
 
   if (line.startsWith('! ')) {
     return (
-      <div key={index} className={`ssc-important-card relative my-5 overflow-hidden rounded-3xl border ${accent.border} bg-gradient-to-br ${accent.soft} p-5 text-sm font-black leading-7 text-slate-900 shadow-lg shadow-slate-950/5 dark:text-white ${motionEnabled ? 'ssc-shine-loop' : ''}`}>
-        <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent.solid}`} />
-        <span className={`mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.16em] ${accent.icon}`}>
-          <Sparkles className={`h-4 w-4 ${motionEnabled ? 'animate-pulse' : ''}`} />
+      <div key={index} className={`ssc-important-card relative my-2.5 overflow-hidden rounded-xl border ${accent.border} bg-gradient-to-br ${accent.soft} p-3 text-xs sm:text-sm font-semibold leading-relaxed text-slate-900 shadow-md dark:text-white ${motionEnabled ? 'ssc-shine-loop' : ''}`}>
+        <div className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${accent.solid}`} />
+        <span className={`mb-1 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider ${accent.icon}`}>
+          <Sparkles className={`h-3.5 w-3.5 ${motionEnabled ? 'animate-pulse' : ''}`} />
           Most Important
         </span>
         <p>{renderSmartText(line.slice(2))}</p>
@@ -587,9 +713,9 @@ function renderFlipbookLine(rawLine: string, index: number, motionEnabled: boole
 
   if (line.startsWith('? ')) {
     return (
-      <div key={index} className={`my-5 rounded-3xl border ${accent.border} bg-white/85 p-5 text-sm font-bold leading-7 text-slate-800 shadow-sm dark:bg-slate-950/45 dark:text-slate-100`}>
-        <span className={`mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] ${accent.icon}`}>
-          <MousePointer2 className={`h-4 w-4 ${motionEnabled ? 'ssc-soft-float' : ''}`} />
+      <div key={index} className={`my-2.5 rounded-xl border ${accent.border} bg-white/85 p-3 text-xs sm:text-sm font-semibold leading-relaxed text-slate-800 shadow-sm dark:bg-slate-950/45 dark:text-slate-100`}>
+        <span className={`mb-1 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider ${accent.icon}`}>
+          <MousePointer2 className={`h-3.5 w-3.5 ${motionEnabled ? 'ssc-soft-float' : ''}`} />
           Exam Tip
         </span>
         {renderSmartText(line.slice(2))}
@@ -599,8 +725,8 @@ function renderFlipbookLine(rawLine: string, index: number, motionEnabled: boole
 
   if (line.startsWith('- ')) {
     return (
-      <div key={index} className="group mb-3 grid grid-cols-[auto_1fr] gap-3 rounded-3xl border border-slate-900/10 bg-white/75 px-4 py-3 text-base font-semibold leading-7 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-300/60 hover:shadow-lg hover:shadow-sky-500/10 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-200">
-        <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${accent.solid} text-xs font-black text-white shadow-md`}>
+      <div key={index} className="group mb-1.5 grid grid-cols-[auto_1fr] gap-2 rounded-xl border border-slate-900/5 bg-white/75 px-3 py-1.5 text-xs sm:text-sm font-semibold leading-relaxed text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-300/60 hover:shadow-md dark:border-white/5 dark:bg-white/[0.04] dark:text-slate-200">
+        <span className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded bg-gradient-to-br ${accent.solid} text-[9px] font-black text-white shadow-sm`}>
           {index + 1}
         </span>
         <span>{renderSmartText(line.slice(2))}</span>
@@ -609,7 +735,7 @@ function renderFlipbookLine(rawLine: string, index: number, motionEnabled: boole
   }
 
   return (
-    <p key={index} className="mb-4 max-w-3xl text-base font-semibold leading-8 text-slate-700 dark:text-slate-200 md:text-lg">
+    <p key={index} className="mb-2 max-w-3xl text-xs sm:text-sm font-semibold leading-relaxed text-slate-700 dark:text-slate-200">
       {renderSmartText(line)}
     </p>
   );
@@ -720,7 +846,6 @@ export function SscFlipbookReader({
   const readerRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
-  // Responsive dimensions hooks
   const containerRef = useRef<HTMLDivElement>(null);
   const articleRef = useRef<HTMLElement>(null);
   const [containerWidth, setContainerWidth] = useState(768);
@@ -729,31 +854,24 @@ export function SscFlipbookReader({
   useEffect(() => {
     if (!containerRef.current) return;
     const handleResize = () => {
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.clientWidth);
-      }
+      if (containerRef.current) setContainerWidth(containerRef.current.clientWidth);
     };
     handleResize();
     window.addEventListener('resize', handleResize);
     const timer = setTimeout(handleResize, 150);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearTimeout(timer);
-    };
+    return () => { window.removeEventListener('resize', handleResize); clearTimeout(timer); };
   }, [page, fullscreen]);
 
   useEffect(() => {
     if (articleRef.current) {
       const timer = setTimeout(() => {
-        if (articleRef.current) {
-          setArticleHeight(articleRef.current.scrollHeight);
-        }
+        if (articleRef.current) setArticleHeight(articleRef.current.scrollHeight);
       }, 60);
       return () => clearTimeout(timer);
     }
   }, [page, containerWidth, focusMode]);
 
-  const baseWidth = 768; // Base content page width
+  const baseWidth = 768;
   const isMobile = containerWidth < 768;
   const paddingOffset = containerWidth < 640 ? 16 : 40;
   const targetWidth = containerWidth - paddingOffset;
@@ -773,12 +891,8 @@ export function SscFlipbookReader({
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (target?.closest('input, textarea, select, button, a')) return;
-      if (event.key === 'ArrowRight') {
-        setPage(current => Math.min(current + 1, maxPageCount - 1));
-      }
-      if (event.key === 'ArrowLeft') {
-        setPage(current => Math.max(current - 1, 0));
-      }
+      if (event.key === 'ArrowRight') setPage(current => Math.min(current + 1, maxPageCount - 1));
+      if (event.key === 'ArrowLeft') setPage(current => Math.max(current - 1, 0));
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -786,19 +900,19 @@ export function SscFlipbookReader({
 
   const nextPage = () => setPage(current => Math.min(current + 1, maxPageCount - 1));
   const prevPage = () => setPage(current => Math.max(current - 1, 0));
+
   const currentPageTitle = chapter.pdfPages[page]
     ?.split('\n')
     .find(line => line.trim().startsWith('# '))
     ?.trim()
     .replace(/^#\s*/, '') || `Page ${page + 1}`;
+
   const accent = readerAccentSets[page % readerAccentSets.length];
+
   const pageTitles = chapter.pdfPages.slice(0, maxPageCount).map((content, index) =>
-    content
-      .split('\n')
-      .find(line => line.trim().startsWith('# '))
-      ?.trim()
-      .replace(/^#\s*/, '') || `Page ${index + 1}`
+    content.split('\n').find(line => line.trim().startsWith('# '))?.trim().replace(/^#\s*/, '') || `Page ${index + 1}`
   );
+
   const readerTools = [
     { to: 'read', label: 'Reader', icon: BookOpen, color: 'from-sky-500 to-cyan-400' },
     { to: 'practice', label: 'Practice', icon: Target, color: 'from-emerald-500 to-lime-400' },
@@ -810,25 +924,25 @@ export function SscFlipbookReader({
     <section
       ref={readerRef}
       onContextMenu={event => event.preventDefault()}
-      className={`ssc-hind relative overflow-hidden rounded-[2rem] border border-slate-900/10 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.12),transparent_34%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.12),transparent_30%),linear-gradient(135deg,rgba(248,250,252,0.96),rgba(226,232,240,0.78))] p-4 shadow-2xl shadow-slate-950/10 backdrop-blur-xl dark:border-white/10 dark:bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.12),transparent_34%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.12),transparent_30%),linear-gradient(135deg,rgba(2,6,23,0.98),rgba(15,23,42,0.9))] ${fullscreen ? 'fixed inset-3 z-[95] overflow-y-auto' : ''}`}
+      className={`ssc-hind relative overflow-hidden rounded-2xl border border-slate-900/10 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.12),transparent_34%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.12),transparent_30%),linear-gradient(135deg,rgba(248,250,252,0.96),rgba(226,232,240,0.78))] p-3 shadow-xl shadow-slate-950/10 backdrop-blur-xl dark:border-white/10 dark:bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.12),transparent_34%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.12),transparent_30%),linear-gradient(135deg,rgba(2,6,23,0.98),rgba(15,23,42,0.9))] ${fullscreen ? 'fixed inset-3 z-[95] overflow-y-auto' : ''}`}
     >
       <SscPremiumStyles />
-      {/* Ambient background glows */}
       <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-sky-500/10 blur-[100px] dark:bg-sky-500/8" />
       <div className="pointer-events-none absolute -right-24 -bottom-24 h-72 w-72 rounded-full bg-emerald-500/10 blur-[100px] dark:bg-emerald-500/8" />
+      <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent.solid}`} />
 
-      <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${accent.solid}`} />
-      <div className="mb-5 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
+      {/* Header: title + tool nav */}
+      <div className="mb-2.5 grid gap-2 lg:grid-cols-[1fr_auto] lg:items-start">
         <div>
-          <p className={`mb-3 inline-flex items-center gap-2 rounded-full border ${accent.border} bg-gradient-to-r ${accent.soft} px-4 py-2 text-xs font-black uppercase tracking-[0.16em] ${accent.icon}`}>
-            <Sparkles className="h-4 w-4 animate-pulse" />
-            {isSscIctReviewMode ? 'Review Mode' : previewOnly ? 'Free Preview' : 'Premium Protected Reader'}
+          <p className={`mb-1 inline-flex items-center gap-1 rounded-full border ${accent.border} bg-gradient-to-r ${accent.soft} px-2 py-0.5 text-[8px] font-black uppercase tracking-wider ${accent.icon}`}>
+            <Sparkles className="h-3 w-3 animate-pulse" />
+            {isSscIctReviewMode ? 'Review' : previewOnly ? 'Preview' : 'Protected Reader'}
           </p>
-          <h2 className={`ssc-gradient-loop bg-gradient-to-r ${accent.text} bg-clip-text text-2xl font-black leading-tight text-transparent md:text-4xl`}>{chapter.pdfTitle}</h2>
-          <p className="mt-2 max-w-3xl text-sm font-bold leading-7 text-slate-600 dark:text-slate-300">{currentPageTitle}</p>
+          <h2 className={`ssc-gradient-loop bg-gradient-to-r ${accent.text} bg-clip-text text-base font-black leading-tight text-transparent md:text-lg`}>{chapter.pdfTitle}</h2>
+          <p className="mt-0.5 max-w-3xl text-[11px] font-bold leading-relaxed text-slate-500 dark:text-slate-400">{currentPageTitle}</p>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 rounded-3xl border border-slate-900/10 bg-white/75 p-2 shadow-sm dark:border-white/10 dark:bg-white/7">
+        <div className="grid grid-cols-4 gap-1 rounded-xl border border-slate-900/10 bg-white/75 p-0.5 shadow-sm dark:border-white/10 dark:bg-white/7">
           {readerTools.map(tool => {
             const Icon = tool.icon;
             const active = location.pathname.endsWith(`/${tool.to}`);
@@ -836,13 +950,13 @@ export function SscFlipbookReader({
               <Link
                 key={tool.to}
                 to={`/ssc-ict/chapter/${chapter.slug}/${tool.to}`}
-                className={`flex min-w-16 flex-col items-center justify-center gap-1 rounded-2xl px-3 py-2 text-[11px] font-black transition hover:-translate-y-0.5 ${
+                className={`flex min-w-12 flex-col items-center justify-center gap-0.5 rounded-lg px-1.5 py-0.5 text-[9px] font-black transition hover:-translate-y-0.5 active:scale-95 duration-200 ${
                   active
-                    ? `bg-gradient-to-br ${tool.color} text-white shadow-lg shadow-slate-950/15`
+                    ? `bg-gradient-to-br ${tool.color} text-white shadow-md`
                     : 'text-slate-500 hover:bg-slate-900/5 dark:text-slate-300 dark:hover:bg-white/10'
                 }`}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-3 w-3" />
                 {tool.label}
               </Link>
             );
@@ -850,124 +964,145 @@ export function SscFlipbookReader({
         </div>
       </div>
 
-      <div className="mb-5 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
-        <div className="flex gap-2 overflow-x-auto pb-1">
-        {pageTitles.map((title, index) => (
-          <button
-            key={title}
-            type="button"
-            onClick={() => setPage(index)}
-            className={`group flex min-w-[9.5rem] items-center gap-3 rounded-3xl border px-3 py-3 text-left transition hover:-translate-y-0.5 ${
-              page === index
-                ? `border-transparent bg-gradient-to-br ${readerAccentSets[index % readerAccentSets.length].solid} text-white shadow-xl shadow-slate-950/15`
-                : 'border-slate-900/10 bg-white/75 text-slate-600 hover:border-sky-300/60 dark:border-white/10 dark:bg-white/7 dark:text-slate-200'
-            }`}
-            aria-label={`Open flipbook page ${index + 1}`}
-          >
-            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-xs font-black ${page === index ? 'bg-white/20 text-white' : 'bg-slate-900/5 text-slate-500 dark:bg-white/10 dark:text-slate-300'}`}>
-              {index + 1}
-            </span>
-            <span className="line-clamp-2 text-xs font-black leading-5">{title}</span>
-          </button>
-        ))}
-        </div>
-        <div className="flex flex-wrap justify-start gap-2 lg:justify-end">
-          <button type="button" onClick={() => setMotionEnabled(value => !value)} className={`inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-black transition ${motionEnabled ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'bg-white/75 text-slate-500 dark:bg-white/10 dark:text-slate-300'}`}>
-            <Palette className="h-4 w-4" />
-            Motion
-          </button>
-          <button type="button" onClick={() => setFocusMode(value => !value)} className={`inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-black transition ${focusMode ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'bg-white/75 text-slate-500 dark:bg-white/10 dark:text-slate-300'}`}>
-            <ListChecks className="h-4 w-4" />
-            Focus
-          </button>
-        </div>
-      </div>
-
-      <div className="grid gap-5 xl:grid-cols-[16rem_1fr]">
-        <aside className={`space-y-3 ${focusMode ? 'hidden xl:block' : ''}`}>
-          <div className="rounded-3xl border border-slate-900/10 bg-white/75 p-4 shadow-sm dark:border-white/10 dark:bg-white/7">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Reader Flow</p>
-            <div className="mt-4 space-y-3">
-              {['Read smart note', 'Use visual anchors', 'Practice MCQ', 'Revise wrong answers'].map((item, index) => (
-                <div key={item} className="grid grid-cols-[auto_1fr] gap-3">
-                  <span className={`mt-0.5 flex h-7 w-7 items-center justify-center rounded-2xl bg-gradient-to-br ${readerAccentSets[index % readerAccentSets.length].solid} text-xs font-black text-white`}>
-                    {index + 1}
-                  </span>
-                  <span className="text-sm font-bold leading-6 text-slate-600 dark:text-slate-300">{item}</span>
-                </div>
-              ))}
-            </div>
+      {/* Compact top bar: progress + flow steps + page pills */}
+      <div className="mb-2 space-y-1.5">
+        {/* Progress row */}
+        <div className="flex items-center gap-2">
+          <span className="shrink-0 text-[10px] font-black text-slate-500 dark:text-slate-400 tabular-nums">
+            {page + 1}<span className="opacity-50">/{maxPageCount}</span>
+          </span>
+          <div className="flex-1 h-1 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+            <div
+              className={`h-full rounded-full bg-gradient-to-r ${accent.solid} transition-all duration-300`}
+              style={{ width: `${((page + 1) / maxPageCount) * 100}%` }}
+            />
           </div>
-          <div className="rounded-3xl border border-slate-900/10 bg-white/75 p-4 shadow-sm dark:border-white/10 dark:bg-white/7">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Progress</p>
-            <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
-              <div className={`h-full rounded-full bg-gradient-to-r ${accent.solid}`} style={{ width: `${((page + 1) / maxPageCount) * 100}%` }} />
-            </div>
-            <p className="mt-2 text-sm font-black text-slate-700 dark:text-slate-200">{page + 1}/{maxPageCount} pages</p>
-          </div>
-        </aside>
-
-        <div className="flex flex-col items-center w-full">
-          <div 
-            ref={containerRef}
-            className="relative flex w-full justify-center overflow-auto rounded-[2rem] border border-white/70 bg-white/75 p-1.5 sm:p-3 md:p-5 shadow-inner dark:border-white/10 dark:bg-slate-950/60"
-            style={{ 
-              height: `${articleHeight * (isMobile ? 1 : finalScale) + (fullscreen ? 120 : 40)}px`, 
-              maxHeight: fullscreen ? '88vh' : '680px',
-              minHeight: '380px',
-              transition: 'height 0.15s ease-out'
-            }}
-          >
-            {watermark && (
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.035] select-none z-10">
-                <span className="text-4xl sm:text-6xl md:text-8xl font-black rotate-[20deg] uppercase tracking-widest whitespace-nowrap">
-                  {watermark}
+          {/* Reader flow steps – ultra-compact */}
+          <div className="hidden sm:flex shrink-0 items-center gap-1">
+            {['Read', 'Anchor', 'Practice', 'Revise'].map((step, index) => (
+              <span
+                key={step}
+                className={`flex items-center gap-1 rounded-lg px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide ${
+                  index === 0
+                    ? `bg-gradient-to-r ${readerAccentSets[0].soft} ${readerAccentSets[0].icon} border ${readerAccentSets[0].border}`
+                    : 'text-slate-400 dark:text-slate-500'
+                }`}
+              >
+                <span className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded bg-gradient-to-br ${readerAccentSets[index % readerAccentSets.length].solid} text-[7px] font-black text-white`}>
+                  {index + 1}
                 </span>
-              </div>
-            )}
-
-            <article
-              ref={articleRef}
-              className={`relative z-0 origin-top rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(180deg,#fff_0%,#f8fafc_100%)] p-4 sm:p-6 text-slate-900 shadow-2xl shadow-slate-950/10 dark:border-white/10 dark:bg-[linear-gradient(180deg,#111827_0%,#020617_100%)] dark:text-white md:p-10`}
-              style={{ 
-                width: isMobile ? '100%' : `${baseWidth}px`, 
-                transform: finalScale !== 1 ? `scale(${finalScale})` : undefined, 
-                transformOrigin: 'top center',
-                minHeight: isMobile ? '300px' : '510px',
-                flexShrink: isMobile ? 1 : 0
-              }}
-            >
-              <div className="mb-8 flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-white/10 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${accent.soft} px-3 py-1 text-xs font-black uppercase tracking-[0.16em] ${accent.icon}`}>
-                    <BookOpen className="h-4 w-4" />
-                    SSC ICT
-                  </p>
-                  <h3 className={`mt-3 bg-gradient-to-r ${accent.text} bg-clip-text text-2xl font-black leading-tight text-transparent md:text-3xl`}>{chapter.title}</h3>
-                </div>
-                <div className="inline-flex w-fit items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-500 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
-                  <Sparkles className={`h-4 w-4 ${motionEnabled ? 'animate-pulse' : ''}`} />
-                  Page {page + 1}/{maxPageCount}
-                </div>
-              </div>
-              <div className="space-y-1">
-                {chapter.pdfPages[page]?.split('\n').map((line, index) => renderFlipbookLine(line, index, motionEnabled))}
-              </div>
-              <div className={`ssc-highlight-sweep relative mt-10 overflow-hidden rounded-3xl border ${accent.border} bg-gradient-to-r ${accent.soft} p-5 text-sm font-black leading-7 text-slate-900 shadow-sm dark:text-white`}>
-                Key exam idea: note পড়ার পর MCQ practice-এ গিয়ে explanation দেখে weak point mark করো।
-              </div>
-            </article>
+                {step}
+              </span>
+            ))}
           </div>
+          {/* Controls */}
+          <div className="flex shrink-0 gap-1">
+            <button
+              type="button"
+              onClick={() => setMotionEnabled(v => !v)}
+              title={motionEnabled ? 'Disable motion' : 'Enable motion'}
+              className={`rounded-lg p-1 text-[10px] font-black transition ${
+                motionEnabled ? 'bg-rose-500 text-white' : 'bg-white/75 text-slate-500 dark:bg-white/10 dark:text-slate-300'
+              }`}
+            >
+              <Palette className="h-3 w-3" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setFocusMode(v => !v)}
+              title={focusMode ? 'Exit focus mode' : 'Focus mode'}
+              className={`rounded-lg p-1 text-[10px] font-black transition ${
+                focusMode ? 'bg-indigo-600 text-white' : 'bg-white/75 text-slate-500 dark:bg-white/10 dark:text-slate-300'
+              }`}
+            >
+              <ListChecks className="h-3 w-3" />
+            </button>
+          </div>
+        </div>
+
+        {/* Compact page-number pills */}
+        <div className="flex gap-1 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+          {pageTitles.map((title, index) => (
+            <button
+              key={index}
+              type="button"
+              onClick={() => setPage(index)}
+              title={title}
+              aria-label={`Page ${index + 1}: ${title}`}
+              className={`relative flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-[10px] font-black transition hover:-translate-y-0.5 ${
+                page === index
+                  ? `bg-gradient-to-br ${readerAccentSets[index % readerAccentSets.length].solid} text-white shadow-md`
+                  : 'bg-slate-900/5 text-slate-500 hover:bg-slate-900/10 dark:bg-white/8 dark:text-slate-300 dark:hover:bg-white/15'
+              }`}
+            >
+              {index + 1}
+              {page === index && (
+                <span className="absolute -bottom-0.5 left-1/2 h-0.5 w-2 -translate-x-1/2 rounded-full bg-white opacity-70" />
+              )}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="mt-5 flex items-center justify-between gap-3">
-        <button type="button" onClick={prevPage} disabled={page === 0} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm font-black text-slate-800 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-white/10 dark:text-white">
-          <ArrowLeft className="h-4 w-4" />
+      {/* Full-width content */}
+      <div
+        ref={containerRef}
+        className="relative flex w-full justify-center overflow-auto rounded-2xl border border-white/70 bg-white/75 p-1 sm:p-2 md:p-2.5 shadow-inner dark:border-white/10 dark:bg-slate-950/60"
+        style={{
+          height: `${articleHeight * (isMobile ? 1 : finalScale) + (fullscreen ? 120 : 40)}px`,
+          maxHeight: fullscreen ? '88vh' : '720px',
+          minHeight: '380px',
+          transition: 'height 0.15s ease-out',
+        }}
+      >
+        {watermark && (
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.035] select-none z-10">
+            <span className="text-4xl sm:text-6xl md:text-8xl font-black rotate-[20deg] uppercase tracking-widest whitespace-nowrap">
+              {watermark}
+            </span>
+          </div>
+        )}
+        <article
+          ref={articleRef}
+          className="relative z-0 origin-top rounded-xl border border-slate-200 bg-[linear-gradient(180deg,#fff_0%,#f8fafc_100%)] p-3 sm:p-4 text-slate-900 shadow-xl shadow-slate-950/10 dark:border-white/10 dark:bg-[linear-gradient(180deg,#111827_0%,#020617_100%)] dark:text-white md:p-5"
+          style={{
+            width: isMobile ? '100%' : `${baseWidth}px`,
+            transform: finalScale !== 1 ? `scale(${finalScale})` : undefined,
+            transformOrigin: 'top center',
+            minHeight: isMobile ? '300px' : '510px',
+            flexShrink: isMobile ? 1 : 0,
+          }}
+        >
+          <div className="mb-3.5 flex flex-col gap-2 border-b border-slate-200 pb-2.5 dark:border-white/10 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className={`inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r ${accent.soft} px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${accent.icon}`}>
+                <BookOpen className="h-3.5 w-3.5" />
+                SSC ICT
+              </p>
+              <h3 className={`mt-1.5 bg-gradient-to-r ${accent.text} bg-clip-text text-sm font-black tracking-wide text-transparent md:text-base`}>{chapter.title}</h3>
+            </div>
+            <div className="inline-flex w-fit items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-black text-slate-500 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
+              <Sparkles className={`h-3.5 w-3.5 ${motionEnabled ? 'animate-pulse' : ''}`} />
+              Page {page + 1}/{maxPageCount}
+            </div>
+          </div>
+          <div className="space-y-1">
+            {chapter.pdfPages[page]?.split('\n').map((line, index) => renderFlipbookLine(line, index, motionEnabled))}
+          </div>
+          <div className={`ssc-highlight-sweep relative mt-4 overflow-hidden rounded-xl border ${accent.border} bg-gradient-to-r ${accent.soft} p-3 text-xs font-bold leading-5 text-slate-900 shadow-sm dark:text-white`}>
+            Key exam idea: note পড়ার পর MCQ practice-এ গিয়ে explanation দেখে weak point mark করো।
+          </div>
+        </article>
+      </div>
+
+      {/* Prev / Next navigation */}
+      <div className="mt-3.5 flex items-center justify-between gap-3">
+        <button type="button" onClick={prevPage} disabled={page === 0} className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-900/10 bg-white px-3 py-2 text-xs font-black text-slate-800 transition hover:bg-slate-50 disabled:opacity-40 dark:border-white/10 dark:bg-white/10 dark:text-white">
+          <ArrowLeft className="h-3.5 w-3.5" />
           Previous
         </button>
         <div className="flex-1 min-w-0 mx-2">
-          <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+          <div className="h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
             <div className={`h-full rounded-full bg-gradient-to-r ${accent.solid}`} style={{ width: `${((page + 1) / maxPageCount) * 100}%` }} />
           </div>
         </div>
@@ -977,6 +1112,7 @@ export function SscFlipbookReader({
         </button>
       </div>
 
+      {/* Zoom + fullscreen controls */}
       <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => setZoom(value => Math.max(0.84, value - 0.08))} className="rounded-2xl border border-slate-900/10 bg-white p-3 text-slate-700 dark:border-white/10 dark:bg-white/10 dark:text-white" aria-label="Zoom out">
@@ -998,6 +1134,7 @@ export function SscFlipbookReader({
     </section>
   );
 }
+
 
 export function SscPremiumMcqStack({
   questions,
@@ -1156,29 +1293,74 @@ export function SscPremiumMcqStack({
               })}
             </div>
 
-            {breakdownOpen && (
-              <div className={`ssc-shine-loop relative mt-5 overflow-hidden rounded-3xl border p-5 ${saved?.isCorrect ? 'border-emerald-300/35 bg-emerald-400/10' : saved ? 'border-rose-300/35 bg-rose-400/10' : 'border-sky-300/30 bg-sky-400/10'}`}>
-                <div className="relative grid gap-4 lg:grid-cols-[1fr_auto]">
-                  <div>
-                    <p className={`text-xs font-black uppercase tracking-[0.16em] ${saved?.isCorrect ? 'text-emerald-600 dark:text-emerald-200' : saved ? 'text-rose-600 dark:text-rose-200' : 'text-sky-600 dark:text-sky-200'}`}>
-                      Answer Analytics
-                    </p>
-                    <p className="mt-2 text-sm font-bold leading-7 text-slate-700 dark:text-slate-200">{question.explanation}</p>
-                  </div>
-                  <div className="grid min-w-56 gap-2 text-sm font-black">
-                    <div className="rounded-2xl bg-white/80 px-4 py-3 text-slate-700 dark:bg-white/10 dark:text-slate-200">
-                      Correct: <span className="text-emerald-600 dark:text-emerald-200">{correctOption}</span>
+            {breakdownOpen && (() => {
+              const stats = getQuestionStats(question.id, question.correctIndex, question.options.length);
+              const isWrong = saved && !saved.isCorrect;
+              return (
+                <div className={`ssc-shine-loop relative mt-5 overflow-hidden rounded-3xl border p-5 ${saved?.isCorrect ? 'border-emerald-300/35 bg-emerald-400/10' : saved ? 'border-rose-300/35 bg-rose-400/10' : 'border-sky-300/30 bg-sky-400/10'}`}>
+                  {isWrong && (
+                    <div className="mb-4 flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-black text-rose-800 dark:border-rose-900/30 dark:bg-rose-950/20 dark:text-rose-200">
+                      <X className="h-5 w-5 shrink-0 animate-bounce" />
+                      ভুল উত্তর! সঠিক উত্তর: {String.fromCharCode(65 + question.correctIndex)}. {correctOption}
                     </div>
-                    <div className="rounded-2xl bg-white/80 px-4 py-3 text-slate-700 dark:bg-white/10 dark:text-slate-200">
-                      Selected: <span className={saved?.isCorrect ? 'text-emerald-600 dark:text-emerald-200' : 'text-rose-600 dark:text-rose-200'}>{selectedOption || 'Not answered'}</span>
+                  )}
+                  {saved?.isCorrect && (
+                    <div className="mb-4 flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-800 dark:border-emerald-900/30 dark:bg-emerald-950/20 dark:text-emerald-200">
+                      <CheckCircle2 className="h-5 w-5 shrink-0" />
+                      অভিনন্দন! আপনার উত্তর সঠিক হয়েছে।
                     </div>
-                    <div className="rounded-2xl bg-white/80 px-4 py-3 text-slate-700 dark:bg-white/10 dark:text-slate-200">
-                      Result: <span className={saved?.isCorrect ? 'text-emerald-600 dark:text-emerald-200' : 'text-rose-600 dark:text-rose-200'}>{saved ? saved.isCorrect ? 'Success' : 'Error' : 'Pending'}</span>
+                  )}
+                  
+                  <div className="relative grid gap-6 lg:grid-cols-[1fr_280px]">
+                    <div>
+                      <p className={`text-xs font-black uppercase tracking-[0.16em] ${saved?.isCorrect ? 'text-emerald-600 dark:text-emerald-200' : saved ? 'text-rose-600 dark:text-rose-200' : 'text-sky-600 dark:text-sky-200'}`}>
+                        Answer Explanation (ব্যাখ্যা)
+                      </p>
+                      <p className="mt-2 text-sm font-bold leading-7 text-slate-700 dark:text-slate-200">{question.explanation}</p>
+                    </div>
+
+                    <div className="rounded-2xl bg-white/80 p-4 shadow-sm dark:bg-slate-900/40 border border-slate-900/5 dark:border-white/5">
+                      <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500 mb-3">
+                        Student Statistics ({stats.totalStudents} attempts)
+                      </p>
+                      <div className="mb-3 text-[11px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded-lg px-2 py-1.5">
+                        {stats.correctPercent}% শিক্ষার্থী সঠিক উত্তর দিয়েছে।
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {question.options.map((option, idx) => {
+                          const pct = stats.optionPercents[idx];
+                          const isCorrectOpt = idx === question.correctIndex;
+                          const isSelectedOpt = saved?.selectedIndex === idx;
+                          return (
+                            <div key={idx} className="space-y-1">
+                              <div className="flex justify-between text-[11px] font-bold">
+                                <span className={`truncate max-w-[170px] ${isCorrectOpt ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : isSelectedOpt ? 'text-rose-600 dark:text-rose-400 font-extrabold' : 'text-slate-500 dark:text-slate-400'}`}>
+                                  {String.fromCharCode(65 + idx)}. {option.slice(0, 15)}... {isCorrectOpt ? '✓' : isSelectedOpt ? '✗' : ''}
+                                </span>
+                                <span className="font-extrabold text-slate-700 dark:text-slate-300">{pct}%</span>
+                              </div>
+                              <div className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full rounded-full transition-all duration-500 ${
+                                    isCorrectOpt 
+                                      ? 'bg-gradient-to-r from-emerald-500 to-teal-400' 
+                                      : isSelectedOpt 
+                                        ? 'bg-gradient-to-r from-rose-500 to-orange-400' 
+                                        : 'bg-slate-400 dark:bg-slate-600'
+                                  }`} 
+                                  style={{ width: `${pct}%` }} 
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </article>
         );
       })}
@@ -1193,47 +1375,91 @@ export function SscResultCard({
 }) {
   const accuracy = attempt.total ? Math.round((attempt.correctCount / attempt.total) * 100) : 0;
   return (
-    <div className="relative overflow-hidden rounded-[1.75rem] bg-slate-950 p-6 text-white shadow-2xl shadow-slate-950/35 md:p-8">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-400 via-amber-300 to-emerald-300" />
+    <div className="relative overflow-hidden rounded-[2rem] border-4 border-double border-amber-400/30 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-6 text-white shadow-2xl shadow-slate-950/50 md:p-10 lg:p-12">
+      {/* Decorative corner ornaments */}
+      <div className="absolute left-3 top-3 h-6 w-6 border-l-2 border-t-2 border-amber-400/40" />
+      <div className="absolute right-3 top-3 h-6 w-6 border-r-2 border-t-2 border-amber-400/40" />
+      <div className="absolute left-3 bottom-3 h-6 w-6 border-l-2 border-b-2 border-amber-400/40" />
+      <div className="absolute right-3 bottom-3 h-6 w-6 border-r-2 border-b-2 border-amber-400/40" />
+
+      {/* Glow Backdrops */}
+      <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-amber-500/10 blur-[80px]" />
+      <div className="pointer-events-none absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-[80px]" />
+
+      {/* Official verified stamp watermark */}
+      <div className="absolute bottom-6 right-6 pointer-events-none select-none opacity-[0.06] border-4 border-dashed border-emerald-400 rounded-full h-32 w-32 flex items-center justify-center rotate-[-15deg]">
+        <span className="text-center text-xs font-black tracking-widest uppercase">ICT TOPPERS<br/>VERIFIED</span>
+      </div>
+
       <div className="relative">
-        <div className="mb-8 flex items-center gap-4">
-          <img src="/logo-128.webp" alt="ICT Toppers" className="h-14 w-14 rounded-2xl object-cover" />
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-200">ICT Toppers</p>
-            <h2 className="text-2xl font-black">SSC ICT Quiz Result</h2>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/10 pb-6 mb-6">
+          <div className="flex items-center gap-3.5">
+            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 p-0.5 shadow-lg shadow-amber-500/10">
+              <img src="/logo-128.webp" alt="ICT Toppers" className="h-full w-full rounded-[10px] object-cover" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.25em] bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">
+                ICT Toppers Academy
+              </p>
+              <h2 className="text-lg font-black tracking-wide text-white">SSC ICT ACHIEVEMENT CARD</h2>
+            </div>
           </div>
-        </div>
-        <p className="text-sm font-bold text-slate-400">Student</p>
-        <h3 className="mt-1 text-3xl font-black">{attempt.displayName || 'ICT Student'}</h3>
-        <p className="mt-2 text-sm font-semibold text-slate-300">{attempt.quizTitle}</p>
-
-        <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Score</p>
-            <p className="mt-2 text-3xl font-black text-emerald-300">{attempt.score}/{attempt.total}</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Rank</p>
-            <p className="mt-2 text-3xl font-black text-amber-300">#{attempt.rankSnapshot || '-'}</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Accuracy</p>
-            <p className="mt-2 text-3xl font-black text-sky-300">{accuracy}%</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Time</p>
-            <p className="mt-2 text-3xl font-black text-white">{Math.floor(attempt.timeTakenSeconds / 60)}m</p>
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/25 bg-amber-400/10 px-3.5 py-1 text-xs font-bold text-amber-200">
+            <Trophy className="h-3.5 w-3.5 text-amber-300 animate-pulse" />
+            Quiz Competitor
           </div>
         </div>
 
-        <div className="mt-6 grid gap-2 text-sm font-bold text-slate-300 sm:grid-cols-3">
-          <span>Correct: {attempt.correctCount}</span>
-          <span>Wrong: {attempt.wrongCount}</span>
-          <span>Skipped: {attempt.skippedCount}</span>
+        {/* Certificate text */}
+        <div className="text-center sm:text-left space-y-2.5">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+            This card recognizes the performance of
+          </p>
+          <h3 className="bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-200 bg-clip-text text-3xl font-black tracking-wide text-transparent sm:text-4xl">
+            {attempt.displayName || 'ICT Student'}
+          </h3>
+          <p className="text-sm font-semibold leading-relaxed text-slate-300">
+            for outstanding completion of the <strong className="text-white font-extrabold">{attempt.quizTitle}</strong> chapter exam.
+          </p>
+          <p className="text-[11px] font-bold text-slate-500">
+            Completed on: {new Date(attempt.submittedAt).toLocaleDateString()} at {new Date(attempt.submittedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+          </p>
         </div>
-        <p className="mt-8 text-sm font-black uppercase tracking-[0.18em] text-slate-400">
-          Challenge yourself at ICT Toppers
-        </p>
+
+        {/* Stats Grid */}
+        <div className="mt-8 grid grid-cols-2 gap-3.5 sm:grid-cols-4">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center backdrop-blur-sm">
+            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">Score</p>
+            <p className="mt-1.5 text-2xl font-black text-emerald-400">{attempt.score} <span className="text-xs text-slate-400">/ {attempt.total}</span></p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center backdrop-blur-sm">
+            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">Rank</p>
+            <p className="mt-1.5 text-2xl font-black text-amber-400">#{attempt.rankSnapshot || '-'}</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center backdrop-blur-sm">
+            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">Accuracy</p>
+            <p className="mt-1.5 text-2xl font-black text-cyan-400">{accuracy}%</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center backdrop-blur-sm">
+            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">Time Taken</p>
+            <p className="mt-1.5 text-2xl font-black text-white">
+              {Math.floor(attempt.timeTakenSeconds / 60)}m {attempt.timeTakenSeconds % 60}s
+            </p>
+          </div>
+        </div>
+
+        {/* Option breakdowns */}
+        <div className="mt-6 flex flex-wrap justify-between items-center gap-3 border-t border-white/10 pt-5 text-xs text-slate-400 font-bold">
+          <div className="flex gap-4">
+            <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />Correct: {attempt.correctCount}</span>
+            <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-rose-400" />Wrong: {attempt.wrongCount}</span>
+            <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-slate-400" />Skipped: {attempt.skippedCount}</span>
+          </div>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-amber-400/70">
+            ICT Toppers Official Verified
+          </p>
+        </div>
       </div>
     </div>
   );

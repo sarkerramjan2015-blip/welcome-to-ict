@@ -109,9 +109,9 @@ const waitForFirebaseUser = async () => {
   );
 };
 
-export const getFirebaseIdToken = async () => {
+export const getFirebaseIdToken = async (forceRefresh = false) => {
   const firebaseUser = await waitForFirebaseUser();
-  return firebaseUser ? firebaseUser.getIdToken() : '';
+  return firebaseUser ? firebaseUser.getIdToken(forceRefresh) : '';
 };
 
 const resolvePaymentType = (courseId: string): 'premium' | 'quiz' | 'course' => {
@@ -120,12 +120,28 @@ const resolvePaymentType = (courseId: string): 'premium' | 'quiz' | 'course' => 
   return 'course';
 };
 
-const getManualPaymentAuthHeaders = async () => {
-  const token = await getFirebaseIdToken();
+const getManualPaymentAuthHeaders = async (forceRefresh = false) => {
+  const token = await getFirebaseIdToken(forceRefresh);
   return {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
+};
+
+/**
+ * Wraps a fetch call and automatically retries once with a fresh token if the
+ * server returns 401 (which now means the token was expired or revoked).
+ */
+const fetchWithTokenRefresh = async (input: RequestInfo, init: RequestInit): Promise<Response> => {
+  const response = await fetch(input, init);
+  if (response.status !== 401) return response;
+
+  // Token likely expired — force-refresh and retry once.
+  const freshHeaders = await getManualPaymentAuthHeaders(true);
+  return fetch(input, {
+    ...init,
+    headers: { ...init.headers, ...freshHeaders },
+  });
 };
 
 const parseManualPaymentApiResponse = async <T,>(response: Response): Promise<T> => {
@@ -152,7 +168,7 @@ const parseManualPaymentApiResponse = async <T,>(response: Response): Promise<T>
 };
 
 const saveManualPaymentViaApi = async (payment: Record<string, unknown>) => {
-  const response = await fetch('/api/manualPayments', {
+  const response = await fetchWithTokenRefresh('/api/manualPayments', {
     method: 'POST',
     headers: await getManualPaymentAuthHeaders(),
     body: JSON.stringify({ action: 'submit', payment }),
@@ -166,7 +182,7 @@ export const fetchManualPayments = async (filters: { userId?: string; status?: M
   if (filters.userId) params.set('userId', filters.userId);
   if (filters.status) params.set('status', filters.status);
 
-  const response = await fetch(`/api/manualPayments${params.toString() ? `?${params}` : ''}`, {
+  const response = await fetchWithTokenRefresh(`/api/manualPayments${params.toString() ? `?${params}` : ''}`, {
     headers: await getManualPaymentAuthHeaders(),
   });
 
@@ -175,7 +191,7 @@ export const fetchManualPayments = async (filters: { userId?: string; status?: M
 };
 
 export const approveManualPayment = async (paymentId: string) => {
-  const response = await fetch('/api/manualPayments', {
+  const response = await fetchWithTokenRefresh('/api/manualPayments', {
     method: 'POST',
     headers: await getManualPaymentAuthHeaders(),
     body: JSON.stringify({ action: 'approve', paymentId }),
@@ -186,7 +202,7 @@ export const approveManualPayment = async (paymentId: string) => {
 };
 
 export const rejectManualPayment = async (paymentId: string) => {
-  const response = await fetch('/api/manualPayments', {
+  const response = await fetchWithTokenRefresh('/api/manualPayments', {
     method: 'POST',
     headers: await getManualPaymentAuthHeaders(),
     body: JSON.stringify({ action: 'reject', paymentId }),
@@ -197,7 +213,7 @@ export const rejectManualPayment = async (paymentId: string) => {
 };
 
 export const recordManualPaymentReminder = async (paymentId: string) => {
-  const response = await fetch('/api/manualPayments', {
+  const response = await fetchWithTokenRefresh('/api/manualPayments', {
     method: 'POST',
     headers: await getManualPaymentAuthHeaders(),
     body: JSON.stringify({ action: 'remind', paymentId }),

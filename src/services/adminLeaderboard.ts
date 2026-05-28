@@ -19,6 +19,7 @@ export type AdminLeaderboardResult = {
 export type AdminLeaderboardChallengeSet = {
   id: string;
   title: string;
+  level: string;
   status: string;
   startsAt: string | null;
   updatedAt: string | null;

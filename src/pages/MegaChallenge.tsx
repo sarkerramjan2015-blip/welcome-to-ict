@@ -39,7 +39,7 @@ const mergeChallenges = (items: UpcomingChallenge[]) => {
   });
 };
 
-export default function MegaChallenge() {
+export default function MegaChallenge({ level = 'HSC' }: { level?: 'HSC' | 'SSC' }) {
   const { user, login } = useAuth();
   const { challengeEnrollments, enrollChallenge, markChallengePaid } = useLms();
   const [challenge, setChallenge] = useState<UpcomingChallenge | null>(null);
@@ -53,7 +53,7 @@ export default function MegaChallenge() {
 
   useEffect(() => {
     fetchChallenge();
-  }, []);
+  }, [level]);
 
   useEffect(() => {
     if (user && !loading) {
@@ -62,8 +62,8 @@ export default function MegaChallenge() {
   }, [user, challenge, challengeEnrollments, loading]);
 
   const fetchChallenge = async () => {
-    const challenges = mergeChallenges(await fetchApiChallenges());
-    const fallbackChallenge = getFallbackChallenge();
+    const challenges = mergeChallenges(await fetchApiChallenges(level));
+    const fallbackChallenge = getFallbackChallenge(level);
 
     setUpcomingChallenges(challenges.length ? challenges : [fallbackChallenge]);
     setChallenge(challenges[0] || fallbackChallenge);
@@ -72,7 +72,7 @@ export default function MegaChallenge() {
 
   const checkEnrollment = async () => {
     if (!user) return;
-    const selectedChallenge = challenge || getFallbackChallenge();
+    const selectedChallenge = challenge || getFallbackChallenge(level);
     const currentEnrollment = challengeEnrollments.find(e => e.challengeId === selectedChallenge.id);
 
     try {
@@ -116,11 +116,11 @@ export default function MegaChallenge() {
 
   const handleJoin = async () => {
     if (!user) {
-      await login({ redirectTo: '/monthly-quiz' });
+      await login({ redirectTo: level === 'SSC' ? '/ssc-ict/monthly-quiz' : '/monthly-quiz' });
       return;
     }
 
-    const selectedChallenge = challenge || getFallbackChallenge();
+    const selectedChallenge = challenge || getFallbackChallenge(level);
     if (user.isPremium || user.role === 'admin') {
       const nextEnrollment = enrollment || enrollChallenge(selectedChallenge.id, selectedChallenge.fee);
       if (nextEnrollment) {
@@ -139,16 +139,16 @@ export default function MegaChallenge() {
 
   const handlePaymentClick = async () => {
     if (!user) {
-      await login({ redirectTo: '/monthly-quiz' });
+      await login({ redirectTo: level === 'SSC' ? '/ssc-ict/monthly-quiz' : '/monthly-quiz' });
       return;
     }
 
-    await startChallengeCheckout(challenge || getFallbackChallenge());
+    await startChallengeCheckout(challenge || getFallbackChallenge(level));
   };
 
   const handlePremiumAccess = () => {
     if (!user?.isPremium) return;
-    const selectedChallenge = challenge || getFallbackChallenge();
+    const selectedChallenge = challenge || getFallbackChallenge(level);
     const nextEnrollment = enrollment || enrollChallenge(selectedChallenge.id, selectedChallenge.fee);
     if (!nextEnrollment) return;
     markChallengePaid(selectedChallenge.id);
@@ -161,7 +161,7 @@ export default function MegaChallenge() {
 
   if (loading) return <div className="p-8 text-center text-slate-900 dark:text-white">Loading...</div>;
 
-  const displayChallenge: UpcomingChallenge = challenge || getFallbackChallenge();
+  const displayChallenge: UpcomingChallenge = challenge || getFallbackChallenge(level);
 
   if (showExam) {
     return <ChallengeExam challengeId={displayChallenge.id} onComplete={() => { setShowExam(false); checkEnrollment(); }} />;
@@ -180,9 +180,9 @@ export default function MegaChallenge() {
         </div>
         <Trophy className="w-20 h-20 text-yellow-400 mx-auto mb-6 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">
-          HSC ICT Monthly Quiz Exam
+          {level} ICT Monthly Quiz Exam
         </h1>
-        <p className="text-xl md:text-2xl text-sky-300 font-medium mb-2">All over Bangladesh</p>
+        <p className={`text-xl md:text-2xl ${level === 'SSC' ? 'text-emerald-400' : 'text-sky-300'} font-medium mb-2`}>All over Bangladesh</p>
         <p className="text-lg text-slate-600 dark:text-gray-300 max-w-2xl mx-auto mb-6">
           Test your knowledge, compete with thousands of students, and win exciting prizes in the biggest monthly ICT quiz exam!
         </p>
@@ -209,14 +209,14 @@ export default function MegaChallenge() {
         transition={{ delay: 0.05 }}
         className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-slate-900/10 dark:border-white/20 shadow-xl shadow-black/10 relative overflow-hidden"
       >
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-500 opacity-50" />
+        <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${level === 'SSC' ? 'from-cyan-400 via-teal-500 to-emerald-500' : 'from-sky-400 via-indigo-500 to-purple-500'} opacity-50`} />
         <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.2em] bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-400 mb-2">Upcoming Quiz Schedule</p>
+            <p className={`text-sm font-black uppercase tracking-[0.2em] bg-clip-text text-transparent bg-gradient-to-r ${level === 'SSC' ? 'from-cyan-400 to-emerald-400' : 'from-sky-400 to-indigo-400'} mb-2`}>Upcoming Quiz Schedule</p>
             <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Select a live registration slot</h2>
           </div>
           <div className="flex items-center gap-2 bg-slate-900/5 dark:bg-white/5 py-2 px-4 rounded-full border border-slate-900/10 dark:border-white/10 shadow-inner">
-            <Clock className="w-4 h-4 text-sky-400" />
+            <Clock className={`w-4 h-4 ${level === 'SSC' ? 'text-emerald-400' : 'text-sky-400'}`} />
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Exam starts at 9:00 PM BDT</p>
           </div>
         </div>
@@ -240,6 +240,7 @@ export default function MegaChallenge() {
           >
             {upcomingChallenges.map((item) => {
               const isSelected = item.id === displayChallenge.id;
+              const isSsc = level === 'SSC';
 
               return (
                 <motion.button
@@ -253,22 +254,26 @@ export default function MegaChallenge() {
                   onClick={() => setChallenge(item)}
                   className={`group text-left rounded-3xl border p-6 transition-all duration-300 relative overflow-hidden ${
                     isSelected
-                      ? 'border-indigo-500/50 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 shadow-2xl shadow-indigo-500/20'
-                      : 'border-slate-900/10 bg-slate-900/5 hover:border-indigo-400/30 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
+                      ? isSsc
+                        ? 'border-emerald-500/50 bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 shadow-2xl shadow-emerald-500/20'
+                        : 'border-indigo-500/50 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 shadow-2xl shadow-indigo-500/20'
+                      : isSsc
+                        ? 'border-slate-900/10 bg-slate-900/5 hover:border-emerald-400/30 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
+                        : 'border-slate-900/10 bg-slate-900/5 hover:border-indigo-400/30 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
                   }`}
                 >
                   {isSelected && (
-                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 via-transparent to-transparent opacity-50 pointer-events-none"></div>
+                    <div className={`absolute inset-0 bg-gradient-to-tr ${isSsc ? 'from-emerald-500/20' : 'from-indigo-500/20'} via-transparent to-transparent opacity-50 pointer-events-none`}></div>
                   )}
                   {isSelected && (
                     <motion.div 
                       layoutId="active-indicator"
-                      className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400"
+                      className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${isSsc ? 'from-cyan-400 via-teal-400 to-emerald-400' : 'from-sky-400 via-indigo-400 to-purple-400'}`}
                     />
                   )}
                   
                   <div className="relative z-10 flex flex-col h-full">
-                    <p className={`text-xs font-black uppercase tracking-[0.18em] mb-3 transition-colors ${isSelected ? 'text-indigo-400 drop-shadow-sm' : 'text-sky-500 dark:text-sky-400 group-hover:text-indigo-400'}`}>
+                    <p className={`text-xs font-black uppercase tracking-[0.18em] mb-3 transition-colors ${isSelected ? (isSsc ? 'text-emerald-400 drop-shadow-sm' : 'text-indigo-400 drop-shadow-sm') : (isSsc ? 'text-cyan-500 dark:text-cyan-400 group-hover:text-emerald-400' : 'text-sky-500 dark:text-sky-400 group-hover:text-indigo-400')}`}>
                       {formatSchedule(item.startsAt)}
                     </p>
                     <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-tight mb-5">
@@ -278,7 +283,7 @@ export default function MegaChallenge() {
                     <div className="space-y-2 mt-auto">
                       {item.syllabus.map((topic, idx) => (
                         <div key={idx} className="flex items-start gap-2">
-                          <div className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${isSelected ? 'bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.8)]' : 'bg-slate-400 dark:bg-slate-500 group-hover:bg-indigo-300'}`} />
+                          <div className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${isSelected ? (isSsc ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.8)]') : (isSsc ? 'bg-slate-400 dark:bg-slate-500 group-hover:bg-emerald-300' : 'bg-slate-400 dark:bg-slate-500 group-hover:bg-indigo-300')}`} />
                           <p className={`text-sm font-medium leading-relaxed ${isSelected ? 'text-slate-800 dark:text-slate-200' : 'text-slate-600 dark:text-slate-400'}`}>
                             {topic}
                           </p>
@@ -303,7 +308,7 @@ export default function MegaChallenge() {
             className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-2xl rounded-3xl p-8 border border-slate-900/10 dark:border-white/20 shadow-xl shadow-black/20"
           >
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-              <Clock className="text-sky-400" /> Exam Starts In
+              <Clock className={level === 'SSC' ? 'text-emerald-400' : 'text-sky-400'} /> Exam Starts In
             </h3>
             <div className="flex justify-center">
               <Countdown targetDate={displayChallenge.startsAt} />
@@ -317,11 +322,11 @@ export default function MegaChallenge() {
             className="bg-slate-900/5 dark:bg-white/10 backdrop-blur-2xl rounded-3xl p-8 border border-slate-900/10 dark:border-white/20 shadow-xl shadow-black/20"
           >
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-              <BookOpen className="text-indigo-400" /> Exam Syllabus
+              <BookOpen className={level === 'SSC' ? 'text-emerald-400' : 'text-indigo-400'} /> Exam Syllabus
             </h3>
-            <div className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-slate-900/10 dark:border-white/10 rounded-2xl p-6 shadow-inner">
+            <div className={`bg-gradient-to-br ${level === 'SSC' ? 'from-emerald-500/20 to-cyan-500/20' : 'from-indigo-500/20 to-purple-500/20'} border border-slate-900/10 dark:border-white/10 rounded-2xl p-6 shadow-inner`}>
               <p className="text-2xl font-bold text-slate-900 dark:text-white drop-shadow-md">{displayChallenge.title}</p>
-              <p className="text-indigo-200 mt-2 font-medium">{formatSchedule(displayChallenge.startsAt)}</p>
+              <p className={`${level === 'SSC' ? 'text-emerald-200' : 'text-indigo-200'} mt-2 font-medium`}>{formatSchedule(displayChallenge.startsAt)}</p>
               <div className="mt-5 space-y-2 text-left">
                 {displayChallenge.syllabus.length > 0 ? (
                   displayChallenge.syllabus.map((topic) => (
@@ -340,14 +345,14 @@ export default function MegaChallenge() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
-          className="relative bg-slate-900/5 dark:bg-white/10 backdrop-blur-2xl rounded-3xl p-8 border border-slate-900/10 dark:border-white/20 flex flex-col justify-between shadow-2xl shadow-indigo-500/20 overflow-hidden"
+          className={`relative bg-slate-900/5 dark:bg-white/10 backdrop-blur-2xl rounded-3xl p-8 border border-slate-900/10 dark:border-white/20 flex flex-col justify-between shadow-2xl ${level === 'SSC' ? 'shadow-emerald-500/20' : 'shadow-indigo-500/20'} overflow-hidden`}
         >
-          <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500/30 via-purple-500/30 to-pink-500/30 blur-2xl z-0"></div>
+          <div className={`absolute -inset-1 bg-gradient-to-br ${level === 'SSC' ? 'from-emerald-500/30 via-teal-500/30 to-cyan-500/30' : 'from-indigo-500/30 via-purple-500/30 to-pink-500/30'} blur-2xl z-0`}></div>
           
           <div className="relative z-10">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <CreditCard className="text-pink-400" /> Registration
+                <CreditCard className={level === 'SSC' ? 'text-emerald-400' : 'text-pink-400'} /> Registration
               </h3>
               <div className="animate-pulse flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20">
                 <div className="w-2 h-2 rounded-full bg-emerald-400"></div> Open
@@ -357,7 +362,7 @@ export default function MegaChallenge() {
             <div className="bg-black/20 backdrop-blur-md rounded-2xl p-6 mb-8 border border-slate-900/10 dark:border-white/10 shadow-inner">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-slate-600 dark:text-gray-300 font-medium">Entry Fee</span>
-                <span className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-400">
+                <span className={`text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r ${level === 'SSC' ? 'from-emerald-400 to-cyan-400' : 'from-pink-400 to-purple-400'}`}>
                   {user?.isPremium ? 'Free' : `Tk ${displayChallenge.fee}`}
                 </span>
               </div>
@@ -392,7 +397,7 @@ export default function MegaChallenge() {
                     <div className="h-12 w-20 bg-white/90 rounded-xl p-2 flex items-center justify-center border border-slate-900/10 dark:border-white/20 shadow-lg group-hover:scale-105 transition-transform">
                       <img src="https://www.logo.wine/a/logo/BKash/BKash-Icon-Logo.wine.svg" alt="bKash" className="h-full object-contain" />
                     </div>
-                    <span className="text-xs text-slate-600 dark:text-gray-300 font-medium group-hover:text-pink-300 transition-colors">bKash</span>
+                    <span className={`text-xs text-slate-600 dark:text-gray-300 font-medium ${level === 'SSC' ? 'group-hover:text-emerald-300' : 'group-hover:text-pink-300'} transition-colors`}>bKash</span>
                   </button>
                   <button
                     type="button"
@@ -402,7 +407,7 @@ export default function MegaChallenge() {
                     <div className="h-12 w-20 bg-white/90 rounded-xl p-2 flex items-center justify-center border border-slate-900/10 dark:border-white/20 shadow-lg group-hover:scale-105 transition-transform">
                       <img src="https://download.logo.wine/logo/Nagad/Nagad-Logo.wine.png" alt="Nagad" className="h-full object-contain scale-125" />
                     </div>
-                    <span className="text-xs text-slate-600 dark:text-gray-300 font-medium group-hover:text-orange-300 transition-colors">Nagad</span>
+                    <span className={`text-xs text-slate-600 dark:text-gray-300 font-medium ${level === 'SSC' ? 'group-hover:text-teal-300' : 'group-hover:text-orange-300'} transition-colors`}>Nagad</span>
                   </button>
                 </>
               )}
@@ -421,7 +426,7 @@ export default function MegaChallenge() {
             ) : !enrollment ? (
               <button 
                 onClick={handleJoin}
-                className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
+                className={`w-full py-4 bg-gradient-to-r ${level === 'SSC' ? 'from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)]' : 'from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)]'} text-white rounded-2xl font-black text-lg transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait`}
               >
                 <Sparkles className="w-5 h-5" />
                 {user?.isPremium ? 'Activate Free Premium Exam' : `Register for Tk ${displayChallenge.fee}`}
@@ -438,7 +443,7 @@ export default function MegaChallenge() {
               ) : (
                 <button 
                   onClick={handlePaymentClick}
-                  className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait"
+                  className={`w-full py-4 bg-gradient-to-r ${level === 'SSC' ? 'from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)]' : 'from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)]'} text-white rounded-2xl font-black text-lg transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-wait`}
                 >
                   <CreditCard className="w-5 h-5" />
                   Complete Payment Verification
@@ -495,7 +500,7 @@ export default function MegaChallenge() {
               </button>
               <PaymentGateway
                 courseId={`quiz-${displayChallenge.id}`}
-                courseTitle={displayChallenge.title || 'HSC ICT Monthly Quiz Exam'}
+                courseTitle={displayChallenge.title || `${level} ICT Monthly Quiz Exam`}
                 amount={displayChallenge.fee || 20}
                 paymentType="quiz"
                 title="Quiz Exam Registration"

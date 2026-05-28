@@ -204,27 +204,39 @@ export default function Dashboard() {
     }
 
     let cancelled = false;
+    let intervalId: any;
 
     const loadPayments = async () => {
       setLocalPremiumPending(readLocalPremiumPending());
       try {
-        const payments = await fetchManualPayments();
+        const payments = await fetchManualPayments({ userId: user.id });
         if (!cancelled) {
           setManualPayments(payments);
         }
-      } catch {
+      } catch (err: any) {
         if (!cancelled) {
           setManualPayments([]);
+          // Stop polling on auth errors — the token is expired/invalid.
+          // fetchWithTokenRefresh already tried to refresh once; if it still
+          // fails there is nothing further we can do until the page reloads.
+          const msg = String(err?.message || '');
+          if (msg.toLowerCase().includes('expired') || msg.toLowerCase().includes('session') || msg.toLowerCase().includes('login')) {
+            if (intervalId !== undefined) {
+              window.clearInterval(intervalId);
+              intervalId = undefined;
+            }
+          }
         }
       }
     };
 
     void loadPayments();
-    const intervalId = window.setInterval(loadPayments, 15000);
+    // Poll every 60 s instead of 15 s — payment status rarely changes that fast.
+    intervalId = window.setInterval(loadPayments, 60000);
 
     return () => {
       cancelled = true;
-      window.clearInterval(intervalId);
+      if (intervalId !== undefined) window.clearInterval(intervalId);
     };
   }, [user?.id]);
 

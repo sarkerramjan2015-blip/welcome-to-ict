@@ -1,6 +1,7 @@
 export interface UpcomingChallenge {
   id: string;
   title: string;
+  level: string;
   month: string;
   year: number;
   fee: number;
@@ -69,7 +70,8 @@ export const normalizeChallenge = (id: string, data: Record<string, any>): Upcom
 
   return {
     id,
-    title: String(data.title || 'HSC ICT Monthly Quiz Exam').trim(),
+    title: String(data.title || (data.level === 'SSC' ? 'SSC ICT Monthly Quiz Exam' : 'HSC ICT Monthly Quiz Exam')).trim(),
+    level: String(data.level || 'HSC'),
     month: String(data.month || new Date(startsAt).toLocaleString('en-US', { month: 'long', timeZone: 'Asia/Dhaka' })),
     year: Number(data.year || new Date(startsAt).getFullYear()),
     fee: Number(data.fee ?? 20),
@@ -82,28 +84,29 @@ export const normalizeChallenge = (id: string, data: Record<string, any>): Upcom
   };
 };
 
-export const getFallbackChallenge = (): UpcomingChallenge => {
+export const getFallbackChallenge = (level: string = 'HSC'): UpcomingChallenge => {
   const startsAt = getNextFallbackQuizStart();
   const startDate = new Date(startsAt);
 
   return {
-    id: 'monthly-quiz',
-    title: 'HSC ICT Monthly Quiz Exam',
+    id: level === 'SSC' ? 'ssc-monthly-quiz' : 'monthly-quiz',
+    title: level === 'SSC' ? 'SSC ICT Monthly Quiz Exam' : 'HSC ICT Monthly Quiz Exam',
+    level,
     month: startDate.toLocaleString('en-US', { month: 'long', timeZone: 'Asia/Dhaka' }),
     year: Number(startDate.toLocaleString('en-US', { year: 'numeric', timeZone: 'Asia/Dhaka' })),
     fee: 20,
     startsAt,
     endsAt: new Date(startDate.getTime() + 30 * 60 * 1000).toISOString(),
-    syllabus: fallbackSyllabus,
+    syllabus: level === 'SSC' ? ['অধ্যায় ১: তথ্য ও যোগাযোগ প্রযুক্তি ও আমাদের বাংলাদেশ', 'অধ্যায় ২: কম্পিউটার রক্ষণাবেক্ষণ ও সাইবার নিরাপত্তা'] : fallbackSyllabus,
     totalMarks: 30,
     durationMinutes: 30,
     status: 'PUBLISHED',
   };
 };
 
-export const fetchApiChallenges = async (): Promise<UpcomingChallenge[]> => {
+export const fetchApiChallenges = async (level: string = 'HSC'): Promise<UpcomingChallenge[]> => {
   try {
-    const response = await fetch('/api/challenges/upcoming');
+    const response = await fetch(`/api/challenges/upcoming?level=${level}`);
     if (!response.ok) return [];
 
     const challenges = await response.json() as UpcomingChallenge[];
@@ -117,8 +120,8 @@ export const fetchApiChallenges = async (): Promise<UpcomingChallenge[]> => {
 
 export const fetchFirestoreChallenges = async (): Promise<UpcomingChallenge[]> => [];
 
-export const fetchUpcomingChallenge = async (): Promise<UpcomingChallenge> => {
-  const items = await fetchApiChallenges();
+export const fetchUpcomingChallenge = async (level: string = 'HSC'): Promise<UpcomingChallenge> => {
+  const items = await fetchApiChallenges(level);
   const byId = new Map<string, UpcomingChallenge>();
   items.forEach(item => byId.set(item.id, item));
 
@@ -128,5 +131,5 @@ export const fetchUpcomingChallenge = async (): Promise<UpcomingChallenge> => {
     return aTime - bTime;
   });
   
-  return challenges[0] || getFallbackChallenge();
+  return challenges[0] || getFallbackChallenge(level);
 };

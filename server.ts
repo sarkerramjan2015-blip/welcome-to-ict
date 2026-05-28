@@ -5,6 +5,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv";
+import helmet from "helmet";
+import cors from "cors";
+import rateLimit from "express-rate-limit";
 import { createPayment, executePayment } from "./src/services/bkash";
 import paymentActionHandler from "./api/paymentAction";
 import manualPaymentsHandler from "./api/manualPayments";
@@ -25,6 +28,7 @@ import practiceShareHandler from "./src/server/api/practiceShare";
 import rankCardImageHandler from "./api/rankCardImage";
 import rankShareHandler from "./api/rankShare";
 import studyProgressHandler from "./src/server/api/studyProgress";
+import { verifyRequest, requireAdmin } from "./src/server/firebaseAdminAccess.js";
 
 dotenv.config();
 
@@ -34,11 +38,31 @@ const __dirname = path.dirname(__filename);
 const prisma = new PrismaClient();
 const ai = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || "");
 
+// Rate limiter for standard API routes
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200, // Limit each IP to 200 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: { error: "Too many requests from this IP, please try again later." }
+});
+
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT || 3000);
 
+  // Security Middleware
+  app.use(helmet({
+    contentSecurityPolicy: false, // Disable CSP for now as it often conflicts with Vite dev server and inline scripts
+    crossOriginEmbedderPolicy: false,
+  }));
+  app.use(cors({
+    origin: process.env.NODE_ENV === "production" ? ["https://icttoppers.com", "https://www.icttoppers.com"] : "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  }));
+
   app.use(express.json());
+  app.use("/api/", apiLimiter);
 
   // ==========================================
   // API ROUTES (Mimicking Server Actions)
@@ -292,7 +316,7 @@ async function startServer() {
                 window.opener.postMessage({ 
                   type: 'OAUTH_AUTH_SUCCESS', 
                   user: ${JSON.stringify(user)} 
-                }, '*');
+                }, window.location.origin);
                 window.close();
               } else {
                 window.location.href = '/';
@@ -309,25 +333,40 @@ async function startServer() {
   });
 
   // Simulated Login Fallback (For when Google credentials are not set up)
+  // DISABLED: This endpoint allowed creating users without verification.
   app.post("/api/auth/login", async (req, res) => {
-    const { email, name } = req.body;
-    try {
-      let user = await prisma.user.findUnique({ where: { email } });
-      if (!user) {
-        user = await prisma.user.create({
-          data: { email, name: name || "Student" }
-        });
-      }
-      res.json({ token: `mock-token-${user.id}`, user });
-    } catch (error) {
-      res.status(500).json({ error: "Auth failed" });
-    }
+    res.status(410).json({ error: "Mock login disabled for security. Use Firebase OAuth." });
   });
+
+  // ==========================================
+  // AUTH MIDDLEWARE
+  // ==========================================
+  const requireAuth = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+      const decodedToken = await verifyRequest(req);
+      (req as any).user = decodedToken;
+      next();
+    } catch (error: any) {
+      res.status(401).json({ error: error.message || "Unauthorized" });
+    }
+  };
+
+  const requireAdminAuth = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+      const decodedToken = await verifyRequest(req);
+      const admin = await requireAdmin(decodedToken);
+      (req as any).user = decodedToken;
+      (req as any).admin = admin;
+      next();
+    } catch (error: any) {
+      res.status(403).json({ error: error.message || "Forbidden: Admin access required" });
+    }
+  };
 
   // ==========================================
   // PROFILE / USER ROUTES
   // ==========================================
-  app.put("/api/user/profile", async (req, res) => {
+  app.put("/api/user/profile", requireAuth, async (req, res) => {
     const { userId, name, phone, institution, district, upazila, bio, profileImage } = req.body;
     try {
       const updatedUser = await prisma.user.update({
@@ -343,7 +382,7 @@ async function startServer() {
   // ==========================================
   // TASK ROUTES
   // ==========================================
-  app.get("/api/tasks", async (req, res) => {
+  app.get("/api/tasks", requireAuth, async (req, res) => {
     const { userId } = req.query;
     if (!userId) return res.status(400).json({ error: "Missing userId" });
     try {
@@ -357,7 +396,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/tasks", async (req, res) => {
+  app.post("/api/tasks", requireAuth, async (req, res) => {
     const { userId, title, priority } = req.body;
     if (!userId || !title) return res.status(400).json({ error: "Missing required fields" });
     try {
@@ -370,7 +409,7 @@ async function startServer() {
     }
   });
 
-  app.put("/api/tasks/:id", async (req, res) => {
+  app.put("/api/tasks/:id", requireAuth, async (req, res) => {
     const { id } = req.params;
     const { title, priority, completed } = req.body;
     try {
@@ -384,7 +423,7 @@ async function startServer() {
     }
   });
 
-  app.delete("/api/tasks/:id", async (req, res) => {
+  app.delete("/api/tasks/:id", requireAuth, async (req, res) => {
     const { id } = req.params;
     try {
       await prisma.task.delete({ where: { id } });
@@ -405,9 +444,11 @@ async function startServer() {
 
   app.get("/api/challenges/upcoming", async (req, res) => {
     try {
+      const level = req.query.level === "SSC" ? "SSC" : "HSC";
       const challenges = await prisma.challenge.findMany({
         where: {
           status: "LIVE",
+          level: level,
           startsAt: { gte: new Date() }
         },
         orderBy: { startsAt: 'asc' }
@@ -422,9 +463,11 @@ async function startServer() {
 
   app.get("/api/challenges/current", async (req, res) => {
     try {
+      const level = req.query.level === "SSC" ? "SSC" : "HSC";
       let challenge = await prisma.challenge.findFirst({
         where: {
           status: "LIVE",
+          level: level,
           startsAt: { gte: new Date() }
         },
         orderBy: { startsAt: 'asc' }
@@ -432,7 +475,7 @@ async function startServer() {
 
       if (!challenge) {
         const latestChallenge = await prisma.challenge.findFirst({
-          where: { status: "LIVE" },
+          where: { status: "LIVE", level: level },
           orderBy: { startsAt: 'desc' }
         });
 
@@ -447,7 +490,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/challenges/:id/enroll", async (req, res) => {
+  app.post("/api/challenges/:id/enroll", requireAuth, async (req, res) => {
     const { userId } = req.body;
     try {
       const enrollment = await prisma.enrollment.upsert({
@@ -461,7 +504,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/challenges/:id/pay/bkash/create", async (req, res) => {
+  app.post("/api/challenges/:id/pay/bkash/create", requireAuth, async (req, res) => {
     const { userId } = req.body;
     try {
       // Create pending enrollment
@@ -483,9 +526,13 @@ async function startServer() {
       }
     } catch (error) {
       console.error(error);
-      // Mock flow if dummy keys fail during development
-      console.log("Mocking bKash Create Payment flow due to error");
-      res.json({ bkashURL: `/api/challenges/${req.params.id}/pay/bkash/callback?paymentID=mock-${Date.now()}&status=success&userId=${userId}` });
+      if (process.env.NODE_ENV === "production") {
+        res.status(500).json({ error: "Failed to create payment in production environment." });
+      } else {
+        // Mock flow if dummy keys fail during development
+        console.log("Mocking bKash Create Payment flow due to error (development only)");
+        res.json({ bkashURL: `/api/challenges/${req.params.id}/pay/bkash/callback?paymentID=mock-${Date.now()}&status=success&userId=${userId}` });
+      }
     }
   });
 
@@ -496,8 +543,8 @@ async function startServer() {
       if (status === 'success' && paymentID) {
         let isSuccess = false;
         
-        // If it's a mock payment ID from our fallback
-        if ((paymentID as string).startsWith('mock-')) {
+        // If it's a mock payment ID from our fallback (only allow in non-production)
+        if (process.env.NODE_ENV !== "production" && (paymentID as string).startsWith('mock-')) {
           isSuccess = true;
         } else {
           // Execute actual payment
@@ -523,7 +570,7 @@ async function startServer() {
     }
   });
 
-  app.get("/api/challenges/:id/questions", async (req, res) => {
+  app.get("/api/challenges/:id/questions", requireAuth, async (req, res) => {
     const { userId } = req.query;
     try {
       const enrollment = await prisma.enrollment.findUnique({
@@ -535,14 +582,17 @@ async function startServer() {
       const questions = await prisma.challengeQuestion.findMany({
         where: { challengeId: req.params.id }
       });
-      const parsed = questions.map(q => ({ ...q, options: JSON.parse(q.options) }));
+      const parsed = questions.map(q => {
+        const { correctAnswer, explanation, ...safeQ } = q;
+        return { ...safeQ, options: JSON.parse(q.options) };
+      });
       res.json(parsed);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch questions" });
     }
   });
 
-  app.post("/api/challenges/:id/submit", async (req, res) => {
+  app.post("/api/challenges/:id/submit", requireAuth, async (req, res) => {
     const { userId, answers } = req.body;
     try {
       // Server-Side Anti-Cheat: Validate answers directly against DB
@@ -567,7 +617,7 @@ async function startServer() {
     }
   });
 
-  app.get("/api/dashboard", async (req, res) => {
+  app.get("/api/dashboard", requireAuth, async (req, res) => {
     const { userId } = req.query;
     try {
       const enrollments = await prisma.enrollment.findMany({
@@ -602,7 +652,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/admin/challenges/generate", async (req, res) => {
+  app.post("/api/admin/challenges/generate", requireAdminAuth, async (req, res) => {
     try {
       let generatedQuestions: any[] = [];
       

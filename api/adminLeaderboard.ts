@@ -69,6 +69,7 @@ const listChallengeSets = async () => {
         id: item.id,
         title: cleanString(data.title) || 'HSC ICT Monthly Quiz Exam',
         status: cleanString(data.status) || 'DRAFT',
+        level: cleanString(data.level) || 'HSC',
         startsAt: toIsoDate(data.startsAt),
         updatedAt: toIsoDate(data.updatedAt),
       };

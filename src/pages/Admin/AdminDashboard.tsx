@@ -176,6 +176,7 @@ interface FormState {
   };
   challenge: {
     title: string;
+    level: string;
     challengeId: string;
     startsAt: string;
     endsAt: string;
@@ -373,6 +374,7 @@ const makeInitialForms = (): FormState => ({
   },
   challenge: {
     title: 'HSC ICT Monthly Quiz Exam',
+    level: 'HSC',
     challengeId: '',
     startsAt: '',
     endsAt: '',
@@ -609,6 +611,7 @@ const buildFirestorePayload = (action: ActionType, forms: FormState) => {
     return {
       id: challengeId,
       title,
+      level: form.level || 'HSC',
       month: startsAtDate.toLocaleString('en-US', { month: 'long', timeZone: 'Asia/Dhaka' }),
       year: Number(startsAtDate.toLocaleString('en-US', { year: 'numeric', timeZone: 'Asia/Dhaka' })),
       fee: toNumber(form.fee, 20),
@@ -1507,6 +1510,7 @@ export default function AdminDashboard() {
       ...prev,
       challenge: {
         title: challenge.title,
+        level: challenge.level || 'HSC',
         challengeId: challenge.id,
         startsAt: toDateTimeLocal(challenge.startsAt),
         endsAt: toDateTimeLocal(challenge.endsAt),
@@ -1753,7 +1757,7 @@ export default function AdminDashboard() {
               <option value="">Select published quiz set</option>
               {challengeSets.map(item => (
                 <option key={item.id} value={item.id}>
-                  {item.title} - {item.id}
+                  [{item.level || 'HSC'}] {item.title} - {item.id}
                 </option>
               ))}
             </select>
@@ -1802,13 +1806,14 @@ export default function AdminDashboard() {
       const form = forms.challenge;
       return (
         <>
-          <TextInput label="Quiz Title" value={form.title} onChange={value => updateForm(action, 'title', value)} placeholder="HSC ICT Monthly Quiz Exam" required />
+          <TextInput label="Quiz Title" value={form.title} onChange={value => updateForm(action, 'title', value)} placeholder="HSC/SSC ICT Monthly Quiz Exam" required />
           <TextInput label="Routine ID (optional)" value={form.challengeId} onChange={value => updateForm(action, 'challengeId', value)} placeholder="quiz-2026-05-15-number-systems" />
           <div className="grid gap-4 md:grid-cols-2">
             <TextInput label="Starts At" type="datetime-local" value={form.startsAt} onChange={value => updateForm(action, 'startsAt', value)} required />
             <TextInput label="Ends At (optional)" type="datetime-local" value={form.endsAt} onChange={value => updateForm(action, 'endsAt', value)} />
           </div>
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-5">
+            <SelectInput label="Level" value={form.level} onChange={value => updateForm(action, 'level', value)} options={['HSC', 'SSC']} />
             <TextInput label="Fee" type="number" value={form.fee} onChange={value => updateForm(action, 'fee', value)} required />
             <TextInput label="Total Marks" type="number" value={form.totalMarks} onChange={value => updateForm(action, 'totalMarks', value)} required />
             <TextInput label="Duration (minutes)" type="number" value={form.durationMinutes} onChange={value => updateForm(action, 'durationMinutes', value)} required />
@@ -2267,6 +2272,7 @@ export default function AdminDashboard() {
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     {[
+                      { label: 'Level', value: nextChallengeDetails.level || 'HSC' },
                       { label: 'Starts', value: formatActivityDate(nextChallengeDetails.startsAt) },
                       { label: 'Ends', value: formatActivityDate(nextChallengeDetails.endsAt) },
                       { label: 'Fee', value: formatCurrency(nextChallengeDetails.fee) },
@@ -2417,7 +2423,7 @@ export default function AdminDashboard() {
                 ) : (
                   leaderboardSets.map(item => (
                     <option key={item.id} value={item.id}>
-                      {item.title} - {item.id}
+                      [{item.level || 'HSC'}] {item.title} - {item.id}
                     </option>
                   ))
                 )}
@@ -3097,7 +3103,7 @@ export default function AdminDashboard() {
                 ) : (
                   challengeSets.map(item => (
                     <option key={item.id} value={item.id}>
-                      {item.title} - {item.id}
+                      [{item.level || 'HSC'}] {item.title} - {item.id}
                     </option>
                   ))
                 )}
@@ -3117,6 +3123,9 @@ export default function AdminDashboard() {
 
           {selectedQuestionChallengeId && (
             <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+              <span className="rounded-full border border-slate-900/10 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-slate-950/50">
+                Level: {selectedChallengeDetails?.level || 'HSC'}
+              </span>
               <span className="rounded-full border border-slate-900/10 bg-white/70 px-3 py-1 dark:border-white/10 dark:bg-slate-950/50">
                 Status: {selectedChallengeDetails?.status || 'Unknown'}
               </span>

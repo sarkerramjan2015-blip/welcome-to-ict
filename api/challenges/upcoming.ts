@@ -82,7 +82,8 @@ const normalizeChallenge = (id: string, data: Record<string, any>) => {
 
   return {
     id,
-    title: String(data.title || 'HSC ICT Monthly Quiz Exam').trim(),
+    title: String(data.title || (data.level === 'SSC' ? 'SSC ICT Monthly Quiz Exam' : 'HSC ICT Monthly Quiz Exam')).trim(),
+    level: String(data.level || 'HSC'),
     month: String(data.month || new Date(startsAt).toLocaleString('en-US', { month: 'long', timeZone: 'Asia/Dhaka' })),
     year: Number(data.year || new Date(startsAt).getFullYear()),
     fee: Number(data.fee ?? 20),
@@ -107,11 +108,12 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json([]);
     }
 
+    const levelQuery = String(req.query?.level || 'HSC').toUpperCase();
     const snapshot = await adminDb.collection('megaChallenges').get();
     const challenges = snapshot.docs
       .filter(item => item.id !== 'current')
       .map(item => normalizeChallenge(item.id, item.data()))
-      .filter(Boolean)
+      .filter((item): item is NonNullable<typeof item> => Boolean(item) && item.level.toUpperCase() === levelQuery)
       .sort((a: any, b: any) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
 
     return res.status(200).json(challenges);
